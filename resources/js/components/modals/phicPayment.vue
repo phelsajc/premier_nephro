@@ -110,9 +110,9 @@ export default {
                       }
                         )
                         .then(res => {
-                         // console.log(res)
+                          console.log(res);
                             this.form.status = res.data.status == 'PAID'? true:false;
-                            this.form.status = res.data.remarks;
+                            this.form.remarks = res.data.remarks;
                             //alert(this.form.status)
                         })
                         .catch(error => console.log(error))

@@ -31,14 +31,13 @@
           >
             <li class="nav-item" :class="{'menu-open':this.$route.name=='company_add'||this.$route.name=='patients_list'||this.$route.name=='doctors_list'||this.$route.name=='product_add'||this.$route.name=='rproduct_add'||this.$route.name=='rproduct_list'||this.$route.name=='company_list'||this.$route.name=='product_list'}">
             <a href="#" class="nav-link" :class="{'active':this.$route.name=='patients_list'||this.$route.name=='doctors_list'||this.$route.name=='rproduct_list'||this.$route.name=='company_list'||this.$route.name=='product_list'}">
-              <!-- <i class="nav-icon fas fa-edit"></i> -->
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Master Files
               </p>
             </a>
             <ul class="nav nav-treeview">
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <router-link to="/rproduct_list" ><a href="#" class="nav-link" :class="{'active':this.$route.name=='rproduct_list'||this.$route.name=='rproduct_add'}">
                   <i class="far fa-circle nav-icon"></i>
                   Received
@@ -55,7 +54,7 @@
                   <i class="far fa-circle nav-icon"></i>
                     Company
                 </a></router-link>
-              </li>
+              </li> -->
               <li class="nav-item">
                 <router-link to="/patients_list" > <a href="#" class="nav-link" :class="{'active':this.$route.name=='patients_list'||this.$route.name=='patients_add'}">
                   <i class="far fa-circle nav-icon"></i>
@@ -68,11 +67,10 @@
                     Doctors
                 </a></router-link>
               </li>
-            </ul>
-              
+            </ul>              
           </li>
 
-            <li class="nav-item" :class="{'menu-open':this.$route.name=='collection_add'||this.$route.name=='collection_list'||this.$route.name=='collection_reports'}">
+            <!-- <li class="nav-item" :class="{'menu-open':this.$route.name=='collection_add'||this.$route.name=='collection_list'||this.$route.name=='collection_reports'}">
               <a href="#" class="nav-link" :class="{'active':this.$route.name=='collection_list'||this.$route.name=='collection_reports'}">
                 <i class="nav-icon fas fa-random"></i>
                 <p>
@@ -93,7 +91,7 @@
                   </a></router-link>
                 </li>
               </ul>
-            </li>
+            </li> -->
 
             
             <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='transaction_list'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
@@ -133,12 +131,12 @@
                       PHIC
                     </a></router-link>
                   </li>
-                  <li class="nav-item">
+                  <!-- <li class="nav-item">
                     <router-link to="/yearly_report" class=""><a href="#" class="nav-link">
                       <i class="far fa-circle nav-icon"  :class="{'fa-dot-circle':this.$route.name=='yearly_report'}"></i>     
                       Yearly
                     </a></router-link>
-                  </li>
+                  </li> -->
                 </ul>
               </li>
               </ul>
@@ -153,12 +151,12 @@
             
             
             
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <router-link to="/stocks" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='stocks'}">
                 <i class="far fa-circle nav-icon"></i>
                 Stocks                
               </a></router-link>
-            </li>
+            </li> -->
   
             <li class="nav-item">
               <router-link to="/logout" class="nav-link">
