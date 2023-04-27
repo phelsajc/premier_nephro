@@ -4,7 +4,7 @@
         <div class="modal-wrapper">
           <div class="modal-container">
             <div class="modal-header">
-              <slot name="header">Add Item Department</slot>
+              <slot name="header">Update Status</slot>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"  @click="$emit('close')">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -78,8 +78,8 @@ export default {
                       }
                         )
                         .then(res => {
-                          this.results = res.data
-                    this.month = moment(this.filter.date).format('MMMM YYYY')
+                         // this.results = res.data
+                    //this.month = moment(this.filter.date).format('MMMM YYYY')
                             Toast.fire({
                                 icon: 'success',
                                 title: 'Saved successfully'

@@ -67,6 +67,8 @@ let phic_list = require('./components/phic/index.vue').default
 let phic_add = require('./components/phic/create.vue').default
 let phic_reports = require('./components/phic/Reports.vue').default
 
+//census
+let census = require('./components/census/index.vue').default
 /*
     path, component & name should be the same inorder to work
 */
@@ -135,6 +137,9 @@ export const routes = [
     { path: '/phic_list', component: phic_list, name: 'phic_list' },
     { path: '/phic_add/:id', component: phic_add, name: 'phic_add' },
     { path: '/phic_reports', component: phic_reports, name: 'phic_reports' },
+
+    //census
+    { path: '/census', component: census, name: 'census' },
 ]
 
 

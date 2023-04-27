@@ -25,7 +25,7 @@
                   
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">PHC Reportxx</h3>
+                <h3 class="card-title">PHIC Report</h3>
                
               </div>
 
@@ -64,6 +64,10 @@
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount Due:</dt>
                   <dd class="col-sm-8">{{ totalAmount }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total PAID:</dt>
+                  <dd class="col-sm-8">{{ totalAmountPaid }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Month:</dt>
@@ -136,6 +140,7 @@ import moment from 'moment';
               getsessionid: '',
               month: null,
               doctors_list: [],
+              getTotalPaidClaims: 0,
               token: localStorage.getItem('token'),
           }
       },
@@ -147,7 +152,10 @@ import moment from 'moment';
               return this.doctors_list.find(e => e.id == this.filter.doctors);
             },
             totalAmount(){
-              return (this.total_sessions *150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              return (this.total_sessions *350).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            },
+            totalAmountPaid(){
+              return (this.getTotalPaidClaims *350).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
         },
       methods:{
@@ -210,7 +218,9 @@ import moment from 'moment';
                       }
                         )
                         .then(res => {
-                          this.results = res.data
+                          console.log(res.data)
+                          this.getTotalPaidClaims = res.data.getPaidClaims
+                          this.results = res.data.data
                     /* this.results.forEach(e => {
                         this.total_sessions += parseFloat(e.sessions);
                     }) */

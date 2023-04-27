@@ -39,13 +39,13 @@
                                 <div class="col-sm-2">
                                     <div class="form-group ">
                                         <label>Date</label>
-                                        <datepicker name="date" required input-class ="dpicker" v-model="filter.date" :bootstrap-styling=true></datepicker>
+                                        <datepicker name="date" required input-class ="dpicker" :bootstrap-styling=true></datepicker>
                                     </div>
                                 </div>
                                 <div class="col-sm-2">
                                     <div class="form-group ">
                                         <label>Date</label>
-                                        <input type="text" class="form-control" id="" v-model="form.name">
+                                        <input type="text" class="form-control" id="">
                                     </div>
                                 </div>
                                 <div class="col-sm-2">

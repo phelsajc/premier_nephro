@@ -148,6 +148,7 @@ class PHICController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $date = date_format(date_create($request->data['date']),'Y-m');
+        $date2 = date_format(date_create($request->data['date']),'Y-m-d');
         $doctors = $request->data['doctors'];
         $getDoctor = Doctors::where(["id"=>$doctors])->first();
         $doctors = $request->data['doctors'];
@@ -160,6 +161,10 @@ class PHICController extends Controller
                 s.doctor = $doctors
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
+            //$getPaidClaims = Phic::where(["date_session"=>$date2,"doctor"=>$doctors,"status"=>"PAID"])->get();
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where DATE_FORMAT(date_session, '%Y-%m') = '$date' and status = 'PAID' and doctor = $doctors
+            ");
         }else{
             $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
@@ -168,6 +173,10 @@ class PHICController extends Controller
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' 
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where DATE_FORMAT(date_session, '%Y-%m') = '$date' and status = 'PAID'
+            ");
+            //$getPaidClaims = Phic::where(["date_session"=>$date2,"status"=>"PAID"])->get();
         }        
      
         $data_array = array();
@@ -192,13 +201,17 @@ class PHICController extends Controller
             }
             $arr['name'] =  $value->name;
             $arr['sessions'] =  $value->cnt;
+            $arr['paidSessions'] =  $value->cnt;
             $arr['dates'] =  $date_of_sessions;
             $arr['datesArr'] =  $date_of_sessionsArr;
             $data_array[] = $arr;
             
             $date_of_sessions = '';
         }
-        $datasets = array(["data"=>$data_array,"Doctors"=>$getDoctor]);
-        return response()->json($data_array);
+        $datasets = array();
+        $datasets["data"]=$data_array;
+        $datasets["Doctors"]=$getDoctor;
+        $datasets["getPaidClaims"]= count($getPaidClaims);        
+        return response()->json($datasets);
     }
 }

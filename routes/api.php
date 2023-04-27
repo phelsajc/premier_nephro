@@ -135,6 +135,9 @@ Route::match(['get','post'],'phic-report','PHICController@report');
 Route::match(['get','post'],'phic-update','PHICController@update');
 Route::match(['get','post'],'phic-edit/{id}','PHICController@edit');
 
+#Census
+Route::match(['get','post'],'census-report','CensusController@report');
+
 
 
 
