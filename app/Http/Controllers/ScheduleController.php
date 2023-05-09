@@ -11,6 +11,7 @@ use App\Model\Doctors;
 use App\Model\Patients;
 use App\Model\FailedSchedule;
 use App\Model\Phic;
+use App\Model\Transaction_log;
 use DB;
 
 class ScheduleController extends Controller
@@ -33,7 +34,7 @@ class ScheduleController extends Controller
             $chck_dct = DB::connection('mysql')->select("select * from doctors where name like '%".$value['Incharge']."%'");
             $chck_px = DB::connection('mysql')->select("select * from patients where name like '%".$value['Customer']."%'");      
             $doctor  =$value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
-            $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule'])])->first();
+            $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule']),'status'=>'ACTIVE'])->first();
             if($doctor!=null&&$check_schedule==null){
                 $p = new Schedule;
                 $p->schedule = date_create($value['Schedule']);
@@ -75,14 +76,14 @@ class ScheduleController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $length = 10;
-        $start = $request->start?$request->start:0;
-        $val = $request->searchTerm2;
+        $start = $request->data?$request->data['start']:0;
+        $val = $request->data?$request->data['searchTerm2']:null;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select s.*,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select s.*,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' ");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE'");
         }else{
-            $data =  DB::connection('mysql')->select("select s.*,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' LIMIT $length");
-            $count =  DB::connection('mysql')->select("select s.*,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."'");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' ");
         }
         
         $count_all_record =  DB::connection('mysql')->select("select  count(*) as count from schedule s left join patients p on s.patient_id = p.id ");
@@ -91,8 +92,9 @@ class ScheduleController extends Controller
 
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr['id'] =  $value->id;
+            $arr['id'] =  $value->schedule_id;
             $arr['name'] =  $value->name;
+            $arr['date'] =  date_format(date_create($value->schedule),'F d,Y');
             $incharge = Doctors::where(['id'=>$value->doctor])->first();
             $attending_doctor = Doctors::where(['id'=>$value->attending_doctor])->first();
             $arr['incharge_dctr'] = $incharge ?$incharge->name:'';
@@ -144,7 +146,17 @@ class ScheduleController extends Controller
 
     public function Delete($id)
     {
-        Schedule::where('id',$id)->delete();
+        date_default_timezone_set('Asia/Manila');
+        $get_schedule = Schedule::where(['id'=>$id])->first();
+        Schedule::where(['id'=>$id])->update([
+            'status'=> 'INACTIVE',
+        ]);
+        $get_patient = Patients::where(['id'=>$get_schedule->patient_id])->first();
+        $p = new Transaction_log;
+        $p->action = 'DELETE SESSION OF '.$get_patient->name.' on '.$get_schedule->schedule;
+        $p->created_dt = date("Y-m-d H:i");
+        $p->created_by = auth()->id();   
+        $p->save();         
         return true;
     }  
 

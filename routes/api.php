@@ -118,7 +118,7 @@ Route::match(['get','post'],'doctors-detail/{id}','DoctorsController@edit');
 Route::match(['get','post'],'doctors-delete/{id}','DoctorsController@delete');
 Route::match(['get','post'],'getDoctors','DoctorsController@getDoctors');
 
-#Schedule
+#Schedule || Session
 Route::match(['get','post'],'schedule-import','ScheduleController@import');
 Route::match(['get','post'],'schedule-add','ScheduleController@store');
 Route::match(['get','post'],'schedule-update','ScheduleController@update');
@@ -137,6 +137,9 @@ Route::match(['get','post'],'phic-edit/{id}','PHICController@edit');
 
 #Census
 Route::match(['get','post'],'census-report','CensusController@report');
+Route::match(['get','post'],'revenue-report','CensusController@revenue');
+
+
 
 
 

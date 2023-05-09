@@ -12,13 +12,13 @@
       </router-link>
       <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-          <div class="image">
+          <!-- <div class="image">
             <img
               :src="img"
               class="img-circle elevation-2"
               alt="User Image"
             />
-          </div>
+          </div> -->
           <div class="info">
             <user-info></user-info>
           </div>
@@ -93,7 +93,6 @@
                 </li>
               </ul>
             </li> -->
-
             
             <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='transaction_list'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
               <a href="#" class="nav-link" :class="{'active':this.$route.name=='phic_list'||this.$route.name=='reports'||this.$route.name=='copay_list'}">
@@ -109,7 +108,7 @@
                 <i class="far fa-circle nav-icon"></i>
                 Session
               </a></router-link>
-            </li>  
+            </li> 
 
             <li class="nav-item" :class="{'menu-open':this.$route.name=='reports'||this.$route.name=='phic_list'||this.$route.name=='copay_list'}">
                 <a href="#" class="nav-link">
@@ -151,13 +150,18 @@
             </li>
             
             <li class="nav-item">
-              <router-link to="/census" class="collapse-item"><a href="#" class="nav-link" id="censusmenu" :class="{'active':this.$route.name=='census'||this.$route.name=='usersadd'}">
+              <router-link to="/census" class="collapse-item"><a href="#" class="nav-link" id="censusmenu" :class="{'active':this.$route.name=='census'}">
                 <i class="far fa-circle nav-icon"></i>
                 Census
               </a> </router-link>
-            </li>
+            </li> 
             
-            
+            <li class="nav-item">
+              <router-link to="/revenue_list" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu" :class="{'active':this.$route.name=='revenue_list'}">
+                <i class="far fa-circle nav-icon"></i>
+                Revenue Sharing
+              </a> </router-link>
+            </li> 
             
             <!-- <li class="nav-item">
               <router-link to="/stocks" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='stocks'}">
@@ -180,7 +184,8 @@
   export default {
     data() {
       return {
-        img: '../../../../backend2/premier.jpg'
+        img: '../../../../backend2/premier.jpg',
+        avatar: '../../../../backend2/dist/img/avatar3.png',
       }
     },
   }

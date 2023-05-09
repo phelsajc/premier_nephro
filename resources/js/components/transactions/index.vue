@@ -23,9 +23,9 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
-                  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
+                 <!--  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
                     >Add</router-link
-                  >
+                  > -->
                   <div class="pull-right">
                   <input type="file" accept=".csv" @change="handleFileUpload( $event )"/>                            
                         <button type="button" @click="test()" class="btn btn-info btn-sm">Upload</button>
@@ -42,26 +42,26 @@
                   </div>
                   <form class="user" enctype="multipart/form-data">
                             <div class="row">
-                                <div class="col-sm-2">
+                                <!-- <div class="col-sm-2">
                                     <div class="form-group ">
                                         <label>Date</label>
                                         <datepicker name="date" required input-class ="dpicker" v-model="date" :bootstrap-styling=true></datepicker>
                                     </div>
-                                </div>
+                                </div> -->
                                 <!-- <div class="col-sm-2">
                                     <div class="form-group ">
                                         <label>Patient</label>
                                         <input type="text" class="form-control" id="" v-model="name">
                                     </div>
                                 </div> -->
-                                <div class="col-sm-2">
+                                <!-- <div class="col-sm-2">
                                     <div class="form-group">
                                         <label>&nbsp;</label> <br>
                                             <button type="button"  class="btn btn-danger">
                                             Filter
                                             </button>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>                            
                         </form>
                         
@@ -89,11 +89,22 @@
                          <!--  <span class="badge badge-success"> Doctor: {{e.incharge_dctr!=""?e.incharge_dctr:e.attending_dctr}}</span>
  -->
                           
+                          <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-success">Main Doctor: {{e.attending_dctr}} <br></span>
                           <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-warning">Doctor In-charge: {{e.incharge_dctr}} </span>
 
-                          <span v-else class="badge badge-success">Doctor : {{e.attending_dctr}}</span>
-
+                          <span v-else class="badge badge-success">Doctor : {{e.attending_dctr}}</span><br>
+                          <span class="badge badge-info">Doctor : {{e.date}}</span>
+                          
                         </div>
+
+                        <div class="col-6 pull-right">
+                        <div class="pull-right">
+                                            <button type="button"  class="btn btn-danger" @click="delete_session(e.id)">
+                                            Delete
+                                            </button>
+                          </div>
+                          </div>
+
                       </div>
                     </li>
                     <!-- </router-link> -->
@@ -274,8 +285,16 @@ created() {
               this.countRecords = null
             this.form.start = 0
             this.isHidden =  false
-              //axios.post('/api/filterEmployee',this.form)
-              axios.post('/api/schedule',this.form)
+            
+            const headers = {
+                    Authorization: "Bearer ".concat(this.token),
+                }
+              axios.post('/api/schedule', {
+                            data:this.form,
+                        } ,{
+                      headers: headers
+                    }
+                        )
 
               .then(res => {
                 this.employees = res.data[0].data
@@ -288,10 +307,6 @@ created() {
           getPageNo(id){
             this.form.start = (id-1) * 10
             this.isHidden =  false
-            //alert(a)
-            /* this.employees = []
-            this.countRecords = null */
-            //axios.post('/api/filterEmployee',this.form)
             console.log(this.isHidden)
             axios.post('/api/schedule',this.form)
               .then(res => {
@@ -321,12 +336,12 @@ created() {
             test(){
               const headers = {
                     Authorization: "Bearer ".concat(this.token),
-}
+                }
                 axios.post('/api/schedule-import', {
                             data:this.content.data,
                         } ,{
-    headers: headers
-  }
+                      headers: headers
+                    }
                         )
                         .then(res => {
                           this.allEmployee();
@@ -336,7 +351,23 @@ created() {
                             });
                         })
                         .catch(error => console.log(error))
-            }
+            },
+          delete_session(id){
+            const headers = {
+                        Authorization: "Bearer ".concat(this.token),
+              }
+                    axios.get('/api/schedule-delete/'+id, {
+                            headers: headers
+                          }
+                            )
+                            .then(res => {
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Deleted successfully'
+                                });
+                            })
+                            .catch(error => console.log(error))
+          }
       },
       /* mounted () {
         axios.get('/api/check_doctors_detail/'+id)
@@ -345,6 +376,7 @@ created() {
       /* created(){
           this.allEmployee();
       } */
+
   }
 </script>
 

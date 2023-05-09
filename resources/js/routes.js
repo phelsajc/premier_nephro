@@ -62,6 +62,12 @@ let copay_list = require('./components/copay/index.vue').default
 let copay_add = require('./components/copay/create.vue').default
 let copay_reports = require('./components/copay/Reports.vue').default
 
+
+//CoPay
+let revenue_list = require('./components/revenue/index.vue').default
+let revenue_add = require('./components/revenue/create.vue').default
+let revenue_reports = require('./components/revenue/Reports.vue').default
+
 //Phic
 let phic_list = require('./components/phic/index.vue').default
 let phic_add = require('./components/phic/create.vue').default
@@ -140,6 +146,10 @@ export const routes = [
 
     //census
     { path: '/census', component: census, name: 'census' },
+
+    //Revenue
+    { path: '/revenue_list', component: revenue_list, name: 'revenue_list' },
+    { path: '/revenue_reports', component: revenue_reports, name: 'revenue_reports' },
 ]
 
 

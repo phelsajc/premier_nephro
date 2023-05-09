@@ -155,14 +155,14 @@ class CensusController extends Controller
                 select p.name,s.schedule from schedule s 
                 left join patients p on s.patient_id = p.id
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and
-                s.doctor = $doctors
+                s.doctor = $doctors and s.status = 'ACTIVE'
                 order by s.schedule ASC;
             ");
         }else{
             $data =  DB::connection('mysql')->select("
             select p.name,s.schedule from schedule s 
                 left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date'
+                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
                 order by s.schedule ASC;
             ");
         }
@@ -173,6 +173,40 @@ class CensusController extends Controller
             $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
             $data_array[] = $arr;
         }
+        return response()->json($data_array);
+    }
+
+    public function revenue(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->data['fdate']),'Y-m');
+        $tdate = date_format(date_create($request->data['tdate']),'Y-m');
+        
+        $data =  DB::connection('mysql')->select("
+            SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.schedule, '%Y-%m') as schedule FROM `schedule` s where s.status = 'ACTIVE' 
+            and DATE_FORMAT(s.schedule, '%Y-%m') between '$fdate' and '$tdate' 
+            group by DATE_FORMAT(s.schedule, '%Y-%m');
+        ");     
+     
+        $data_array = array();
+
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['month'] =  date_format(date_create($value->schedule),'F');
+            $session = $value->cnt;
+            $arr['sessions'] =  $session;
+            $gross = 2250 * $session;
+            $share = $gross * 0.25;
+            $tax = $share * 0.05;
+            $net = $share * 0.95;
+
+            $arr['gross'] =  $gross;
+            $arr['share'] = $share;
+            $arr['tax'] = $tax;
+            $arr['net'] = $net;
+            $data_array[] = $arr;
+        }
+        $datasets = array(["data"=>$data_array]);
         return response()->json($data_array);
     }
 }

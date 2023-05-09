@@ -154,7 +154,7 @@ class CopayController extends Controller
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and
-                s.doctor = $doctors
+                s.doctor = $doctors and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
         }else{
@@ -162,7 +162,7 @@ class CopayController extends Controller
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' 
+                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
         }        
@@ -173,7 +173,7 @@ class CopayController extends Controller
             $arr = array();
             $get_dates = DB::connection('mysql')->select("
             SELECT schedule from schedule
-                where DATE_FORMAT(schedule, '%Y-%m') = '$date' and patient_id = '$value->patient_id'
+                where DATE_FORMAT(schedule, '%Y-%m') = '$date' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
             ");
             $date_of_sessions = '';
             $date_of_sessionsArr = array();
