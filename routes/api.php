@@ -108,6 +108,8 @@ Route::match(['get','post'],'patients-update','PatientsController@update');
 Route::match(['get','post'],'patients','PatientsController@index');
 Route::match(['get','post'],'patients-detail/{id}','PatientsController@edit');
 Route::match(['get','post'],'patients-delete/{id}','PatientsController@delete');
+Route::match(['get','post'],'patients-find','PatientsController@find');
+
 
 #Docotrs
 Route::match(['get','post'],'doctors-import','DoctorsController@import');
@@ -137,6 +139,7 @@ Route::match(['get','post'],'phic-edit/{id}','PHICController@edit');
 
 #Census
 Route::match(['get','post'],'census-report','CensusController@report');
+Route::match(['get','post'],'census_px-report','CensusController@report_px');
 Route::match(['get','post'],'revenue-report','CensusController@revenue');
 
 

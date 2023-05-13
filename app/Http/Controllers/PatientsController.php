@@ -113,5 +113,21 @@ class PatientsController extends Controller
     {
         Patients::where('id',$id)->delete();
         return true;
-    }   
+    }  
+
+    public function find(Request $request)
+    {
+        $data =  DB::connection('mysql')->select("select * from patients where name like '%".$request->searchVal."%' ");
+
+        $data_array = array();
+
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['id'] =  $value->id;
+            $arr['name'] =  $value->name;;
+            $data_array[] = $arr;
+        }
+        //$datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        return response()->json($data_array);
+    }
 }

@@ -76,8 +76,8 @@ class ScheduleController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $length = 10;
-        $start = $request->data?$request->data['start']:0;
-        $val = $request->data?$request->data['searchTerm2']:null;
+        $start = $request->start;//data?$request->data['start']:0;
+        $val = $request->searchTerm2;//$request->data?$request->data['searchTerm2']:null;
         if($val!=''||$start>0){   
             $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE' LIMIT $length offset $start");
             $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE'");
@@ -97,7 +97,7 @@ class ScheduleController extends Controller
             $arr['date'] =  date_format(date_create($value->schedule),'F d,Y');
             $incharge = Doctors::where(['id'=>$value->doctor])->first();
             $attending_doctor = Doctors::where(['id'=>$value->attending_doctor])->first();
-            $arr['incharge_dctr'] = $incharge ?$incharge->name:'';
+            $arr['incharge_dctr'] = $value->doctor!=0 ?$incharge->name:'';
             $arr['attending_dctr'] =  $attending_doctor->name;
             $data_array[] = $arr;
         }
@@ -125,8 +125,27 @@ class ScheduleController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $p = new Schedule;
-        $p->name = $request->name;
-        $p->save();         
+        $p->patient_id = $request->patientid;
+        $p->schedule = $request->schedule;
+        $pxDctr = Patients::where(['id'=>$request->patientid])->first();
+        $p->doctor = $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor;
+        $p->save();          
+        
+        $c = new Copay;
+        $c->date_session = date_create($request->schedule);
+        $c->created_dt = date("Y-m-d");
+        $c->created_by =  auth()->id();
+        $c->doctor = $p->doctor;
+        $c->patient_id = $p->patient_id;
+        $c->save();  
+
+        $ph = new Phic;
+        $ph->date_session = date_create($request->schedule);
+        $ph->created_dt = date("Y-m-d");
+        $ph->created_by =  auth()->id();
+        $ph->doctor = $p->doctor;
+        $ph->patient_id = $p->patient_id;
+        $ph->save();
         return true;
     }
 

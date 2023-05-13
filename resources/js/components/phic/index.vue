@@ -35,8 +35,14 @@
                           <div class="row">
                               <div class="col-sm-2">
                                   <div class="form-group ">
-                                      <label>Date</label>
-                                      <datepicker name="date" required input-class ="dpicker" :minimumView="'month'" :maximumView="'month'" v-model="filter.date" :bootstrap-styling=true></datepicker>
+                                      <label>From</label>
+                                      <datepicker name="date" required input-class ="dpicker" v-model="filter.fdate" :bootstrap-styling=true></datepicker>
+                                  </div>
+                              </div>
+                              <div class="col-sm-2">
+                                  <div class="form-group ">
+                                      <label>To</label>
+                                      <datepicker name="date" required input-class ="dpicker" v-model="filter.tdate" :bootstrap-styling=true></datepicker>
                                   </div>
                               </div>
                               <div class="col-sm-2">
@@ -63,16 +69,24 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount Due:</dt>
-                  <dd class="col-sm-8">{{ totalAmount }}</dd>
+                  <dd class="col-sm-8">{{ totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Total PAID:</dt>
-                  <dd class="col-sm-8">{{ totalAmountPaid }}</dd>
+                  <dd class="col-sm-8">{{ totalAmountPaid.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
                 </dl>
                 <dl class="row">
+                  <dt class="col-sm-2">Balance:</dt>
+                  <dd class="col-sm-8">{{ balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total PAID Session:</dt>
+                  <dd class="col-sm-8">{{ getPaidClaims }}</dd>
+                </dl>
+                <!-- <dl class="row">
                   <dt class="col-sm-2">Month:</dt>
                   <dd class="col-sm-8">{{ month }}</dd>
-                </dl>
+                </dl> -->
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
                   <dd class="col-sm-8">{{ filter.doctors!=null&&filter.doctors!='All'?getDoctor.name:'' }}</dd>
@@ -132,7 +146,8 @@ import moment from 'moment';
           return {     
               showModal: false,           
               filter:{
-                  date: '',
+                  fdate: '',
+                  tdate: '',
                   doctors: null,
                   type: 'BOTH'
               },
@@ -140,6 +155,7 @@ import moment from 'moment';
               getsessionid: '',
               month: null,
               doctors_list: [],
+              getPaidClaims: 0,
               getTotalPaidClaims: 0,
               token: localStorage.getItem('token'),
           }
@@ -152,10 +168,13 @@ import moment from 'moment';
               return this.doctors_list.find(e => e.id == this.filter.doctors);
             },
             totalAmount(){
-              return (this.total_sessions *350).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              return (this.total_sessions *350)
             },
             totalAmountPaid(){
-              return (this.getTotalPaidClaims *350).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              return (this.getTotalPaidClaims *350)
+            },
+            balance(){
+              return ( this.totalAmount - this.totalAmountPaid)
             }
         },
       methods:{
@@ -220,17 +239,15 @@ import moment from 'moment';
                         .then(res => {
                           console.log(res.data)
                           this.getTotalPaidClaims = res.data.getPaidClaims
+                          this.getPaidClaims = res.data.getPaidClaims
                           this.results = res.data.data
-                    /* this.results.forEach(e => {
-                        this.total_sessions += parseFloat(e.sessions);
-                    }) */
                     this.month = moment(this.filter.date).format('MMMM YYYY')
                             Toast.fire({
                                 icon: 'success',
                                 title: 'Saved successfully'
                             });
                         })
-                        .catch(error => console.log(error))
+                        .catch(error => this.$router.push({name: '/'}))
           },
           checkToken(){                
             const headers = {

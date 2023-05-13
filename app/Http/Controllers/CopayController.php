@@ -144,25 +144,41 @@ class CopayController extends Controller
     public function report(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $date = date_format(date_create($request->data['date']),'Y-m');
+        $fdate = date_format(date_create($request->data['fdate']),'Y-m-d');
+        $tdate = date_format(date_create($request->data['tdate']),'Y-m-d');
         $doctors = $request->data['doctors'];
         $getDoctor = Doctors::where(["id"=>$doctors])->first();
         $doctors = $request->data['doctors'];
         if($doctors!='All'){
+            /* $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where DATE_FORMAT(s.schedule, '%Y-%m') between '$date' and
+                s.doctor = $doctors and s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            "); */
             $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and
+                where s.schedule between '$fdate' and '$tdate' and
                 s.doctor = $doctors and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
         }else{
-            $data =  DB::connection('mysql')->select("
+            /* $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            "); */
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
         }        
@@ -171,9 +187,13 @@ class CopayController extends Controller
 
         foreach ($data as $key => $value) {
             $arr = array();
-            $get_dates = DB::connection('mysql')->select("
+            /* $get_dates = DB::connection('mysql')->select("
             SELECT schedule from schedule
                 where DATE_FORMAT(schedule, '%Y-%m') = '$date' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
+            "); */
+            $get_dates = DB::connection('mysql')->select("
+            SELECT schedule from schedule
+                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
             ");
             $date_of_sessions = '';
             $date_of_sessionsArr = array();
@@ -189,7 +209,12 @@ class CopayController extends Controller
             
             $date_of_sessions = '';
         }
-        $datasets = array(["data"=>$data_array,"Doctors"=>$getDoctor]);
+        $datasets = array(["data"=>$data_array,"Doctors"=>$getDoctor,'dd'=>"SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+        FROM `schedule` s
+        left join patients p on s.patient_id = p.id
+        where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+        group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;"]);
         return response()->json($data_array);
+        //return response()->json($datasets);
     }
 }

@@ -148,13 +148,38 @@
                 Users
               </a> </router-link>
             </li>
+
+            <li class="nav-item" :class="{'menu-open':this.$route.name=='census_doctor'||this.$route.name=='census_patient'}">
+              <a href="#" class="nav-link" :class="{'active':this.$route.name=='census_doctor'||this.$route.name=='census_patient'}">
+                <i class="nav-icon fas fa-file-invoice"></i>
+                <p>
+                  Census
+                  <i class="right fas fa-angle-left"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <router-link to="/census_doctor" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='census_doctor'}">
+                <i class="far fa-circle nav-icon"></i>
+                Doctor
+              </a></router-link>
+            </li> 
+                <li class="nav-item">
+                  <router-link to="/census_patient" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='census_patient'}">
+                <i class="far fa-circle nav-icon"></i>
+                Patient
+              </a></router-link>
+            </li> 
+
+              </ul>
+            </li>
             
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <router-link to="/census" class="collapse-item"><a href="#" class="nav-link" id="censusmenu" :class="{'active':this.$route.name=='census'}">
                 <i class="far fa-circle nav-icon"></i>
                 Census
               </a> </router-link>
-            </li> 
+            </li>  -->
             
             <li class="nav-item">
               <router-link to="/revenue_list" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu" :class="{'active':this.$route.name=='revenue_list'}">

@@ -147,61 +147,93 @@ class PHICController extends Controller
     public function report(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $date = date_format(date_create($request->data['date']),'Y-m');
-        $date2 = date_format(date_create($request->data['date']),'Y-m-d');
+        $fdate = date_format(date_create($request->data['fdate']),'Y-m-d');
+        $tdate = date_format(date_create($request->data['tdate']),'Y-m-d');
         $doctors = $request->data['doctors'];
         $getDoctor = Doctors::where(["id"=>$doctors])->first();
         $doctors = $request->data['doctors'];
         if($doctors!='All'){
-            $data =  DB::connection('mysql')->select("
+            /* $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and
                 s.doctor = $doctors and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            "); */
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and
+                s.doctor = $doctors and s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
             //$getPaidClaims = Phic::where(["date_session"=>$date2,"doctor"=>$doctors,"status"=>"PAID"])->get();
-            $getPaidClaims =  DB::connection('mysql')->select("
+            /* $getPaidClaims =  DB::connection('mysql')->select("
                 select * from phic where DATE_FORMAT(date_session, '%Y-%m') = '$date' and status = 'PAID' and doctor = $doctors
+            "); */
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID' and doctor = $doctors
             ");
         }else{
-            $data =  DB::connection('mysql')->select("
+            /* $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            "); */
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
-            $getPaidClaims =  DB::connection('mysql')->select("
+            /* $getPaidClaims =  DB::connection('mysql')->select("
                 select * from phic where DATE_FORMAT(date_session, '%Y-%m') = '$date' and status = 'PAID'
+            "); */
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
             ");
             //$getPaidClaims = Phic::where(["date_session"=>$date2,"status"=>"PAID"])->get();
         }        
      
         $data_array = array();
 
+        $total_paid_session = 0;
         foreach ($data as $key => $value) {
             $arr = array();
-            $get_dates = DB::connection('mysql')->select("
+            /* $get_dates = DB::connection('mysql')->select("
             SELECT schedule, patient_id from schedule
                 where DATE_FORMAT(schedule, '%Y-%m') = '$date' and patient_id = '$value->patient_id' and status = 'ACTIVE'
+            "); */
+            $get_dates = DB::connection('mysql')->select("
+            SELECT schedule, patient_id from schedule
+                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
             ");
             $date_of_sessions = '';
             $date_of_sessionsArr = array();
+            $paid_session = 0;
             foreach ($get_dates as $gkey => $gvalue) {
                 $date_of_sessionsArr_set = array();
                 $s_date = date_format(date_create($gvalue->schedule),'F d');
                 $date_of_sessionsArr_set['date'] = $s_date;
                 $data_sessions = Phic::where(['date_session'=>date_format(date_create($gvalue->schedule),'Y-m-d'),'patient_id'=>$gvalue->patient_id])->first();
+                if($data_sessions){
+                    $data_sessions->status=='PAID'?$paid_session++:0;
+                }
                 $date_of_sessionsArr_set['status'] = $data_sessions?$data_sessions->status:'';
                 $date_of_sessionsArr_set['id'] =$data_sessions?$data_sessions->id:null;
+                $date_of_sessionsArr_set['x'] =date_format(date_create($gvalue->schedule),'Y-m-d');
+                $date_of_sessionsArr_set['y'] =$gvalue->patient_id;
                 $date_of_sessions.=date_format(date_create($gvalue->schedule),'F d').', ';
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
             $arr['name'] =  $value->name;
             $arr['sessions'] =  $value->cnt;
-            $arr['paidSessions'] =  $value->cnt;
+            $arr['paidSessions'] =  $total_paid_session+=$paid_session;
             $arr['dates'] =  $date_of_sessions;
             $arr['datesArr'] =  $date_of_sessionsArr;
             $data_array[] = $arr;
@@ -211,6 +243,7 @@ class PHICController extends Controller
         $datasets = array();
         $datasets["data"]=$data_array;
         $datasets["Doctors"]=$getDoctor;
+        $datasets['totalPaidSessions'] =  $total_paid_session;
         $datasets["getPaidClaims"]= count($getPaidClaims);        
         return response()->json($datasets);
     }

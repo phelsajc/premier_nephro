@@ -25,10 +25,14 @@
                   <h3 class="card-title">&nbsp;</h3>
                  <!--  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
                     >Add</router-link
-                  > -->
+                  > -->       
+                  <button type="button" @click="showModal = true"  class="btn btn-primary btn-sm pull-left">
+                    Add
+                        </button> 
+
                   <div class="pull-right">
                   <input type="file" accept=".csv" @change="handleFileUpload( $event )"/>                            
-                        <button type="button" @click="test()" class="btn btn-info btn-sm">Upload</button>
+                        <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
                   </div>
 
                 </div>
@@ -40,30 +44,6 @@
                       <div class="text-bold pt-2">Loading...</div>
                     </div>
                   </div>
-                  <form class="user" enctype="multipart/form-data">
-                            <div class="row">
-                                <!-- <div class="col-sm-2">
-                                    <div class="form-group ">
-                                        <label>Date</label>
-                                        <datepicker name="date" required input-class ="dpicker" v-model="date" :bootstrap-styling=true></datepicker>
-                                    </div>
-                                </div> -->
-                                <!-- <div class="col-sm-2">
-                                    <div class="form-group ">
-                                        <label>Patient</label>
-                                        <input type="text" class="form-control" id="" v-model="name">
-                                    </div>
-                                </div> -->
-                                <!-- <div class="col-sm-2">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label> <br>
-                                            <button type="button"  class="btn btn-danger">
-                                            Filter
-                                            </button>
-                                    </div>
-                                </div> -->
-                            </div>                            
-                        </form>
                         
                   <ul class="list-group">
                     <input
@@ -74,7 +54,7 @@
                       style="width: 100%"
                       placeholder="Search user here"
                     />
-                   <!--  <router-link v-for="e in filtersearch" :key="e.id" :to="{name: 'transaction',params:{id:e.id}}">     -->    
+                      
                     <li  v-for="e in filtersearch" :key="e.id" 
                       class="list-group-item"
                     >
@@ -86,14 +66,12 @@
                             </h5>
                           </div>
 
-                         <!--  <span class="badge badge-success"> Doctor: {{e.incharge_dctr!=""?e.incharge_dctr:e.attending_dctr}}</span>
- -->
                           
                           <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-success">Main Doctor: {{e.attending_dctr}} <br></span>
                           <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-warning">Doctor In-charge: {{e.incharge_dctr}} </span>
 
                           <span v-else class="badge badge-success">Doctor : {{e.attending_dctr}}</span><br>
-                          <span class="badge badge-info">Doctor : {{e.date}}</span>
+                          <span class="badge badge-info">Date : {{e.date}}</span>
                           
                         </div>
 
@@ -104,10 +82,8 @@
                                             </button>
                           </div>
                           </div>
-
                       </div>
                     </li>
-                    <!-- </router-link> -->
                   </ul>
                   <br />
                   <nav aria-label="Page navigation example" class="to-right">
@@ -141,6 +117,7 @@
           <!-- /.row -->
         </div>
         <!-- /.container-fluid -->
+        <addSessionModal  v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'" v-on:close="allEmployee"></addSessionModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -148,9 +125,9 @@
 </template>
 
 <script type="text/javascript">
-
-import Datepicker from 'vuejs-datepicker'
-import Papa from 'papaparse';
+  import Datepicker from 'vuejs-datepicker'
+  import Papa from 'papaparse';
+  import api from '../../Helpers/api';  
   export default {
     
     components: {
@@ -179,6 +156,7 @@ created() {
                 searchTerm2: null,
                 start: 0
               },
+              showModal: false,  
               employees:[],
               searchTerm:'',
               countRecords: 0,
@@ -199,20 +177,20 @@ created() {
       methods: {
           allEmployee(){
             this.isHidden =  false
-              //axios.get('/api/employee')
-              axios.get('/api/schedule', { headers: { Authorization: "Bearer ".concat(this.token) } })
-              .then(({data}) => (
-                this.employees = data[0].data ,
-                this.countRecords =data[0].count,
-                this.showing = data[0].showing,
-            this.isHidden =  true
-             ))
-              .catch()
+             api.get('schedule')
+              .then(response => {
+                this.employees = response.data[0].data ,
+                this.countRecords =response.data[0].count,
+                this.showing = response.data[0].showing,
+                this.isHidden =  true
+              })
+              .catch(error => {
+                console.log(error);
+              }); 
           },
           me(){
               axios.post('/api/auth/me','',{
                   headers: {
-                    //"Content-Type": "application/x-www-form-urlencoded",
                     Authorization: "Bearer ".concat(this.token),
                     Accept: "application/jsons",
                   }
@@ -231,24 +209,9 @@ created() {
               .catch() */
               window.open("/api/pdf", '_blank');
           },
-        async  check_doctors_detail(id) {
-          return await axios.get( '/api/check_doctors_detail/'+id)
-            .then(response => {
-              setTimeout(function() {
-                return response.data;
-              }, 3000);
-
-            })
-           /*  .then((response) => {
-              return  Promise.resolve(response.data); }) */
-
-          },
-        /* async  check_doctors_detail(id) {
-           return await axios.get( '/api/check_doctors_detail/'+id)
-          }, */
           formatDate(date) {
               const options = { year: 'numeric', month: 'long', day: 'numeric' }
-              return new Date(date).toLocaleDateString('en', options)
+              return new Date(date).toLocaleDauploadCSVring('en', options)
           },
           deleteRecord(id){
               Swal.fire({
@@ -268,10 +231,8 @@ created() {
                           })
                       })
                       .catch(() =>{
-                          //this.$router.push({name: 'all_employee'})
                           this.$router.push("/all_employee").catch(()=>{});
                       })
-
                       Swal.fire(
                       'Deleted!',
                       'Your file has been deleted.',
@@ -283,10 +244,10 @@ created() {
           filterEmployee(){
               this.employees = []
               this.countRecords = null
-            this.form.start = 0
-            this.isHidden =  false
+              this.form.start = 0
+              this.isHidden =  false
             
-            const headers = {
+            /* const headers = {
                     Authorization: "Bearer ".concat(this.token),
                 }
               axios.post('/api/schedule', {
@@ -302,28 +263,42 @@ created() {
                 console.log(res.data.data)
                 this.isHidden =  true
               })
+              .catch(error => this.errors = error.response.data.errors) */
+
+              
+             api.post('schedule',this.form)
+              .then(response => {                
+                this.employees = response.data[0].data
+                this.countRecords =response.data[0].count
+                this.isHidden =  true
+              })
               .catch(error => this.errors = error.response.data.errors)
+
           },
           getPageNo(id){
             this.form.start = (id-1) * 10
             this.isHidden =  false
-            console.log(this.isHidden)
-            axios.post('/api/schedule',this.form)
+
+             api.post('schedule',this.form)
+              .then(response => {        
+                this.employees = response.data[0].data
+                this.countRecords = response.data[0].count
+                this.showing = response.data[0].showing,
+                this.isHidden =  true
+              })
+              .catch(error => this.errors = error.response.data.errors)
+
+            /* axios.post('/api/schedule',this.form)
               .then(res => {
                 this.employees = res.data[0].data
                 this.countRecords =res.data[0].count
                 this.showing = res.data[0].showing,
-                console.log(res.data[0])
                 this.isHidden =  true
-            console.log(this.isHidden)
             })
-            .catch(error => this.errors = error.response.data.errors)
+            .catch(error => this.errors = error.response.data.errors) */
           },
-            handleFileUpload( event ){
-                this.file = event.target.files[0];
-                this.parseFile();
-            },
-            parseFile(){
+            
+            /* parseFile(){
                 Papa.parse( this.file, {
                     header: true,
                     skipEmptyLines: true,
@@ -332,9 +307,9 @@ created() {
                         this.parsed = true;
                     }.bind(this)
                 } );
-            },
-            test(){
-              const headers = {
+            }, */
+            uploadCSV(){
+              /* const headers = {
                     Authorization: "Bearer ".concat(this.token),
                 }
                 axios.post('/api/schedule-import', {
@@ -350,10 +325,21 @@ created() {
                                 title: 'Saved successfully'
                             });
                         })
+                        .catch(error => console.log(error)) */
+
+                        api.post('schedule-import',this.form)
+                        .then(response => {     
+                          this.allEmployee();
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Saved successfully'
+                            });
+                        })
                         .catch(error => console.log(error))
+
             },
           delete_session(id){
-            const headers = {
+            /* const headers = {
                         Authorization: "Bearer ".concat(this.token),
               }
                     axios.get('/api/schedule-delete/'+id, {
@@ -366,7 +352,20 @@ created() {
                                     title: 'Deleted successfully'
                                 });
                             })
-                            .catch(error => console.log(error))
+                            .catch(error => console.log(error)) */
+
+                                        
+              api.get('schedule-delete/'+id)
+              .then(response => { 
+                          this.allEmployee();
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Deleted successfully'
+                                });
+              })
+              .catch(error => {
+                console.log(error);
+              });   
           }
       },
       /* mounted () {

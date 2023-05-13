@@ -74,7 +74,8 @@ let phic_add = require('./components/phic/create.vue').default
 let phic_reports = require('./components/phic/Reports.vue').default
 
 //census
-let census = require('./components/census/index.vue').default
+let census_doctor = require('./components/census/census_doctor.vue').default
+let census_patient = require('./components/census/census_patient.vue').default
 /*
     path, component & name should be the same inorder to work
 */
@@ -145,7 +146,8 @@ export const routes = [
     { path: '/phic_reports', component: phic_reports, name: 'phic_reports' },
 
     //census
-    { path: '/census', component: census, name: 'census' },
+    { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },
+    { path: '/census_patient', component: census_patient, name: 'census_patient' },
 
     //Revenue
     { path: '/revenue_list', component: revenue_list, name: 'revenue_list' },

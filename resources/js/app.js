@@ -28,9 +28,9 @@ window.Swal = Swal;
 import VuePdfApp from "vue-pdf-app";
 window.VuePdfApp = VuePdfApp;
 Vue.component('phicModal', require('./components/modals/phicPayment.vue').default);
+Vue.component('addSessionModal', require('./components/modals/addSession.vue').default);
+Vue.component('patientComponent', require('./components/Autocomplete.vue').default);
 
-
-Vue.component('Autocomplete', require('./components/Autocomplete.vue').default);
 Vue.component('diagnostic', require('./components/AutocompleteD.vue').default);
 Vue.component('user-info', require('./components/User.vue').default);
 Vue.component('pxmodal', require('./components/Prescription.vue').default);
@@ -65,9 +65,9 @@ const app = new Vue({
     router,
     data() {
         return {
-            bladeValue: '',
-            showModal: false,
-            isLogin: 'xxxx',
+            //bladeValue: '',
+            //showModal: false,
+            //isLogin: 'xxxx',
         }
     }
 });

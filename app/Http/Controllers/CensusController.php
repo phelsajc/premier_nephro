@@ -11,6 +11,7 @@ use App\Model\Doctors;
 use App\Model\Patients;
 use App\Model\Phic;
 use DB;
+use PhpParser\Comment\Doc;
 
 class CensusController extends Controller
 {  
@@ -147,14 +148,15 @@ class CensusController extends Controller
     public function report(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $date = date_format(date_create($request->data['date']),'Y-m');
+        $fdate = date_format(date_create($request->data['fdate']),'Y-m-d');
+        $tdate = date_format(date_create($request->data['tdate']),'Y-m-d');
         $doctors = $request->data['doctors'];
         $doctors = $request->data['doctors'];
         if($doctors!='All'){
             $data =  DB::connection('mysql')->select("
                 select p.name,s.schedule from schedule s 
                 left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and
+                where s.schedule between '$fdate' and '$tdate' and
                 s.doctor = $doctors and s.status = 'ACTIVE'
                 order by s.schedule ASC;
             ");
@@ -162,7 +164,7 @@ class CensusController extends Controller
             $data =  DB::connection('mysql')->select("
             select p.name,s.schedule from schedule s 
                 left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
                 order by s.schedule ASC;
             ");
         }
@@ -173,6 +175,137 @@ class CensusController extends Controller
             $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
             $data_array[] = $arr;
         }
+        return response()->json($data_array);
+    }
+
+    public function report_px_old(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate),'Y-m-d');
+        $tdate = date_format(date_create($request->tdate),'Y-m-d');
+        //$doctors = $request->data['doctors'];
+        $px = $request->patient;
+        if(!$request->isall){
+            $data =  DB::connection('mysql')->select("
+                select p.name,s.schedule,s.doctor from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and
+                s.patient_id = $px and s.status = 'ACTIVE'
+                order by s.schedule ASC;
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+            select p.name,s.schedule,s.doctor from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                order by s.schedule ASC;
+            ");
+        }
+        $data_array = array();
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['name'] =  $value->name;
+            $doctor  = Doctors::where(['id'=>$value->doctor])->first();
+            $arr['doctor'] =  $doctor->name;
+            $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
+            $data_array[] = $arr;
+        }
+        return response()->json($data_array);
+    }
+
+    public function report_px(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate),'Y-m-d');
+        $tdate = date_format(date_create($request->tdate),'Y-m-d');
+        //$doctors = $request->data['doctors'];
+        $px = $request->patient;
+        if(!$request->isall){
+            $data =  DB::connection('mysql')->select("
+                select p.name,s.schedule,s.doctor,s.patient_id  from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and
+                s.patient_id = $px and s.status = 'ACTIVE'
+                order by s.schedule ASC;
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+            select p.name,s.schedule,s.doctor,s.patient_id  from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                group by s.patient_id
+                order by s.schedule ASC;
+            ");
+        }
+        $data_array = array();
+        if($request->isall){
+            foreach ($data as $key => $value) {
+                $arr = array();
+                $arr['name'] =  $value->name;
+                $doctor  = Doctors::where(['id'=>$value->doctor])->first();
+                $arr['doctor'] =  $doctor->name;
+
+                //if($request->isall){
+                    $get_dates = DB::connection('mysql')->select("
+                    SELECT schedule, patient_id from schedule
+                        where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
+                    ");
+                    $date_of_sessions = '';
+                    $date_of_sessionsArr = array();
+                    foreach ($get_dates as $gkey => $gvalue) {
+                        $date_of_sessionsArr_set = array();
+                        $s_date = date_format(date_create($gvalue->schedule),'F d');
+                        $date_of_sessionsArr_set['date'] = $s_date;
+                        $data_sessions = Phic::where(['date_session'=>date_format(date_create($gvalue->schedule),'Y-m-d'),'patient_id'=>$gvalue->patient_id])->first();
+                        $date_of_sessionsArr_set['status'] = $data_sessions?$data_sessions->status:'';
+                        $date_of_sessionsArr_set['id'] =$data_sessions?$data_sessions->id:null;
+                        $date_of_sessionsArr_set['x'] =date_format(date_create($gvalue->schedule),'Y-m-d');
+                        $date_of_sessionsArr_set['y'] =$gvalue->patient_id;
+                        $date_of_sessions.=date_format(date_create($gvalue->schedule),'F d').', ';
+                        $date_of_sessionsArr[] = $date_of_sessionsArr_set;
+                    }
+                    $arr['datesArr'] =  $date_of_sessionsArr;            
+                    $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
+                /* }else{            
+                    $data_array = array();
+                    foreach ($data as $key => $value) {
+                        $arr = array();
+                        $arr['name'] =  $value->name;
+                        $doctor  = Doctors::where(['id'=>$value->doctor])->first();
+                        $arr['doctor'] =  $doctor->name;                    
+                        $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
+                        $data_array[] = $arr;
+                    }
+                } */
+
+
+                
+                $data_array[] = $arr;
+            }
+        }else{
+
+            foreach ($data as $key => $value) {
+                $arr = array();
+                $arr['name'] =  $value->name;
+                $doctor  = Doctors::where(['id'=>$value->doctor])->first();
+                $arr['doctor'] =  $doctor->name;            
+                /* $data_array = array();
+                foreach ($data as $key => $value) {
+                        $arr = array();
+                        $arr['name'] =  $value->name;
+                        $doctor  = Doctors::where(['id'=>$value->doctor])->first();
+                        $arr['doctor'] =  $doctor->name;                    
+                        $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');
+                        $data_array[] = $arr;
+                }   */
+                $arr['dates'] =  date_format(date_create($value->schedule),'m/d/Y');          
+                $data_array[] = $arr;
+            }
+        }
+
+        
+        $datasets = array();
+        $datasets["data"]=$data_array;
         return response()->json($data_array);
     }
 
