@@ -184,12 +184,19 @@ class PHICController extends Controller
                 where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             "); */
-            $data =  DB::connection('mysql')->select("
+            /* $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            "); */
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                group by s.patient_id;
             ");
             /* $getPaidClaims =  DB::connection('mysql')->select("
                 select * from phic where DATE_FORMAT(date_session, '%Y-%m') = '$date' and status = 'PAID'
@@ -232,7 +239,7 @@ class PHICController extends Controller
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
             $arr['name'] =  $value->name;
-            $arr['sessions'] =  $value->cnt;
+            $arr['sessions'] = count($get_dates);//$value->cnt;
             $arr['paidSessions'] =  $total_paid_session+=$paid_session;
             $arr['dates'] =  $date_of_sessions;
             $arr['datesArr'] =  $date_of_sessionsArr;

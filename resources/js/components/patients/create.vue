@@ -93,6 +93,33 @@
                                 </div>
                             </div>
                             <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Marital Status</label>
+                                        <select class="form-control" v-model="form.mstatus">
+                                            <option value="Single">Single</option>
+                                            <option value="Married">Married</option>
+                                            <option value="Widowed">Widowed</option>
+                                        </select>
+                                        <small class="text-danger" v-if="errors.mstatus">{{ errors.mstatus[0] }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>PHIC</label>
+                                        <input type="text" class="form-control" id="" v-model="form.phic">
+                                        <small class="text-danger" v-if="errors.phic">{{ errors.phic[0] }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Type</label>
+                                        <input type="text" class="form-control" id="" v-model="form.ptype">
+                                        <small class="text-danger" v-if="errors.ptype">{{ errors.ptype[0] }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-sm-12">
                                     <div class="form-group">
                                         <label>Address</label>
@@ -100,22 +127,7 @@
                                     <small class="text-danger" v-if="errors.address">{{ errors.address[0] }}</small>
                                     </div>
                                 </div>
-                            </div>                            
-                    
-
-                            <!-- <div class="form-group">
-                                <div class="form-row">
-                                    <div class="col-md-12">
-                                        <h4>Type</h4>
-                                        <select  class="form-control" v-model="form.type">
-                                            <option value="Staff">Staff</option>
-                                            <option value="Doctor">Doctor</option>
-                                            <option value="Administrator">Administrator</option>
-                                        </select>
-                                        <small class="text-danger" v-if="errors.type">{{ errors.type[0] }}</small>
-                                    </div>
-                                </div>
-                            </div> -->                            
+                            </div>                                                
 
                             <div class="form-group">
                                 <button type="submit" class="btn btn-primary btn-block">Submit</button>
@@ -137,6 +149,7 @@
 <script type="text/javascript">
 import AppStorage from '../../Helpers/AppStorage';
 import Datepicker from 'vuejs-datepicker'
+import api from '../../Helpers/api';  
 
 
     export default {
@@ -150,7 +163,8 @@ import Datepicker from 'vuejs-datepicker'
             this.getDoctors();
             let checkId = this.$route.params.id
             if(checkId!=0){
-                this.getId = checkId;
+                //this.getId = checkId;
+                this.form.id =  checkId;
                 this.editForm();
                 this.isNew = false;
             }
@@ -160,10 +174,17 @@ import Datepicker from 'vuejs-datepicker'
             return {
                 doctors: [],
                 form: {
-                    company: '',
+                    name: '',
+                    dob: '',
+                    sex: '',
+                    contact: '',
+                    doctor: '',
+                    status: '',
                     address: '',
-                    desc: '',
-                    dob: ''
+                    mstatus: '',
+                    phic: '',
+                    ptype: '',
+                    id: '',
                 },
                 user_info:{
                     patientname: '',
@@ -180,7 +201,7 @@ import Datepicker from 'vuejs-datepicker'
             addEmployee(){
                 
                 if(this.isNew){
-                    axios.post('/api/patients-add',this.form)
+                   /*  axios.post('/api/patients-add',this.form)
                     .then(res => {
                         this.$router.push({name: 'patients_list'});
                         Toast.fire({
@@ -188,20 +209,38 @@ import Datepicker from 'vuejs-datepicker'
                             title: 'Saved successfully'
                         })
                     })
-                    .catch(error => this.errors = error.response.data.errors)
+                    .catch(error => this.errors = error.response.data.errors) */
+                    
+                        api.post('patients-find',this.form)
+                        .then(response => {     
+                        this.$router.push({name: 'patients_list'});
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Saved successfully'
+                        })
+                        })
+                        .catch(error => console.log(error))  
+
                 }else{
-                    axios.post('/api/patients-update',{
+                   /*  axios.post('/api/patients-update',{
                         data: this.form,
                         id: this.getId
                     })
                     .then(res => {
-                        //this.$router.push({name: 'patients_list'});
                         Toast.fire({
                             icon: 'success',
                             title: 'Updated successfully'
                         })
                     })
-                    .catch(error => this.errors = error.response.data.errors)
+                    .catch(error => this.errors = error.response.data.errors) */
+                    api.post('patients-update',this.form)
+                        .then(response => {     
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Updated successfully'
+                        })
+                        })
+                        .catch(error => console.log(error))  
                 }
             },
             editForm(){                
@@ -214,7 +253,10 @@ import Datepicker from 'vuejs-datepicker'
                         this.form.contact = data.contact_no,             
                         this.form.doctor = data.attending_doctor,             
                         this.form.dob = data.birthdate,             
-                        this.form.status = data.status             
+                        this.form.status = data.status ,             
+                        this.form.mstatus = data.civil_status ,             
+                        this.form.phic = data.phic ,             
+                        this.form.ptype = data.patient_type             
                 ))
                 .catch(console.log('error'))
             },

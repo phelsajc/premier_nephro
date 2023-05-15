@@ -106,7 +106,7 @@
                 <li class="nav-item">
                   <router-link to="/transaction_list" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='transaction_list'||this.$route.name=='transaction'}">
                 <i class="far fa-circle nav-icon"></i>
-                Session
+                Create
               </a></router-link>
             </li> 
 

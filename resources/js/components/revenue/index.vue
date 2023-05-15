@@ -63,6 +63,8 @@
                       <th>PREMIER</th>
                       <th>TAX</th>
                       <th rowspan="2" style="text-align: center;">NET</th>
+                      <th rowspan="2" style="text-align: center;">Total Paid</th>
+                      <th rowspan="2" style="text-align: center;">Balance</th>
                     </tr>
                     <tr>
                       <th></th>
@@ -98,6 +100,12 @@
                       </td>
                       <td>
                         {{ e.net.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
+                      </td>
+                      <td>
+                        {{ e.total.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
+                      </td>
+                      <td>
+                        {{ e.balance.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
                       </td>
                     </tr>
                   </tbody>

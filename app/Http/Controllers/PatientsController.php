@@ -85,6 +85,9 @@ class PatientsController extends Controller
         $p->contact_no = $request->contact;
         $p->attending_doctor = $request->doctor;
         $p->status = $request->status;
+        $p->civil_status = $request->mstatus;
+        $p->phic = $request->phic;
+        $p->patient_type = $request->ptype;
         $p->save();         
         return true;
     }
@@ -98,13 +101,16 @@ class PatientsController extends Controller
     public function update(Request $request)
     {
         Patients::where(['id'=>$request->id])->update([
-            'name'=> $request->data['name'],
-            'birthdate'=> $request->data['dob'],
-            'sex'=> $request->data['sex'],
-            'address'=> $request->data['address'],
-            'contact_no'=> $request->data['contact'],
-            'attending_doctor'=> $request->data['doctor'],
-            'status'=> $request->data['status'],
+            'name'=> $request->name,
+            'birthdate'=> $request->dob,
+            'sex'=> $request->sex,
+            'address'=> $request->address,
+            'contact_no'=> $request->contact,
+            'attending_doctor'=> $request->doctor,
+            'status'=> $request->status,
+            'civil_status'=> $request->mstatus,
+            'phic'=> $request->phic,
+            'patient_type'=> $request->ptype,
         ]);
         return true;
     }

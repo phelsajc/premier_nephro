@@ -30,6 +30,20 @@
               </div>
 
               <div class="card-body">
+                
+
+
+                <div class="row">
+                  <div class="col-md-2">
+                      <p>LEGENDS</p>
+                  </div>
+                  <div class="col-md-2">
+                      <button type="button" class="btn btn-block btn-success btn-xs">PAID</button>
+                  </div>
+                  <div class="col-md-2">
+                      <button type="button" class="btn btn-block btn-warning btn-xs">PENDING</button>
+                  </div>
+                </div>
 
                   <form class="user" enctype="multipart/form-data">
                           <div class="row">
@@ -82,6 +96,10 @@
                 <dl class="row">
                   <dt class="col-sm-2">Total PAID Session:</dt>
                   <dd class="col-sm-8">{{ getPaidClaims }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total UnpAID Session:</dt>
+                  <dd class="col-sm-8">{{ unpaid }}</dd>
                 </dl>
                 <!-- <dl class="row">
                   <dt class="col-sm-2">Month:</dt>
@@ -175,6 +193,9 @@ import moment from 'moment';
             },
             balance(){
               return ( this.totalAmount - this.totalAmountPaid)
+            },
+            unpaid(){
+              return this.total_sessions - this.getPaidClaims
             }
         },
       methods:{

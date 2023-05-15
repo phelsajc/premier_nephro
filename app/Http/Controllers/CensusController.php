@@ -325,18 +325,37 @@ class CensusController extends Controller
 
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr['month'] =  date_format(date_create($value->schedule),'F');
+
+            $month = date_format(date_create($value->schedule),'Y-m');
+            $getPaidData =  DB::connection('mysql')->select("
+                SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID' 
+                and DATE_FORMAT(s.date_session, '%Y-%m') = '$month'
+                group by DATE_FORMAT(s.date_session, '%Y-%m');
+            ");
+
+            $arr['month'] =  date_format(date_create($value->schedule),'F Y');
             $session = $value->cnt;
             $arr['sessions'] =  $session;
             $gross = 2250 * $session;
             $share = $gross * 0.25;
             $tax = $share * 0.05;
             $net = $share * 0.95;
+            $pnet=0;
+            $balance=0;
+            if($getPaidData){
+                $pgross = 2250 * $getPaidData[0]->cnt;
+                $pshare = $pgross * 0.25;
+                $ptax = $pshare * 0.05;
+                $pnet = $pshare * 0.95;
+                $balance = $net-$pnet;
+            }
 
             $arr['gross'] =  $gross;
             $arr['share'] = $share;
             $arr['tax'] = $tax;
             $arr['net'] = $net;
+            $arr['total'] = $pnet;
+            $arr['balance'] = $balance;
             $data_array[] = $arr;
         }
         $datasets = array(["data"=>$data_array]);
