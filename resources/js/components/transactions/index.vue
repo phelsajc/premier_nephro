@@ -11,11 +11,7 @@
             </div>
           </div>
         </div>
-        <!-- /.container-fluid -->
       </section>
-
-      <!-- Main content -->
-
       <section class="content">
         <div class="container-fluid">
           <div class="row">
@@ -23,101 +19,68 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
-                 <!--  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
+                  <!--  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
                     >Add</router-link
-                  > -->       
-                  <button type="button" @click="showModal = true"  class="btn btn-primary btn-sm pull-left">
-                    Add
-                        </button> 
-
+                  > -->
+                  <button type="button" @click="showModal = true" class="btn btn-primary btn-sm pull-left"></button>
                   <div class="pull-right">
-                  <input type="file" accept=".csv" @change="handleFileUpload( $event )"/>                            
-                        <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
+                    <input type="file" accept=".csv" @change="handleFileUpload($event)" />
+                    <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
                   </div>
-
                 </div>
-
                 <div class="card-body">
-                  <div class="spin_center" :class="{'d-none': isHidden }">
+                  <div class="spin_center" :class="{ 'd-none': isHidden }">
                     <div class="overlay">
                       <i class="fas fa-3x fa-sync-alt fa-spin"></i>
                       <div class="text-bold pt-2">Loading...</div>
                     </div>
                   </div>
-                        
                   <ul class="list-group">
-                    <input
-                      type="text"
-                      v-model="form.searchTerm2"
-                      @change="filterEmployee()"
-                      class="form-control to-right"
-                      style="width: 100%"
-                      placeholder="Search user here"
-                    />
-                      
-                    <li  v-for="e in filtersearch" :key="e.id" 
-                      class="list-group-item"
-                    >
+                    <input type="text" v-model="form.searchTerm2" @change="filterEmployee()" class="form-control to-right"
+                      style="width: 100%" placeholder="Search user here" />
+                    <li v-for="e in filtersearch" :key="e.id" class="list-group-item">
                       <div class="row">
                         <div class="col-6 float-left">
                           <div class="d-flex w-100 justify-content-between">
                             <h5 class="mb-1">
-                              <strong>{{e.name}} </strong>
+                              <strong>{{ e.name }} </strong>
                             </h5>
                           </div>
-
-                          
-                          <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-success">Main Doctor: {{e.attending_dctr}} <br></span>
-                          <span v-if='e.incharge_dctr!=e.attending_dctr' class="badge badge-warning">Doctor In-charge: {{e.incharge_dctr}} </span>
-
-                          <span v-else class="badge badge-success">Doctor : {{e.attending_dctr}}</span><br>
-                          <span class="badge badge-info">Date : {{e.date}}</span>
-                          
+                          <span v-if='e.incharge_dctr != e.attending_dctr' class="badge badge-success">Main Doctor:
+                            {{ e.attending_dctr }} <br></span>
+                          <span v-if='e.incharge_dctr != e.attending_dctr' class="badge badge-warning">Doctor In-charge:
+                            {{ e.incharge_dctr }} </span>
+                          <span v-else class="badge badge-success">Doctor : {{ e.attending_dctr }}</span><br>
+                          <span class="badge badge-info">Date : {{ e.date }}</span>
                         </div>
-
                         <div class="col-6 pull-right">
-                        <div class="pull-right">
-                                            <button type="button"  class="btn btn-danger" @click="delete_session(e.id)">
-                                            Delete
-                                            </button>
+                          <div class="pull-right">
+                            <button type="button" class="btn btn-danger" @click="delete_session(e.id)">
+                              Delete
+                            </button>
                           </div>
-                          </div>
+                        </div>
                       </div>
                     </li>
                   </ul>
                   <br />
                   <nav aria-label="Page navigation example" class="to-right">
                     <ul class="pagination">
-                      <li
-                        class="page-item"
-                        v-for="(e, index) in this.countRecords"
-                      >
-                        <a
-                          class="page-link"
-                          @click="getPageNo(index+1)"
-                          href="#"
-                          >{{index+1}}</a
-                        >
+                      <li class="page-item" v-for="(e, index) in this.countRecords">
+                        <a class="page-link" @click="getPageNo(index + 1)" href="#">{{ index + 1 }}</a>
                       </li>
                     </ul>
                   </nav>
-
                   <nav aria-label="Page navigation example" class="">
-                    {{showing}}
+                    {{ showing }}
                   </nav>
                 </div>
-                <!-- /.card-body -->
               </div>
-              <!-- /.card -->
-
-              <!-- /.card -->
             </div>
-            <!-- /.col -->
           </div>
-          <!-- /.row -->
         </div>
-        <!-- /.container-fluid -->
-        <addSessionModal  v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'" v-on:close="allEmployee"></addSessionModal>
+        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'" v-on:close="todayPatient">
+        </addSessionModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -125,258 +88,189 @@
 </template>
 
 <script type="text/javascript">
-  import Datepicker from 'vuejs-datepicker'
-  import Papa from 'papaparse';
-  import api from '../../Helpers/api';  
-  export default {
-    
-    components: {
-            Datepicker
-        },
-created() {
-          if(!User.loggedIn()){
-              this.$router.push({name: '/'})
-          }
+import Datepicker from 'vuejs-datepicker'
+import Papa from 'papaparse';
+import api from '../../Helpers/api';
+export default {
 
-          //Notification.success()
-          this.allEmployee();
-          this.me();
+  components: {
+    Datepicker
+  },
+  created() {
+    if (!User.loggedIn()) {
+      this.$router.push({ name: '/' })
+    }
+
+    //Notification.success()
+    this.todayPatient();
+    //this.me();
+  },
+  data() {
+
+    return {
+      file: '',
+      content: [],
+      parsed: false,
+      date: null,
+      name: null,
+      hasError: false,
+      isHidden: true,
+      form: {
+        searchTerm2: null,
+        start: 0,
+        //data:[],
       },
-      data(){
+      showModal: false,
+      employees: [],
+      searchTerm: '',
+      countRecords: 0,
+      getdctr: '-',
+      utype: User.user_type(),
+      token: localStorage.getItem('token'),
+      showing: '',
+    }
+  },
+  computed: {
+    filtersearch() {
+      return this.employees.filter(e => {
+        return e.name.match(this.searchTerm)
+      })
+    },
+  },
+  methods: {
+    todayPatient() {
+      this.isHidden = false
+      api.get('schedule')
+        .then(response => {
+          this.employees = response.data[0].data,
+            this.countRecords = response.data[0].count,
+            this.showing = response.data[0].showing,
+            this.isHidden = true
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    },
+    /* me() {
+      axios.post('/api/auth/me', '', {
+        headers: {
+          Authorization: "Bearer ".concat(this.token),
+          Accept: "application/jsons",
+        }
+      })
+        .then(res => {
+          console.log(res)
+        })
+        .catch(error => this.errors = error.response.data.errors)
 
-          return {
-                file: '',
-                content: [],
-                parsed: false,
-              date: null,
-              name:null,
-              hasError: false,
-              isHidden: true,
-              form: {
-                searchTerm2: null,
-                start: 0
-              },
-              showModal: false,  
-              employees:[],
-              searchTerm:'',
-              countRecords: 0,
-              getdctr: '-',
-              utype: User.user_type(),
-              token: localStorage.getItem('token'),
-              showing: '',
-          }
-      },
-      computed:{
-          filtersearch(){
-              return this.employees.filter(e => {
-                return e.name.match(this.searchTerm)
+    }, */
+    /* pdf() {
+      axios.get('/pdf')
+      .then(({data}) => (
+          console.log(data)
+      ))
+      .catch()
+      window.open("/api/pdf", '_blank');
+    }, */
+    /* formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' }
+      return new Date(date).toLocaleDauploadCSVring('en', options)
+    }, */
+    /* deleteRecord(id) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.delete('/api/employee/' + id)
+            .then(() => {
+              this.employees = this.employees.filter(e => {
+                return e.id != id
               })
-          },
-
-      },
-      methods: {
-          allEmployee(){
-            this.isHidden =  false
-             api.get('schedule')
-              .then(response => {
-                this.employees = response.data[0].data ,
-                this.countRecords =response.data[0].count,
-                this.showing = response.data[0].showing,
-                this.isHidden =  true
-              })
-              .catch(error => {
-                console.log(error);
-              }); 
-          },
-          me(){
-              axios.post('/api/auth/me','',{
-                  headers: {
-                    Authorization: "Bearer ".concat(this.token),
-                    Accept: "application/jsons",
-                  }
-                })
-                .then(res => {
-                  console.log(res)
-              })
-            .catch(error => this.errors = error.response.data.errors)
-
-          },
-          pdf(){
-              /* axios.get('/pdf')
-              .then(({data}) => (
-                  console.log(data)
-              ))
-              .catch() */
-              window.open("/api/pdf", '_blank');
-          },
-          formatDate(date) {
-              const options = { year: 'numeric', month: 'long', day: 'numeric' }
-              return new Date(date).toLocaleDauploadCSVring('en', options)
-          },
-          deleteRecord(id){
-              Swal.fire({
-                  title: 'Are you sure?',
-                  text: "You won't be able to revert this!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, delete it!'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      axios.delete('/api/employee/'+id)
-                      .then(() => {
-                          this.employees = this.employees.filter(e => {
-                              return e.id != id
-                          })
-                      })
-                      .catch(() =>{
-                          this.$router.push("/all_employee").catch(()=>{});
-                      })
-                      Swal.fire(
-                      'Deleted!',
-                      'Your file has been deleted.',
-                      'success'
-                      )
-                  }
-              })
-          },
-          filterEmployee(){
-              this.employees = []
-              this.countRecords = null
-              this.form.start = 0
-              this.isHidden =  false
-            
-            /* const headers = {
-                    Authorization: "Bearer ".concat(this.token),
-                }
-              axios.post('/api/schedule', {
-                            data:this.form,
-                        } ,{
-                      headers: headers
-                    }
-                        )
-
-              .then(res => {
-                this.employees = res.data[0].data
-                this.countRecords =res.data[0].count
-                console.log(res.data.data)
-                this.isHidden =  true
-              })
-              .catch(error => this.errors = error.response.data.errors) */
-
-              
-             api.post('schedule',this.form)
-              .then(response => {                
-                this.employees = response.data[0].data
-                this.countRecords =response.data[0].count
-                this.isHidden =  true
-              })
-              .catch(error => this.errors = error.response.data.errors)
-
-          },
-          getPageNo(id){
-            this.form.start = (id-1) * 10
-            this.isHidden =  false
-
-             api.post('schedule',this.form)
-              .then(response => {        
-                this.employees = response.data[0].data
-                this.countRecords = response.data[0].count
-                this.showing = response.data[0].showing,
-                this.isHidden =  true
-              })
-              .catch(error => this.errors = error.response.data.errors)
-
-            /* axios.post('/api/schedule',this.form)
-              .then(res => {
-                this.employees = res.data[0].data
-                this.countRecords =res.data[0].count
-                this.showing = res.data[0].showing,
-                this.isHidden =  true
             })
-            .catch(error => this.errors = error.response.data.errors) */
-          },
-            
-            /* parseFile(){
-                Papa.parse( this.file, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function( results ){
-                        this.content = results;
-                        this.parsed = true;
-                    }.bind(this)
-                } );
-            }, */
-            uploadCSV(){
-              /* const headers = {
-                    Authorization: "Bearer ".concat(this.token),
-                }
-                axios.post('/api/schedule-import', {
-                            data:this.content.data,
-                        } ,{
-                      headers: headers
-                    }
-                        )
-                        .then(res => {
-                          this.allEmployee();
-                            Toast.fire({
-                                icon: 'success',
-                                title: 'Saved successfully'
-                            });
-                        })
-                        .catch(error => console.log(error)) */
+            .catch(() => {
+              this.$router.push("/all_employee").catch(() => { });
+            })
+          Swal.fire(
+            'Deleted!',
+            'Your file has been deleted.',
+            'success'
+          )
+        }
+      })
+    }, */
+    filterEmployee() {
+      this.employees = []
+      this.countRecords = null
+      this.form.start = 0
+      this.isHidden = false     
+      api.post('schedule', this.form)
+        .then(response => {
+          this.employees = response.data[0].data
+          this.countRecords = response.data[0].count
+          this.isHidden = true
+        })
+        .catch(error => this.errors = error.response.data.errors)
+    },
+    getPageNo(id) {
+      this.form.start = (id - 1) * 10
+      this.isHidden = false
+      api.post('schedule', this.form)
+        .then(response => {
+          this.employees = response.data[0].data
+          this.countRecords = response.data[0].count
+          this.showing = response.data[0].showing,
+            this.isHidden = true
+        })
+        .catch(error => this.errors = error.response.data.errors)
+    },
+    handleFileUpload(event) {
+      this.file = event.target.files[0];
+      this.parseFile();
+    },
+    parseFile() {
+      Papa.parse(this.file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          this.content = results;
+          this.form = results;
+          this.parsed = true;
+        }.bind(this)
+      });
+    },
+    uploadCSV() {
+      api.post('schedule-import', this.form)
+        .then(response => {
+          this.todayPatient();
+          Toast.fire({
+            icon: 'success',
+            title: 'Saved successfully'
+          });
+        })
+        .catch(error => console.log(error))
 
-                        api.post('schedule-import',this.form)
-                        .then(response => {     
-                          this.allEmployee();
-                            Toast.fire({
-                                icon: 'success',
-                                title: 'Saved successfully'
-                            });
-                        })
-                        .catch(error => console.log(error))
-
-            },
-          delete_session(id){
-            /* const headers = {
-                        Authorization: "Bearer ".concat(this.token),
-              }
-                    axios.get('/api/schedule-delete/'+id, {
-                            headers: headers
-                          }
-                            )
-                            .then(res => {
-                                Toast.fire({
-                                    icon: 'success',
-                                    title: 'Deleted successfully'
-                                });
-                            })
-                            .catch(error => console.log(error)) */
-
-                                        
-              api.get('schedule-delete/'+id)
-              .then(response => { 
-                          this.allEmployee();
-                                Toast.fire({
-                                    icon: 'success',
-                                    title: 'Deleted successfully'
-                                });
-              })
-              .catch(error => {
-                console.log(error);
-              });   
-          }
-      },
-      /* mounted () {
-        axios.get('/api/check_doctors_detail/'+id)
-            .then(response => (this.getdctr = response))
-      }, */
-      /* created(){
-          this.allEmployee();
-      } */
-
-  }
+    },
+    delete_session(id) {
+      api.get('schedule-delete/' + id)
+        .then(response => {
+          this.todayPatient();
+          Toast.fire({
+            icon: 'success',
+            title: 'Deleted successfully'
+          });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  },
+}
 </script>
 
 <style>
@@ -384,11 +278,9 @@ created() {
   height: 40px;
   width: 40px;
 }
-
 .to-right {
   float: right;
 }
-
 .spin_center {
   position: absolute;
   top: 50%;
@@ -398,7 +290,6 @@ created() {
   transform: translateX(-50%);
   /*display: none;*/
 }
-
 .btn-app {
   height: unset !important;
   padding: 0 1.5em 0 1.5em;

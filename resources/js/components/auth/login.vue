@@ -75,12 +75,12 @@
                     User.responseAfterLogin(res)
                     Toast.fire({
                         icon: 'success',
-                        title: 'Signed in successfully1'
+                        title: 'Signed-in Successfully'
                     })
                     //this.$router.push({name: 'home'})
                     
                     //this.$router.push({ name: 'transaction_list' })
-                    location  = '/transaction_list'
+                    location  = '/manage_session'
                     //location = "/all_employee"
                 })
                 .catch(error => error?this.errors = true:false)

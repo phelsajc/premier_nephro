@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "apexcharts": "^3.36.3",
+        "export-to-csv": "^0.2.1",
         "moment": "^2.29.4",
         "noty": "^3.2.0-beta-deprecated",
         "papaparse": "^5.4.1",

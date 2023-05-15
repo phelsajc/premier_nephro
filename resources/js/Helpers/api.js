@@ -13,9 +13,6 @@ export default {
   get(url) {
     return apiClient.get(url);
   },
-  /* getItem(id) {
-    return apiClient.get(`/items/${id}`);
-  }, */
   post(url,data) {
     return apiClient.post(url, data);
   },

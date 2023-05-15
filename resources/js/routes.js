@@ -59,9 +59,8 @@ let doctors_add = require('./components/doctors/create.vue').default
 
 //CoPay
 let copay_list = require('./components/copay/index.vue').default
-let copay_add = require('./components/copay/create.vue').default
-let copay_reports = require('./components/copay/Reports.vue').default
-
+//let copay_add = require('./components/copay/create.vue').default
+//let copay_reports = require('./components/copay/Reports.vue').default
 
 //CoPay
 let revenue_list = require('./components/revenue/index.vue').default
@@ -70,8 +69,8 @@ let revenue_reports = require('./components/revenue/Reports.vue').default
 
 //Phic
 let phic_list = require('./components/phic/index.vue').default
-let phic_add = require('./components/phic/create.vue').default
-let phic_reports = require('./components/phic/Reports.vue').default
+//let phic_add = require('./components/phic/create.vue').default
+//let phic_reports = require('./components/phic/Reports.vue').default
 
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
@@ -79,6 +78,9 @@ let census_patient = require('./components/census/census_patient.vue').default
 /*
     path, component & name should be the same inorder to work
 */
+
+//Sessions
+let manage_session = require('./components/sessions/index.vue').default
 
 export const routes = [
     { path: '/', component: login, name: '/' },
@@ -108,9 +110,9 @@ export const routes = [
     { path: '/company_add/:id', component: company_add, name: 'company_add' },
     
     //Transaction
-    { path: '/transaction/:id', component: transaction, name: 'transaction' },
-    { path: '/transaction_list', component: transaction_list, name: 'transaction_list' },
-    { path: '/transaction_report', component: transaction_report, name: 'transaction_report' },
+    //{ path: '/transaction/:id', component: transaction, name: 'transaction' },
+    { path: '/manage_session', component: manage_session, name: 'manage_session' },
+    //{ path: '/transaction_report', component: transaction_report, name: 'transaction_report' },
     
     //Reports
     { path: '/reports', component: reports, name: 'reports' },
@@ -137,13 +139,13 @@ export const routes = [
 
     //CoPay
     { path: '/copay_list', component: copay_list, name: 'copay_list' },
-    { path: '/copay_add/:id', component: copay_add, name: 'copay_add' },
-    { path: '/copay_reports', component: copay_reports, name: 'copay_reports' },
+    //{ path: '/copay_add/:id', component: copay_add, name: 'copay_add' },
+    //{ path: '/copay_reports', component: copay_reports, name: 'copay_reports' },
 
     //Phic
     { path: '/phic_list', component: phic_list, name: 'phic_list' },
-    { path: '/phic_add/:id', component: phic_add, name: 'phic_add' },
-    { path: '/phic_reports', component: phic_reports, name: 'phic_reports' },
+    //{ path: '/phic_add/:id', component: phic_add, name: 'phic_add' },
+    //{ path: '/phic_reports', component: phic_reports, name: 'phic_reports' },
 
     //census
     { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },

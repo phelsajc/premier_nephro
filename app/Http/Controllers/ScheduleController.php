@@ -79,8 +79,8 @@ class ScheduleController extends Controller
         $start = $request->start;//data?$request->data['start']:0;
         $val = $request->searchTerm2;//$request->data?$request->data['searchTerm2']:null;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.status = 'ACTIVE'");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE'");
         }else{
             $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length");
             $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' ");
@@ -110,7 +110,7 @@ class ScheduleController extends Controller
             }
         }
         $datasets = array([
-            "data"=>$data_array,
+            "data"=>$data_array,            
             "count"=>$page_count,
             "showing"=>
             sizeof($count_all_record)>0?

@@ -94,7 +94,7 @@
               </ul>
             </li> -->
             
-            <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='transaction_list'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
+            <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='manage_session'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
               <a href="#" class="nav-link" :class="{'active':this.$route.name=='phic_list'||this.$route.name=='reports'||this.$route.name=='copay_list'}">
                 <i class="nav-icon fas fa-file-invoice"></i>
                 <p>
@@ -104,7 +104,7 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
-                  <router-link to="/transaction_list" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='transaction_list'||this.$route.name=='transaction'}">
+                  <router-link to="/manage_session" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='transaction_list'||this.$route.name=='transaction'}">
                 <i class="far fa-circle nav-icon"></i>
                 Create
               </a></router-link>

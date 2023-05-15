@@ -144,11 +144,10 @@ class CopayController extends Controller
     public function report(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $fdate = date_format(date_create($request->data['fdate']),'Y-m-d');
-        $tdate = date_format(date_create($request->data['tdate']),'Y-m-d');
-        $doctors = $request->data['doctors'];
+        $fdate = date_format(date_create($request->fdate),'Y-m-d');
+        $tdate = date_format(date_create($request->tdate),'Y-m-d');
+        $doctors = $request->doctors;
         $getDoctor = Doctors::where(["id"=>$doctors])->first();
-        $doctors = $request->data['doctors'];
         if($doctors!='All'){
             /* $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
