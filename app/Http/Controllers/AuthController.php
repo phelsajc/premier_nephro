@@ -36,6 +36,7 @@ class AuthController extends Controller
         $credentials = request(['username', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
+        //if (! $token = auth()->attempt(['username'=>$request->username,'password'=>$request->password])) {
             return response()->json(['error' => 'Email or Password Invalid'], 401);
         }
 

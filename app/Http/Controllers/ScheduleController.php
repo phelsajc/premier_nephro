@@ -31,44 +31,55 @@ class ScheduleController extends Controller
     function import(Request $request)
     {    
         foreach ($request->data as $row => $value) {    
-            $chck_dct = DB::connection('mysql')->select("select * from doctors where name like '%".$value['Incharge']."%'");
-            $chck_px = DB::connection('mysql')->select("select * from patients where name like '%".$value['Customer']."%'");      
-            $doctor  =$value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
-            $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule']),'status'=>'ACTIVE'])->first();
-            if($doctor!=null&&$check_schedule==null){
-                $p = new Schedule;
-                $p->schedule = date_create($value['Schedule']);
-                $p->created_dt = date("Y-m-d");
-                $p->created_by =  auth()->id();
-                $p->doctor = $doctor;
-                $p->patient_id = $chck_px?$chck_px[0]->id:0;
-                $p->save();
-                      
-                $c = new Copay;
-                $c->date_session = date_create($value['Schedule']);
-                $c->created_dt = date("Y-m-d");
-                $c->created_by =  auth()->id();
-                $c->doctor = $p->doctor;
-                $c->patient_id = $p->patient_id;
-                $c->save();  
-                
-                $ph = new Phic;
-                $ph->date_session = date_create($value['Schedule']);
-                $ph->created_dt = date("Y-m-d");
-                $ph->created_by =  auth()->id();
-                $ph->doctor = $p->doctor;
-                $ph->patient_id = $p->patient_id;
-                $ph->save();
+            $value['phic_accreditation']!=null?$chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation = '".$value['phic_accreditation']."'"):null;
+            $chck_px = DB::connection('mysql')->select("select * from patients where phic like ='".$value['phic']."'");      
+            if($chck_px&&$chck_dct){
+                $doctor  = $value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+                $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule']),'status'=>'ACTIVE'])->first();
+                if($doctor!=null&&$check_schedule==null){
+                    $p = new Schedule;
+                    $p->schedule = date_create($value['Schedule']);
+                    $p->created_dt = date("Y-m-d");
+                    $p->created_by =  auth()->id();
+                    $p->doctor = $doctor;
+                    $p->patient_id = $chck_px?$chck_px[0]->id:0;
+                    $p->save();
+                          
+                    $c = new Copay;
+                    $c->date_session = date_create($value['Schedule']);
+                    $c->created_dt = date("Y-m-d");
+                    $c->created_by =  auth()->id();
+                    $c->doctor = $p->doctor;
+                    $c->patient_id = $p->patient_id;
+                    $c->save();  
+                    
+                    $ph = new Phic;
+                    $ph->date_session = date_create($value['Schedule']);
+                    $ph->created_dt = date("Y-m-d");
+                    $ph->created_by =  auth()->id();
+                    $ph->doctor = $p->doctor;
+                    $ph->patient_id = $p->patient_id;
+                    $ph->save();
+                }else{
+                    $p = new FailedSchedule;
+                    $p->schedule = date_create($value['Schedule']);
+                    $p->created_dt = date("Y-m-d");
+                    $p->created_by =  auth()->id();
+                    $p->doctor = $value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+                    $p->patient_id = $chck_px?$chck_px[0]->id:null;
+                    $p->status = $check_schedule!=null?'DUPLICATE SCHEDULE':'NO DOCTOR';
+                    $p->save();                
+                }  
             }else{
                 $p = new FailedSchedule;
                 $p->schedule = date_create($value['Schedule']);
                 $p->created_dt = date("Y-m-d");
                 $p->created_by =  auth()->id();
-                $p->doctor = $value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
-                $p->patient_id = $chck_px?$chck_px[0]->id:null;
-                $p->status = $check_schedule!=null?'DUPLICATE SCHEDULE':'NO DOCTOR';
-                $p->save();                
-            }                    
+                $p->doctor = $value['Incharge'];
+                $p->patient_id = null;
+                $p->status = $value['Customer'].' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
+                $p->save();   
+            }                  
         }       
     }
 

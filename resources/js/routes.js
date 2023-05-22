@@ -75,6 +75,9 @@ let phic_list = require('./components/phic/index.vue').default
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
 let census_patient = require('./components/census/census_patient.vue').default
+
+//logs
+let logs = require('./components/logs/index.vue').default
 /*
     path, component & name should be the same inorder to work
 */
@@ -154,6 +157,9 @@ export const routes = [
     //Revenue
     { path: '/revenue_list', component: revenue_list, name: 'revenue_list' },
     { path: '/revenue_reports', component: revenue_reports, name: 'revenue_reports' },
+
+    //Logs
+    { path: '/logs', component: logs, name: 'logs' },
 ]
 
 

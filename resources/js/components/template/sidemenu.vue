@@ -70,6 +70,13 @@
               </li>
             </ul>              
           </li>
+            
+            <li class="nav-item">
+              <router-link to="/manage_session" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu" :class="{'active':this.$route.name=='manage_session'}">
+                <i class="far fa-circle nav-icon"></i>
+                Sessions
+              </a> </router-link>
+            </li> 
 
             <!-- <li class="nav-item" :class="{'menu-open':this.$route.name=='collection_add'||this.$route.name=='collection_list'||this.$route.name=='collection_reports'}">
               <a href="#" class="nav-link" :class="{'active':this.$route.name=='collection_list'||this.$route.name=='collection_reports'}">
@@ -94,7 +101,7 @@
               </ul>
             </li> -->
             
-            <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='manage_session'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
+            <!-- <li class="nav-item" :class="{'menu-open':this.$route.name=='transaction'||this.$route.name=='manage_session'||this.$route.name=='phic_list'||this.$route.name=='copay_list'||this.$route.name=='transaction_report'}">
               <a href="#" class="nav-link" :class="{'active':this.$route.name=='phic_list'||this.$route.name=='reports'||this.$route.name=='copay_list'}">
                 <i class="nav-icon fas fa-file-invoice"></i>
                 <p>
@@ -106,7 +113,7 @@
                 <li class="nav-item">
                   <router-link to="/manage_session" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='transaction_list'||this.$route.name=='transaction'}">
                 <i class="far fa-circle nav-icon"></i>
-                Create
+                Upload
               </a></router-link>
             </li> 
 
@@ -131,16 +138,10 @@
                       PHIC
                     </a></router-link>
                   </li>
-                  <!-- <li class="nav-item">
-                    <router-link to="/yearly_report" class=""><a href="#" class="nav-link">
-                      <i class="far fa-circle nav-icon"  :class="{'fa-dot-circle':this.$route.name=='yearly_report'}"></i>     
-                      Yearly
-                    </a></router-link>
-                  </li> -->
                 </ul>
               </li>
               </ul>
-            </li>
+            </li> -->
   
             <li class="nav-item">
               <router-link to="/userslist" class="collapse-item"><a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='userslist'||this.$route.name=='usersadd'}">
@@ -173,18 +174,44 @@
 
               </ul>
             </li>
+
             
-            <!-- <li class="nav-item">
-              <router-link to="/census" class="collapse-item"><a href="#" class="nav-link" id="censusmenu" :class="{'active':this.$route.name=='census'}">
+            <li class="nav-item" :class="{'menu-open':this.$route.name=='phic_list'||this.$route.name=='copay_list'}">
+              <a href="#" class="nav-link" :class="{'active':this.$route.name=='phic_list'||this.$route.name=='copay_list'}">
+                <i class="nav-icon fas fa-file-invoice"></i>
+                <p>
+                  Reports
+                  <i class="right fas fa-angle-left"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <router-link to="/copay_list" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='copay_list'}">
                 <i class="far fa-circle nav-icon"></i>
-                Census
-              </a> </router-link>
-            </li>  -->
+                Co-Pay
+              </a></router-link>
+            </li> 
+                <li class="nav-item">
+                  <router-link to="/phic_list" class="collapse-item"> <a href="#" class="nav-link" id="usermenu" :class="{'active':this.$route.name=='phic_list'}">
+                <i class="far fa-circle nav-icon"></i>
+                PHIC
+              </a></router-link>
+            </li> 
+
+              </ul>
+            </li>
             
             <li class="nav-item">
               <router-link to="/revenue_list" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu" :class="{'active':this.$route.name=='revenue_list'}">
                 <i class="far fa-circle nav-icon"></i>
                 Revenue Sharing
+              </a> </router-link>
+            </li> 
+
+            <li class="nav-item">
+              <router-link to="/logs" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu" :class="{'active':this.$route.name=='logs'}">
+                <i class="far fa-circle nav-icon"></i>
+                Logs
               </a> </router-link>
             </li> 
             

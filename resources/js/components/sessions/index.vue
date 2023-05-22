@@ -7,7 +7,7 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Transaction Lists</h1>
+              <h1>Session</h1>
             </div>
           </div>
         </div>
@@ -19,22 +19,22 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
-                  <!--  <router-link to="/transaction/0" class="btn btn-primary btn-sm"
-                    >Add</router-link
-                  > -->
                   <button type="button" @click="showModal = true" class="btn btn-primary btn-sm pull-left">Add</button>
                   <div class="pull-right">
                     <input type="file" accept=".csv" @change="handleFileUpload($event)" />
                     <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
                   </div>
                 </div>
-                <div class="card-body">
-                  <div class="spin_center" :class="{ 'd-none': isHidden }">
-                    <div class="overlay">
-                      <i class="fas fa-3x fa-sync-alt fa-spin"></i>
-                      <div class="text-bold pt-2">Loading...</div>
+                <div class="card-body">                  
+                  <div class="text-center" :class="{ 'd-none': isHidden }">                      
+                      import on-progress... 
+                    </div><br>
+                  <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status" :class="{ 'd-none': isHidden }">
+                      <span class="sr-only">Loading...</span>
                     </div>
                   </div>
+
                   <ul class="list-group">
                     <input type="text" v-model="form.searchTerm2" @change="filterEmployee()" class="form-control to-right"
                       style="width: 100%" placeholder="Search user here" />
@@ -148,59 +148,6 @@ export default {
           console.log(error);
         });
     },
-    /* me() {
-      axios.post('/api/auth/me', '', {
-        headers: {
-          Authorization: "Bearer ".concat(this.token),
-          Accept: "application/jsons",
-        }
-      })
-        .then(res => {
-          console.log(res)
-        })
-        .catch(error => this.errors = error.response.data.errors)
-
-    }, */
-    /* pdf() {
-      axios.get('/pdf')
-      .then(({data}) => (
-          console.log(data)
-      ))
-      .catch()
-      window.open("/api/pdf", '_blank');
-    }, */
-    /* formatDate(date) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' }
-      return new Date(date).toLocaleDauploadCSVring('en', options)
-    }, */
-    /* deleteRecord(id) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          axios.delete('/api/employee/' + id)
-            .then(() => {
-              this.employees = this.employees.filter(e => {
-                return e.id != id
-              })
-            })
-            .catch(() => {
-              this.$router.push("/all_employee").catch(() => { });
-            })
-          Swal.fire(
-            'Deleted!',
-            'Your file has been deleted.',
-            'success'
-          )
-        }
-      })
-    }, */
     filterEmployee() {
       this.employees = []
       this.countRecords = null
@@ -242,13 +189,15 @@ export default {
       });
     },
     uploadCSV() {
+      this.isHidden = false
       api.post('schedule-import', this.form)
         .then(response => {
           this.todayPatient();
           Toast.fire({
             icon: 'success',
-            title: 'Saved successfully'
+            title: 'Imported successfully'
           });
+          this.isHidden = true
         })
         .catch(error => console.log(error))
 

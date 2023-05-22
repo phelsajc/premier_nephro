@@ -142,6 +142,9 @@ Route::match(['get','post'],'census-report','CensusController@report');
 Route::match(['get','post'],'census_px-report','CensusController@report_px');
 Route::match(['get','post'],'revenue-report','CensusController@revenue');
 
+#Census
+Route::match(['get','post'],'log-report','LogsController@report');
+
 
 
 
