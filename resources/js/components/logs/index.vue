@@ -75,7 +75,7 @@
                         {{ e.status }}
                       </td>
                       <td>
-                        {{ e.schedule }}
+                        {{ e.date }}
                       </td>
                       <!-- <td>
                         <button type="button" class="btn btn-success btn-xs" style=" margin-right: 5px;"
@@ -127,7 +127,8 @@ export default {
     showReport() {
       api.post('log-report', this.filter)
         .then(response => {
-          this.results = response.data
+          this.results = response.data.data
+          console.log(this.results)
           //this.month = moment(this.filter.date).format('MMMM YYYY')
           Toast.fire({
             icon: 'success',

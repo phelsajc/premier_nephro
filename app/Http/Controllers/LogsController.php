@@ -28,17 +28,17 @@ class LogsController extends Controller
         $fdate = date_format(date_create($request->fdate),'Y-m-d');
         $tdate = date_format(date_create($request->tdate),'Y-m-d');
        
-        $data =  Logs::all();
+        $data = DB::connection('mysql')->select(" SELECT * from transaction_log  where schedule between '$fdate' and '$tdate' ");
 
         $data_array = array();
 
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr['status'] =  $value->status;
+            $arr['status'] =  $value->action;
             $arr['date'] =  $value->schedule;
             $data_array[] = $arr;
         }
-        $datasets['data'] = $data_array;//array(["data"=>$data_array]);
+        $datasets['data'] = $data_array;
         return response()->json($datasets);
     }
 }

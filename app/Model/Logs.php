@@ -14,11 +14,9 @@ class Logs extends Model
 
     protected $fillable = [
         'id',
-        'schedule',
-        'patient_id',
+        'action',
         'created_by',
         'created_dt',
-        'doctor',
-        'status',
+        'schedule',
     ];
 }

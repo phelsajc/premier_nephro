@@ -184,10 +184,23 @@ class PHICController extends Controller
         foreach ($data as $key => $value) {
             $arr = array();
             $arr_export = array();
-            $get_dates = DB::connection('mysql')->select("
+            /*  $get_dates = DB::connection('mysql')->select("
             SELECT schedule, patient_id from schedule
                 where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
-            ");
+            "); */
+
+            if ($doctors != 'All') {
+                $get_dates = DB::connection('mysql')->select("
+                            SELECT schedule, patient_id from schedule
+                                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and doctor = $doctors and status = 'ACTIVE'
+                            ");
+            } else {
+                $get_dates = DB::connection('mysql')->select("
+                SELECT schedule, patient_id from schedule
+                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
+                "); 
+            }
+
             $date_of_sessions = '';
             $date_of_sessionsArr = array();
             $paid_session = 0;
@@ -207,7 +220,9 @@ class PHICController extends Controller
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
             $arr['name'] =  $value->name;
-            $arr['sessions'] = count($get_dates); //$value->cnt;
+            //$arr['sessions'] = $value->cnt;
+            $arr['sessions'] = count($get_dates);
+
             $arr['paidSessions'] =  $total_paid_session += $paid_session;
             $arr['dates'] =  $date_of_sessions;
             $arr['datesArr'] =  $date_of_sessionsArr;

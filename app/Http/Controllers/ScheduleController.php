@@ -31,10 +31,12 @@ class ScheduleController extends Controller
     function import(Request $request)
     {    
         foreach ($request->data as $row => $value) {    
-            $value['phic_accreditation']!=null?$chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation = '".$value['phic_accreditation']."'"):null;
-            $chck_px = DB::connection('mysql')->select("select * from patients where phic like ='".$value['phic']."'");      
-            if($chck_px&&$chck_dct){
-                $doctor  = $value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+            $chck_px = DB::connection('mysql')->select("select * from patients where phic ='".$value['phicno']."' AND staus = 'Active'");      
+            //if($chck_px&&$chck_dct){
+            if($chck_px){
+                $chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation = '".$value['phic_accreditation']."'");
+                //$doctor  = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+                $doctor  = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
                 $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule']),'status'=>'ACTIVE'])->first();
                 if($doctor!=null&&$check_schedule==null){
                     $p = new Schedule;
@@ -65,9 +67,9 @@ class ScheduleController extends Controller
                     $p->schedule = date_create($value['Schedule']);
                     $p->created_dt = date("Y-m-d");
                     $p->created_by =  auth()->id();
-                    $p->doctor = $value['Incharge']!=''||$value['Incharge']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+                    $p->doctor = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
                     $p->patient_id = $chck_px?$chck_px[0]->id:null;
-                    $p->status = $check_schedule!=null?'DUPLICATE SCHEDULE':'NO DOCTOR';
+                    $p->status = $check_schedule!=null?$chck_px[0]->name.' HAS DUPLICATE SCHEDULE '.$value['Schedule']:$chck_px[0]->name.' HAS NO DOCTOR';
                     $p->save();                
                 }  
             }else{
@@ -75,9 +77,9 @@ class ScheduleController extends Controller
                 $p->schedule = date_create($value['Schedule']);
                 $p->created_dt = date("Y-m-d");
                 $p->created_by =  auth()->id();
-                $p->doctor = $value['Incharge'];
+                $p->doctor = $value['phic_accreditation'];
                 $p->patient_id = null;
-                $p->status = $value['Customer'].' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
+                $p->status = $value['Customer'].' '.$value['phicno'].' '.$chck_px?$chck_px[0]->status:''.' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
                 $p->save();   
             }                  
         }       
@@ -90,8 +92,8 @@ class ScheduleController extends Controller
         $start = $request->start;//data?$request->data['start']:0;
         $val = $request->searchTerm2;//$request->data?$request->data['searchTerm2']:null;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where p.name like '%".$val."%' and s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE'");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE'");
         }else{
             $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length");
             $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' ");
@@ -185,6 +187,7 @@ class ScheduleController extends Controller
         $p = new Transaction_log;
         $p->action = 'DELETE SESSION OF '.$get_patient->name.' on '.$get_schedule->schedule;
         $p->created_dt = date("Y-m-d H:i");
+        $p->schedule = $get_schedule->schedule;
         $p->created_by = auth()->id();   
         $p->save();         
         return true;
