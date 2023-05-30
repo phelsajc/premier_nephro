@@ -28,13 +28,13 @@ class LogsController extends Controller
         $fdate = date_format(date_create($request->fdate),'Y-m-d');
         $tdate = date_format(date_create($request->tdate),'Y-m-d');
        
-        $data = DB::connection('mysql')->select(" SELECT * from transaction_log  where schedule between '$fdate' and '$tdate' ");
+        $data = DB::connection('mysql')->select(" SELECT * from failed_scheduled  where schedule between '$fdate' and '$tdate' group by status");
 
         $data_array = array();
 
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr['status'] =  $value->action;
+            $arr['status'] =  $value->status;
             $arr['date'] =  $value->schedule;
             $data_array[] = $arr;
         }
