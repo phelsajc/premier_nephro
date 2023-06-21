@@ -115,8 +115,8 @@
             save(){
               api.post('schedule-add',this.form)
                         .then(response => {   
-                this.form.patientid = 0 
-                this.form.searchVal = ''
+                //this.form.patientid = 0 
+                //this.form.searchVal = ''
                             Toast.fire({
                                 icon: 'success',
                                 title: 'Saved successfully'

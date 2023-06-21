@@ -31,15 +31,22 @@ class ScheduleController extends Controller
     function import(Request $request)
     {    
         foreach ($request->data as $row => $value) {    
-            $chck_px = DB::connection('mysql')->select("select * from patients where phic ='".$value['phicno']."' AND status = 'Active'");      
+            $getPhic = str_replace("X","0",$value['phicno']);
+            $chck_px = DB::connection('mysql')->select("select * from patients where phic ='".$getPhic."' AND status = 'Active'");      
             //if($chck_px&&$chck_dct){
+                $getCover = str_replace(" ","",$value['phic_accreditation']);
+                $getScheduledDate = date_format(date_create($value['Schedule']),'Y-m-d');
             if($chck_px){
                 //$chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation = '".$value['phic_accreditation']."'");
-                $chck_dct = Doctors::Where(['phic_accreditation'=>$value['phic_accreditation']])->first();
+               #working $chck_dct = Doctors::Where(['phic_accreditation'=>$value['phic_accreditation']])->first();
+                $chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation ='".$getCover."' or name = '".$value['doctor']."'"); 
+                //$chck_dct = DB::connection('mysql')->select("select * from doctors where phic_accreditation ='".$value['phic_accreditation']."'"); 
                 //$doctor  = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
                 //$doctor  = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:
-                if(($value['phic_accreditation']!=''||$value['phic_accreditation']!=null)&&$chck_dct){
-                    $doctor = $chck_dct->id;
+                //if(($value['phic_accreditation']!=''||$value['phic_accreditation']!=null)&&$chck_dct){
+                //if(($value['phic_accreditation']!=''||$value['phic_accreditation']!=null||$value['doctor']!=''||$value['doctor']!=null)&&sizeof($chck_dct)>0){
+                if(sizeof($chck_dct)>0){
+                    $doctor = $chck_dct[0]->id;
                 }else{
                     if($chck_px[0]->attending_doctor){
                         $doctor = $chck_px[0]->attending_doctor;
@@ -50,10 +57,10 @@ class ScheduleController extends Controller
                 /* $doctor  = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:
                 ($chck_px[0]->attending_doctor?
                 $chck_px[0]->attending_doctor:null); */
-                $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>date_create($value['Schedule']),'status'=>'ACTIVE'])->first();
+                $check_schedule = Schedule::where(['patient_id'=>$chck_px[0]->id,'schedule'=>$getScheduledDate,'status'=>'ACTIVE'])->first();
                 if($doctor!=null&&$check_schedule==null){
                     $p = new Schedule;
-                    $p->schedule = date_create($value['Schedule']);
+                    $p->schedule = $getScheduledDate;
                     $p->created_dt = date("Y-m-d");
                     $p->created_by =  auth()->id();
                     $p->doctor = $doctor;
@@ -61,7 +68,7 @@ class ScheduleController extends Controller
                     $p->save();
                           
                     $c = new Copay;
-                    $c->date_session = date_create($value['Schedule']);
+                    $c->date_session = $getScheduledDate;
                     $c->created_dt = date("Y-m-d");
                     $c->created_by =  auth()->id();
                     $c->doctor = $p->doctor;
@@ -69,7 +76,7 @@ class ScheduleController extends Controller
                     $c->save();  
                     
                     $ph = new Phic;
-                    $ph->date_session = date_create($value['Schedule']);
+                    $ph->date_session = $getScheduledDate;
                     $ph->created_dt = date("Y-m-d");
                     $ph->created_by =  auth()->id();
                     $ph->doctor = $p->doctor;
@@ -77,12 +84,12 @@ class ScheduleController extends Controller
                     $ph->save();
                 }else{
                     $p = new FailedSchedule;
-                    $p->schedule = date_create($value['Schedule']);
+                    $p->schedule = $getScheduledDate;
                     $p->created_dt = date("Y-m-d");
                     $p->created_by =  auth()->id();
                     //$p->doctor = $value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
-                    if(($value['phic_accreditation']!=''||$value['phic_accreditation']!=null)&&$chck_dct){
-                        $doctor = $chck_dct->id;
+                    if(($getCover!=''||$getCover!=null)&&$chck_dct){
+                        $doctor = $chck_dct[0]->id;
                     }else{
                         if($chck_px[0]->attending_doctor){
                             $doctor = $chck_px[0]->attending_doctor;
@@ -90,7 +97,7 @@ class ScheduleController extends Controller
                             $doctor = null;
                         }
                     }
-                    $p->doctor = $doctor;//$value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
+                    $p->doctor = $doctor;//$value['phic_accreditation']!=''||$value['phic_accreditation']!=null?$chck_dct[0]->id:($chck_px[0]->attending_doctor?$chck_px[0]->attending_doctor:null);
                     $p->patient_id = $chck_px?$chck_px[0]->id:null;
                     $p->status = $check_schedule!=null?$chck_px[0]->name.' HAS DUPLICATE SCHEDULE '.$value['Schedule']:$chck_px[0]->name.' HAS NO DOCTOR';
                     $p->save();                
@@ -98,10 +105,10 @@ class ScheduleController extends Controller
             }else{
                 //dd(empty($chck_px));exit;
                 $p = new FailedSchedule;
-                $p->schedule = date_create($value['Schedule']);
+                $p->schedule = $getScheduledDate;
                 $p->created_dt = date("Y-m-d");
                 $p->created_by =  auth()->id();
-                $p->doctor = $value['phic_accreditation'];
+                $p->doctor = $getCover;
                 $p->patient_id = null;
                 $pstatus = 'BLANK';
                 if(empty($chck_px)){
@@ -109,7 +116,7 @@ class ScheduleController extends Controller
                 }else{
                     $pstatus = $chck_px[0]->status;
                 }
-                $p->status =  $value['Customer'].' '.$value['phicno'].' '.$pstatus.' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
+                $p->status =  $value['Customer'].' '.$getPhic.' '.$pstatus.' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
                 //$value['Customer'].' '.$value['phicno'].' '.(empty($chck_px)?'':$chck_px[0]->status).' HAS NO RECORD. PLEASE ADD FIRST TO PATIENT MASTER FILE.';
                 $p->save();   
             }                  
