@@ -175,7 +175,36 @@ class ScheduleController extends Controller
     public function store(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $p = new Schedule;
+        $check_data = Schedule::where(['patient_id'=>$request->patientid,'schedule'=>date_format(date_create($request->schedule),'Y-m-d')])->first();
+        //return $check_data;
+        if(!$check_data){
+            $p = new Schedule;
+            $p->patient_id = $request->patientid;
+            $p->schedule = $request->schedule;
+            $pxDctr = Patients::where(['id'=>$request->patientid])->first();
+            $p->doctor = $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor;
+            $p->save();          
+            
+            $c = new Copay;
+            $c->date_session = date_create($request->schedule);
+            $c->created_dt = date("Y-m-d");
+            $c->created_by =  auth()->id();
+            $c->doctor = $p->doctor;
+            $c->patient_id = $p->patient_id;
+            $c->save();  
+
+            $ph = new Phic;
+            $ph->date_session = date_create($request->schedule);
+            $ph->created_dt = date("Y-m-d");
+            $ph->created_by =  auth()->id();
+            $ph->doctor = $p->doctor;
+            $ph->patient_id = $p->patient_id;
+            $ph->save();
+            return response()->json(false);
+        }else{
+            return response()->json(true);
+        }
+        /* $p = new Schedule;
         $p->patient_id = $request->patientid;
         $p->schedule = $request->schedule;
         $pxDctr = Patients::where(['id'=>$request->patientid])->first();
@@ -196,8 +225,11 @@ class ScheduleController extends Controller
         $ph->created_by =  auth()->id();
         $ph->doctor = $p->doctor;
         $ph->patient_id = $p->patient_id;
-        $ph->save();
-        return true;
+        $ph->save(); */
+
+        
+
+        
     }
 
     public function edit($id)
