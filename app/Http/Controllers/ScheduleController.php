@@ -175,7 +175,7 @@ class ScheduleController extends Controller
     public function store(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
-        $check_data = Schedule::where(['patient_id'=>$request->patientid,'schedule'=>date_format(date_create($request->schedule),'Y-m-d')])->first();
+        $check_data = Schedule::where(['patient_id'=>$request->patientid,'status'=>'ACTIVE','schedule'=>date_format(date_create($request->schedule),'Y-m-d')])->first();
         //return $check_data;
         if(!$check_data){
             $p = new Schedule;
@@ -251,6 +251,12 @@ class ScheduleController extends Controller
         date_default_timezone_set('Asia/Manila');
         $get_schedule = Schedule::where(['id'=>$id])->first();
         Schedule::where(['id'=>$id])->update([
+            'status'=> 'INACTIVE',
+        ]);
+        Copay::where(['patient_id'=>$get_schedule->patient_id,'date_session'=>$get_schedule->schedule,'status'=>'ACTIVE'])->update([
+            'status'=> 'INACTIVE',
+        ]);
+        Phic::where(['id'=>$id])->update([
             'status'=> 'INACTIVE',
         ]);
         $get_patient = Patients::where(['id'=>$get_schedule->patient_id])->first();

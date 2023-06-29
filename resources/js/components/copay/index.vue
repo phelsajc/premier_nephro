@@ -59,6 +59,9 @@
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
+                      <button type="button" @click="exportCsv()" class="btn btn-primary">
+                        Export
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -120,6 +123,7 @@
 import Datepicker from 'vuejs-datepicker'
 import moment from 'moment';
 import api from '../../Helpers/api';
+import { ExportToCsv } from 'export-to-csv';
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -140,6 +144,7 @@ export default {
         type: 'BOTH'
       },
       results: [],
+      export: [],
       month: null,
       doctors_list: [],
       token: localStorage.getItem('token'),
@@ -166,7 +171,8 @@ export default {
     showReport() {
       api.post('copay-report', this.filter)
         .then(response => {
-          this.results = response.data
+          this.results = response.data.data
+          this.export = response.data.export
           this.month = moment(this.filter.date).format('MMMM YYYY')
           Toast.fire({
             icon: 'success',
@@ -194,6 +200,22 @@ export default {
           this.doctors_list = response.data
         }).catch(error => console.log(error))
     },
+    exportCsv() {
+      const options = {
+        fieldSeparator: ',',
+        quoteStrings: '"',
+        decimalSeparator: '.',
+        showLabels: true,
+        showTitle: true,
+        title: 'CO-Pay',
+        useTextFile: false,
+        useBom: true,
+        useKeysAsHeaders: true,
+        // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
+      };
+      const csvExporter = new ExportToCsv(options);
+      csvExporter.generateCsv(this.export);
+    }
   }
 }
 

@@ -25,6 +25,7 @@
                   <div class="form-group">
                     <label for="exampleInputEmail1">Doctor In-Charge</label>
                     <select class="form-control" v-model="form.doctor">
+                      <option selected value="0">None</option>
                       <option v-for="e in doctors" :value="e.id">{{ e.name }}</option>
                     </select>
                   </div>
