@@ -82,7 +82,7 @@
                   <dt class="col-sm-2">Doctor:</dt>
                   <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
                 </dl>
-                <table class="table">
+                <table v-if="filter.doctors!='All'" class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
@@ -103,6 +103,41 @@
                           v-for="d in e.datesArr">
                           {{ d }}
                         </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <table v-else class="table">
+                  <thead>
+                    <tr>
+                      <th>Nephrologist</th>
+                      <th># of Sessions</th>
+                      <th>Amount</th>
+                      <th>Total Amount</th>
+                      <th>Less WTX</th>
+                      <th>Net</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="e in results">
+                      <td>
+                        {{ e.name }}
+                      </td>
+                      <td>
+                        {{ e.session }}
+                      </td>
+                      <td>
+                        150
+                      </td>
+                      <td>
+                        {{ e.total_amount }}
+                      </td>
+                      <td>
+                        {{ e.less_wtx }}
+                      </td>
+                      <td>
+                        {{ e.net }}
                       </td>
                     </tr>
                   </tbody>
@@ -148,6 +183,7 @@ export default {
       month: null,
       doctors_list: [],
       token: localStorage.getItem('token'),
+      getMonthTitle: '',
     }
   },
   computed: {
@@ -173,6 +209,7 @@ export default {
         .then(response => {
           this.results = response.data.data
           this.export = response.data.export
+          this.getMonthTitle = response.data.month
           this.month = moment(this.filter.date).format('MMMM YYYY')
           Toast.fire({
             icon: 'success',
@@ -207,10 +244,11 @@ export default {
         decimalSeparator: '.',
         showLabels: true,
         showTitle: true,
-        title: 'CO-Pay',
+        title: 'Summary of Nephros(Co - Pay) \n for the month of '+this.getMonthTitle,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,
+        filename: 'copay_'+this.getMonthTitle
         // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
       };
       const csvExporter = new ExportToCsv(options);
