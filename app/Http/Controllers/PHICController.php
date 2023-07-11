@@ -198,7 +198,7 @@ class PHICController extends Controller
                 $get_dates = DB::connection('mysql')->select("
                 SELECT schedule, patient_id from schedule
                     where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
-                "); 
+                ");
             }
 
             $date_of_sessions = '';
@@ -208,12 +208,17 @@ class PHICController extends Controller
                 $date_of_sessionsArr_set = array();
                 $s_date = date_format(date_create($gvalue->schedule), 'F d');
                 $date_of_sessionsArr_set['date'] = $s_date;
-                $data_sessions = Phic::where(['date_session' => date_format(date_create($gvalue->schedule), 'Y-m-d'), 'patient_id' => $gvalue->patient_id])->first();
+                //$data_sessions = Phic::where(['date_session' => date_format(date_create($gvalue->schedule), 'Y-m-d'), 'patient_id' => $gvalue->patient_id])->first();
+                $s_sched = date_format(date_create($gvalue->schedule), 'Y-m-d');
+                $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and status <> 'INACTIVE'
+                ");
                 if ($data_sessions) {
-                    $data_sessions->status == 'PAID' ? $paid_session++ : 0;
+                    $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
                 }
-                $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions->status : '';
-                $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions->id : null;
+                $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
+                $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->schedule), 'Y-m-d');
                 $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
                 $date_of_sessions .= date_format(date_create($gvalue->schedule), 'F d') . ', ';

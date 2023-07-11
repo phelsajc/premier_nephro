@@ -290,27 +290,11 @@ import VueApexCharts from 'vue-apexcharts'
                 })
                 .then(res => {
                     this.series = res.data[0].series
-                    //this.chartOptions.xaxis = 
-                    console.log(res.data[0])
-                    console.log(res.data[0].cat)
                     this.chartOptions = {
                         xaxis: {
                             categories: res.data[0].cat
                         }
                     }
-                    console.log(this.chartOptions.xaxis.categories)
-                    /* this.chartOptions = {...this.chartOptions, ...{
-                        xaxis: {
-                            data: res.data[0].cat
-                        }
-                    }} */
-                    /* this.$refs.radar.updateOptions({
-                        xaxis: {
-                            categories: res.data[0].cat//ie ["a","b","c","d"]
-                        }
-                    }) */
-                    
-                    //this.$refs.radar.refresh();
                     Toast.fire({
                         icon: 'success',
                         title: 'Saved successfully'
