@@ -160,6 +160,11 @@ export const routes = [
 
     //Logs
     { path: '/logs', component: logs, name: 'logs' },
+
+    
+    { path: '/transaction/:id', component: transaction, name: 'transaction' },
+    { path: '/transaction_list', component: transaction_list, name: 'transaction_list' },
+    { path: '/transaction_report', component: transaction_report, name: 'transaction_report' },
 ]
 
 
