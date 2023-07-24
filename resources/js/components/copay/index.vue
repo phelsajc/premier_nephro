@@ -86,7 +86,7 @@
                   <thead>
                     <tr>
                       <th>Patient</th>
-                      <th>Sessions</th>
+                      <!-- <th>Sessions</th> -->
                       <th>Date</th>
                     </tr>
                   </thead>
@@ -96,14 +96,14 @@
                         {{ e.name }}
                       </td>
                       <td>
-                        {{ e.sessions }}
+                        {{ e.dates }}
                       </td>
-                      <td>
+                      <!-- <td>
                         <button type="button" class="btn btn-success btn-xs" style=" margin-right: 5px;"
                           v-for="d in e.datesArr">
                           {{ d }}
                         </button>
-                      </td>
+                      </td> -->
                     </tr>
                   </tbody>
                 </table>
@@ -179,6 +179,7 @@ export default {
         type: 'BOTH'
       },
       results: [],
+      getTotalSession: 0 ,
       export: [],
       month: null,
       doctors_list: [],
@@ -188,7 +189,8 @@ export default {
   },
   computed: {
     total_sessions() {
-      return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      //return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      return this.getTotalSession;
     },
     getDoctor() {
       return this.doctors_list.find(e => e.id == this.filter.doctors);
@@ -205,12 +207,16 @@ export default {
         }).catch(error => console.log(error))
     },
     showReport() {
+      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
+      this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
       api.post('copay-report', this.filter)
         .then(response => {
+          this.getTotalSession = response.data.sessions;
           this.results = response.data.data
           this.export = response.data.export
           this.getMonthTitle = response.data.month
           this.month = moment(this.filter.date).format('MMMM YYYY')
+          //this.month = moment.utc(this.filter.date).utcOffset('+08:00').format(); // '+08:00' represents the UTC offset for Asia/Manila
           Toast.fire({
             icon: 'success',
             title: 'Saved successfully'
