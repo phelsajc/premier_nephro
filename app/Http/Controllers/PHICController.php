@@ -191,13 +191,13 @@ class PHICController extends Controller
 
             if ($doctors != 'All') {
                 $get_dates = DB::connection('mysql')->select("
-                            SELECT schedule, patient_id from schedule
-                                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and doctor = $doctors and status = 'ACTIVE'
-                            ");
+                SELECT schedule, patient_id from schedule
+                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and doctor = $doctors and status = 'ACTIVE' order by schedule asc
+                ");
             } else {
                 $get_dates = DB::connection('mysql')->select("
                 SELECT schedule, patient_id from schedule
-                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
+                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'  order by schedule asc
                 ");
             }
 
@@ -210,9 +210,13 @@ class PHICController extends Controller
                 $date_of_sessionsArr_set['date'] = $s_date;
                 //$data_sessions = Phic::where(['date_session' => date_format(date_create($gvalue->schedule), 'Y-m-d'), 'patient_id' => $gvalue->patient_id])->first();
                 $s_sched = date_format(date_create($gvalue->schedule), 'Y-m-d');
-                $data_sessions  = DB::connection('mysql')->select("
+                /* $data_sessions  = DB::connection('mysql')->select("
                 SELECT * from phic
                     where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and status <> 'INACTIVE'
+                "); */
+                $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE'
                 ");
                 if ($data_sessions) {
                     $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;

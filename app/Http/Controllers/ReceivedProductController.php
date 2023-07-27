@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Model\Products;
+use App\Model\Ledger;
 use App\Model\ReceivedProducts;
 use DB;
 
@@ -66,6 +67,19 @@ class ReceivedProductController extends Controller
         $p->created_dt = date("Y-m-d H:i");
         $p->created_by = auth()->id(); 
         $p->save();
+
+        
+        $l = new Ledger();
+        $l->referenceno = $product->product;
+        $l->particulars = $request->qty;
+        $l->unit_price = $request->dop;
+        $l->total = $request->pid;
+        $l->payment = $request->uom;
+        $l->checkno = $request->uom;
+        $l->purchased_dt = $request->uom;
+        $l->created_dt = date("Y-m-d H:i");
+        $l->created_by = auth()->id(); 
+        $l->save();
         return true;
     }
 

@@ -130,11 +130,11 @@ class ScheduleController extends Controller
         $start = $request->start;//data?$request->data['start']:0;
         $val = $request->searchTerm2;//$request->data?$request->data['searchTerm2']:null;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE'");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE' order by s.schedule asc LIMIT $length offset $start ");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where (p.name like '%".$val."%' or s.schedule = '".date('Y-m-d')."') and s.status = 'ACTIVE' order by s.schedule asc");
         }else{
-            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' LIMIT $length");
-            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' ");
+            $data =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' order by s.schedule asc LIMIT $length ");
+            $count =  DB::connection('mysql')->select("select s.*,s.id as schedule_id,p.* from schedule s left join patients p on s.patient_id = p.id where s.schedule = '".date('Y-m-d')."' and s.status = 'ACTIVE' order by s.schedule asc");
         }
         
         $count_all_record =  DB::connection('mysql')->select("select  count(*) as count from schedule s left join patients p on s.patient_id = p.id ");
@@ -256,8 +256,10 @@ class ScheduleController extends Controller
         Copay::where(['patient_id'=>$get_schedule->patient_id,'date_session'=>$get_schedule->schedule,'status'=>'ACTIVE'])->update([
             'status'=> 'INACTIVE',
         ]);
-        Phic::where(['id'=>$id])->update([
-            'status'=> 'INACTIVE',
+        //Phic::where(['id'=>$id])->update([
+        Phic::where(['patient_id'=>$get_schedule->patient_id,'date_session'=>$get_schedule->schedule,'state'=>'ACTIVE'])->update([
+            //'status'=> 'INACTIVE',
+            'state'=> 'INACTIVE',
         ]);
         $get_patient = Patients::where(['id'=>$get_schedule->patient_id])->first();
         $p = new FailedSchedule;

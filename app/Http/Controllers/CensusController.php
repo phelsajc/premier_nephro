@@ -170,13 +170,21 @@ class CensusController extends Controller
             ");
         }
         $data_array = array();
+        $data_array2 = array();
         foreach ($data as $key => $value) {
             $arr = array();
+            $arr2 = array();
             $arr['name'] =  $value->name;
             $arr['dates'] =  date_format(date_create($value->schedule), 'm/d/Y');
+            $arr2['Patient'] =  $value->name;
+            $arr2['Date'] =  date_format(date_create($value->schedule), 'm/d/Y');
             $data_array[] = $arr;
+            $data_array2[] = $arr2;
         }
-        return response()->json($data_array);
+       // return response()->json($data_array);
+        $datasets["data"] = $data_array;
+        $datasets["export"] = $data_array2;
+        return response()->json($datasets);
     }
 
     public function report_px_old(Request $request)

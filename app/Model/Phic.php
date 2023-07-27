@@ -20,5 +20,6 @@ class Phic extends Model
         'created_dt',
         'doctor',
         'status',
+        'state',
     ];
 }

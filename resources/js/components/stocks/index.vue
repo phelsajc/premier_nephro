@@ -31,14 +31,14 @@
                   <table class="table">
                     <thead>
                       <tr>
-                        <th>Codes</th>
-                        <th>Products</th>
-                        <th>Units</th>
-                        <th>Received</th>
-                        <th>Sales</th>
-                        <th>Stock</th>
-                        <th>Price</th>
-                        <!-- <th></th> -->
+                        <th>Date</th>
+                        <th>Particulars</th>
+                        <th>Beginning Balance</th>
+                        <th>Out</th>
+                        <th>Balance</th>
+                        <th>Cost/Vial</th>
+                        <th>Amount</th>
+                        <th>Balance</th>
                       </tr>
                     </thead>
                     <tbody>

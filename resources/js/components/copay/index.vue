@@ -189,8 +189,12 @@ export default {
   },
   computed: {
     total_sessions() {
-      //return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
-      return this.getTotalSession;
+      
+      if(this.filter.doctors !='All') {
+        return this.getTotalSession;
+      }else{
+        return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      }
     },
     getDoctor() {
       return this.doctors_list.find(e => e.id == this.filter.doctors);

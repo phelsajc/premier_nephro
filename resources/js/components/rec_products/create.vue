@@ -105,10 +105,11 @@
                       </div>
                       <div class="row">
                         <div class="col-sm-4">
-                          <div class="form-group">
+                          <div class="form-group date-bg">
                             <label>Date Purchase</label>
                             <datepicker
                               name="dor"
+                              class="date-bg"
                               v-model="form.dor"
                               :bootstrap-styling="true"
                             ></datepicker>
@@ -290,6 +291,10 @@
   <style>
   .pull-right {
     float: right !important;
+  }
+
+  .date-bg .vdp-datepicker{
+    background-color: #ffffff !important;
   }
   </style>
   

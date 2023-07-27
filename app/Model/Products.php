@@ -22,5 +22,7 @@ class Products extends Model
         'code',
         'updated_by',
         'updated_dt',
+        'beg_bal',
+        'amount',
     ];
 }
