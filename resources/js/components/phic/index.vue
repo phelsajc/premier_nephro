@@ -14,7 +14,7 @@
                 <li class="breadcrumb-item">
                   <a href="#">Home</a>
                 </li>
-                <li class="breadcrumb-item active">CoPay</li>
+                <li class="breadcrumb-item active">PHIC</li>
               </ol>
             </div>
           </div>

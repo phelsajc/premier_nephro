@@ -252,4 +252,133 @@ class PHICController extends Controller
         $datasets["getPaidClaims"] = count($getPaidClaims);
         return response()->json($datasets);
     }
+
+    public function acpn_report(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $doctors = $request->doctors;
+        $getDoctor = Doctors::where(["id" => $doctors])->first();
+        /* if ($doctors != 'All') {
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
+            ");
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
+            ");
+        } else {
+            $data =  DB::connection('mysql')->select("
+            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                group by s.patient_id;
+            ");
+            $getPaidClaims =  DB::connection('mysql')->select("
+                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
+            ");
+        } */
+
+        $data =  DB::connection('mysql')->select("
+        SELECT p.name,  s.patient_id,s.schedule,s.id
+            FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+            group by s.patient_id;
+        ");
+        $getPaidClaims =  DB::connection('mysql')->select("
+            select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
+        ");
+
+        $data_array = array();
+        $data_array_export = array();
+
+        $total_paid_session = 0;
+        $Grandtotal_paid_session = 0;
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr_export = array();
+            /*  $get_dates = DB::connection('mysql')->select("
+            SELECT schedule, patient_id from schedule
+                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
+            "); */
+                /* $get_dates = DB::connection('mysql')->select("
+                SELECT schedule, patient_id from schedule
+                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE' order by schedule asc
+                "); */
+
+                $get_dates  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                ");
+         
+
+            $date_of_sessions = '';
+            $date_of_sessionsArr = array();
+            $paid_session = 0;
+            foreach ($get_dates as $gkey => $gvalue) {
+                $date_of_sessionsArr_set = array();
+                $s_date = date_format(date_create($gvalue->date_session), 'F d');
+                $date_of_sessionsArr_set['date'] = $s_date;
+                $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' and remarks like '%$request->batch%'
+                ");
+                if ($data_sessions) {
+                    $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
+                }
+                $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
+                $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
+                $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
+                $date_of_sessions .= date_format(date_create($gvalue->date_session), 'F d Y') . ', ';
+                $date_of_sessionsArr[] = $date_of_sessionsArr_set;
+            }
+            $arr['name'] =  $value->name;
+            //$arr['sessions'] = $value->cnt;
+            $no_of_sessions_paid = sizeof($date_of_sessionsArr);
+            $arr['sessions'] = $no_of_sessions_paid;//count($get_dates);
+
+            $arr['paidSessions'] =  $total_paid_session += $paid_session;
+            $arr['dates'] =  $date_of_sessions;
+            $arr['datesArr'] =  $date_of_sessionsArr;
+            $arr['get_dates'] =  $get_dates;
+            $arr['total'] =  $no_of_sessions_paid * 350;
+            //$data_array[] = $arr;
+            $calculate_total = $no_of_sessions_paid * 350;
+            $Grandtotal_paid_session += $calculate_total;
+            $arr_export['Name'] =  $value->name;
+            $arr_export['No. of Sessions'] = count($get_dates); //$value->cnt;
+            //$arr_export['Paid Sessions'] =  $total_paid_session += $paid_session;
+            $arr_export['Dates'] =  $date_of_sessions;
+            $arr_export['total'] =  $calculate_total;
+            if(sizeof($get_dates)>0){
+                $data_array[] = $arr;
+                $data_array_export[] = $arr_export;
+            }
+            $date_of_sessions = '';
+        }
+        $datasets = array();
+        
+        $arr_export['Name'] =  '';
+        $arr_export['No. of Sessions'] = '';
+        $arr_export['Dates'] = 'Total';
+        $arr_export['total'] = $Grandtotal_paid_session;
+        $data_array_export[] = $arr_export;
+
+        $datasets["data"] = $data_array;
+        $datasets["export"] = $data_array_export;
+        $datasets["Doctors"] = $getDoctor;
+        $datasets['totalPaidSessions'] =  $total_paid_session;
+        $datasets["getPaidClaims"] = count($getPaidClaims);
+        $datasets["getPaidClaims"] = count($getPaidClaims);
+
+        return response()->json($datasets);
+    }
 }

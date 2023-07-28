@@ -121,6 +121,15 @@
               </a> </router-link>
           </li>
 
+          
+          <li class="nav-item">
+            <router-link to="/acpn_list" class="collapse-item"><a href="#" class="nav-link" id="acpnmenu"
+                :class="{ 'active': this.$route.name == 'acpn_list' }">
+                <i class="far fa-circle nav-icon"></i>
+                ACPN
+              </a> </router-link>
+          </li>
+
           <li class="nav-item">
             <router-link to="/logs" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu"
                 :class="{ 'active': this.$route.name == 'logs' }">

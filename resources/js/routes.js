@@ -72,6 +72,9 @@ let phic_list = require('./components/phic/index.vue').default
 //let phic_add = require('./components/phic/create.vue').default
 //let phic_reports = require('./components/phic/Reports.vue').default
 
+//Acpn
+let acpn_list = require('./components/acpn/index.vue').default
+
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
 let census_patient = require('./components/census/census_patient.vue').default
@@ -149,6 +152,9 @@ export const routes = [
     { path: '/phic_list', component: phic_list, name: 'phic_list' },
     //{ path: '/phic_add/:id', component: phic_add, name: 'phic_add' },
     //{ path: '/phic_reports', component: phic_reports, name: 'phic_reports' },
+
+    //Acpn
+    { path: '/acpn_list', component: acpn_list, name: 'acpn_list' },    
 
     //census
     { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },

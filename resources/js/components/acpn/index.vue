@@ -14,7 +14,7 @@
                 <li class="breadcrumb-item">
                   <a href="#">Home</a>
                 </li>
-                <li class="breadcrumb-item active">Census</li>
+                <li class="breadcrumb-item active">ACPN</li>
               </ol>
             </div>
           </div>
@@ -25,11 +25,21 @@
 
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Patient Census</h3>
-
+              <h3 class="card-title">ACPN Report</h3>
             </div>
 
             <div class="card-body">
+              <div class="row">
+                <div class="col-md-2">
+                  <p>LEGENDS</p>
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-block btn-success btn-xs">PAID</button>
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-block btn-warning btn-xs">PENDING</button>
+                </div>
+              </div>
 
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
@@ -48,15 +58,9 @@
                     </div>
                   </div>
                   <div class="col-sm-2">
-                    <div class="form-group ">
-                      <label>Patient</label>
-                      <patientComponent ref="patientVal" @return-response="getReturnResponse"></patientComponent>
-                    </div>
-                  </div>
-                  <div class="col-sm-2">
-                    <div class="form-check">
-                      <label>ALL</label> <br>
-                      <input type="checkbox" class="form-check-input" v-model="filter.isall">
+                    <div class="form-group">
+                      <label>Batch</label>
+                      <input type="text" class="form-control"  v-model="filter.batch">
                     </div>
                   </div>
                   <div class="col-sm-2">
@@ -65,56 +69,73 @@
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
+                      <button type="button" @click="exportCsv()" class="btn btn-primary">
+                        Export
+                      </button>
                     </div>
                   </div>
                 </div>
 
+                <!-- <dl class="row">
+                  <dt class="col-sm-2">Total Session:</dt>
+                  <dd class="col-sm-8">{{ total_sessions }}</dd>
+                </dl> -->
                 <dl class="row">
-                  <dt class="col-sm-2">Month:</dt>
-                  <dd class="col-sm-8">{{ month }}</dd>
+                  <dt class="col-sm-2">Total Amount:</dt>
+                  <dd class="col-sm-8">{{ totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
+                </dl>
+                <!-- <dl class="row">
+                  <dt class="col-sm-2">Total PAID:</dt>
+                  <dd class="col-sm-8">{{ totalAmountPaid.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Balance:</dt>
+                  <dd class="col-sm-8">{{ balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total PAID Session:</dt>
+                  <dd class="col-sm-8">{{ getPaidClaims }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total UnpAID Session:</dt>
+                  <dd class="col-sm-8">{{ unpaid }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
                   <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
-                </dl>
+                </dl> -->
                 <table class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
-                      <th>Doctor</th>
-                      <th  @click="sortTable('dates')">Date</th>
-                      <th>Action</th>
+                      <th>Paid Sessions</th>
+                      <th>Date</th>
+                      <th>Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for=" e  in  sortedData ">
+                    <tr v-for="e in results">
                       <td>
                         {{ e.name }}
                       </td>
                       <td>
-                        {{ e.doctor }}
+                        {{ e.sessions }}
                       </td>
-                      <td v-if="!filter.isall">
-                        <button type="button" class="btn btn-xs btn-success" style="margin-right:5px;">
-                          {{ e.dates }}
-                        </button>
-                      </td>
-                      <td v-else>
+                      <td>
                         <button type="button" @click="showModal = true; getId(d.id)"
                           :class="['btn', 'btn-xs', { 'btn-warning': d.status == 'UNPAID' }, { 'btn-success': d.status == 'PAID' }]"
-                          style="margin-right:5px;" v-for=" d  in  e.datesArr ">
+                          style="margin-right:5px;" v-for="d in e.datesArr">
                           {{ d.date }}
                         </button>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-warning" @click="editSession()" >Edit</button>
+                        {{ e.total }}
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </form>
             </div>
-            <!-- /.card-body -->
           </div>
         </div>
         <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal>
@@ -127,36 +148,37 @@
 <script type="text/javascript">
 import Datepicker from 'vuejs-datepicker'
 import moment from 'moment';
+import { ExportToCsv } from 'export-to-csv';
 import api from '../../Helpers/api';
+
 export default {
   created() {
     if (!User.loggedIn()) {
       this.$router.push({ name: '/' })
     }
-
     //this.checkToken()
+    this.getDoctors();
   },
   components: {
     Datepicker,
   },
   data() {
     return {
-      sortKey: 'date',
-      columns: ['date'],
-      reverse: false,
       showModal: false,
       filter: {
         fdate: '',
         tdate: '',
-        isall: false,
-        patient: null,
+        doctors: null,
+        type: 'BOTH'
       },
       results: [],
+      export: [],
+      getsessionid: '',
       month: null,
-      patient_list: [],
+      doctors_list: [],
+      getPaidClaims: 0,
+      getTotalPaidClaims: 0,
       token: localStorage.getItem('token'),
-      sortColumn: '',
-      sortOrder: 'asc',
     }
   },
   computed: {
@@ -167,42 +189,33 @@ export default {
       return this.doctors_list.find(e => e.id == this.filter.doctors);
     },
     totalAmount() {
-      return (this.total_sessions * 150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      return (this.total_sessions * 350)
     },
-    sortedData() {
-      const column = this.sortColumn;
-      const order = this.sortOrder === 'asc' ? 1 : -1;
-
-      return this.results.slice().sort((a, b) => {
-        if (a[column] < b[column]) return -1 * order;
-        if (a[column] > b[column]) return 1 * order;
-        return 0;
-      });
+    totalAmountPaid() {
+      return (this.getTotalPaidClaims * 350)
     },
+    balance() {
+      return (this.totalAmount - this.totalAmountPaid)
+    },
+    unpaid() {
+      return this.total_sessions - this.getPaidClaims
+    }
   },
   methods: {
-    showReport() {
-      /* const headers = {
-              Authorization: "Bearer ".concat(this.token),
-            }
-          axios.post('/api/census-report', {
-                      data:this.filter,
-                  } ,{
-                  headers: headers
-                }
-                  )
-                  .then(res => {
-                    this.results = res.data
-              this.month = moment(this.filter.date).format('MMMM YYYY')
-                      Toast.fire({
-                          icon: 'success',
-                          title: 'Saved successfully'
-                      });
-                  }) */
-
-      api.post('census_px-report', this.filter)
+    getCompany() {
+      api.get('getCompanies')
         .then(response => {
-          this.results = response.data
+          this.companies = response.data
+        }).catch(error => console.log(error))
+    },
+    showReport() {
+      api.post('acpn-report', this.filter)
+        .then(response => {
+          this.getTotalPaidClaims = response.data.getPaidClaims
+          this.getPaidClaims = response.data.getPaidClaims
+          this.results = response.data.data
+          this.export = response.data.export
+          this.month = moment(this.filter.date).format('MMMM YYYY')
           Toast.fire({
             icon: 'success',
             title: 'Saved successfully'
@@ -210,38 +223,43 @@ export default {
         })
         .catch(error => console.log(error))
     },
-    /* checkToken(){                
+    /* checkToken() {
       const headers = {
-              Authorization: "Bearer ".concat(this.token),
+        Authorization: "Bearer ".concat(this.token),
       }
-          axios.get('/api/validate', {
-                  headers: headers
-                }
-                  )
-                  .then(res => {
-                    
-                  })
-                  .catch(error => console.log(error))
+      axios.get('/api/validate', {
+        headers: headers
+      }
+      )
+        .then(res => {
+
+        })
+        .catch(error => console.log(error))
     }, */
-    sortTable(column) {
-      console.log(column)
-      if (this.sortColumn === column) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-      } else {
-        this.sortColumn = column;
-        this.sortOrder = 'asc';
-      }
-    },
     getDoctors() {
-      axios.get('/api/getDoctors')
-        .then(({ data }) => (this.doctors_list = data))
-        .catch()
+      api.get('getDoctors')
+        .then(response => {
+          this.doctors_list = response.data
+        }).catch(error => console.log(error))
     },
     getId(id) {
       this.getsessionid = id
     },
-    getReturnResponse: function (id) {
-      this.filter.patient = id.id
+    exportCsv() {
+      const options = {
+        fieldSeparator: ',',
+        quoteStrings: '"',
+        decimalSeparator: '.',
+        showLabels: true,
+        showTitle: true,
+        title: 'ACPN REPORT \n '+ moment(this.filter.fdate).format('MMMM DD YYYY')+ ' '+ moment(this.filter.tdate).format('MMMM DD YYYY'),
+        useTextFile: false,
+        useBom: true,
+        useKeysAsHeaders: true,
+        // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
+      };
+      const csvExporter = new ExportToCsv(options);
+      csvExporter.generateCsv(this.export);
     }
   }
 }
