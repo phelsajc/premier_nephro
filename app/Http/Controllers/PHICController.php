@@ -260,30 +260,6 @@ class PHICController extends Controller
         $tdate = date_format(date_create($request->tdate), 'Y-m-d');
         $doctors = $request->doctors;
         $getDoctor = Doctors::where(["id" => $doctors])->first();
-        /* if ($doctors != 'All') {
-            $data =  DB::connection('mysql')->select("
-            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
-                FROM `schedule` s
-                left join patients p on s.patient_id = p.id
-                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
-                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
-            ");
-            $getPaidClaims =  DB::connection('mysql')->select("
-                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
-            ");
-        } else {
-            $data =  DB::connection('mysql')->select("
-            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
-                FROM `schedule` s
-                left join patients p on s.patient_id = p.id
-                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
-                group by s.patient_id;
-            ");
-            $getPaidClaims =  DB::connection('mysql')->select("
-                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
-            ");
-        } */
-
         $data =  DB::connection('mysql')->select("
         SELECT p.name,  s.patient_id,s.schedule,s.id
             FROM `schedule` s
@@ -300,21 +276,15 @@ class PHICController extends Controller
 
         $total_paid_session = 0;
         $Grandtotal_paid_session = 0;
+        $Grandtotal_phic25sharing = 0;
+        $Grandtotal_phic25sharing_withtax = 0;
         foreach ($data as $key => $value) {
             $arr = array();
             $arr_export = array();
-            /*  $get_dates = DB::connection('mysql')->select("
-            SELECT schedule, patient_id from schedule
-                where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE'
-            "); */
-                /* $get_dates = DB::connection('mysql')->select("
-                SELECT schedule, patient_id from schedule
-                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id' and status = 'ACTIVE' order by schedule asc
-                "); */
 
                 $get_dates  = DB::connection('mysql')->select("
                 SELECT * from phic
-                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' and remarks like '%$request->batch%'
                 ");
          
 
@@ -328,7 +298,7 @@ class PHICController extends Controller
                 $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
                 $data_sessions  = DB::connection('mysql')->select("
                 SELECT * from phic
-                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' and remarks like '%$request->batch%'
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' 
                 ");
                 if ($data_sessions) {
                     $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
@@ -341,23 +311,29 @@ class PHICController extends Controller
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
             $arr['name'] =  $value->name;
-            //$arr['sessions'] = $value->cnt;
             $no_of_sessions_paid = sizeof($date_of_sessionsArr);
-            $arr['sessions'] = $no_of_sessions_paid;//count($get_dates);
-
+            $arr['sessions'] = $no_of_sessions_paid;
             $arr['paidSessions'] =  $total_paid_session += $paid_session;
             $arr['dates'] =  $date_of_sessions;
             $arr['datesArr'] =  $date_of_sessionsArr;
             $arr['get_dates'] =  $get_dates;
             $arr['total'] =  $no_of_sessions_paid * 350;
-            //$data_array[] = $arr;
             $calculate_total = $no_of_sessions_paid * 350;
+            $phic25 = $no_of_sessions_paid * 2250;
+            $phic25_withtax = $phic25 * 0.25;
+            $arr['phic25'] =  $phic25;
+            $arr['phic25tax'] =  $phic25_withtax;
+            $arr['remarks'] =  '';//$value->remarks;
             $Grandtotal_paid_session += $calculate_total;
+            $Grandtotal_phic25sharing += $phic25;
+            $Grandtotal_phic25sharing_withtax += $phic25_withtax;
             $arr_export['Name'] =  $value->name;
-            $arr_export['No. of Sessions'] = count($get_dates); //$value->cnt;
-            //$arr_export['Paid Sessions'] =  $total_paid_session += $paid_session;
+            $arr_export['No. of Sessions'] = count($get_dates); 
             $arr_export['Dates'] =  $date_of_sessions;
-            $arr_export['total'] =  $calculate_total;
+            $arr_export['PHIC NEPHRO 350'] =  $calculate_total;
+            $arr_export['PHIC Sharing 2250'] =  $phic25;
+            $arr_export['PNCSI Sharing(25%)'] =  $phic25_withtax;
+            $arr_export['Remarks'] = '';// $value->remarks;
             if(sizeof($get_dates)>0){
                 $data_array[] = $arr;
                 $data_array_export[] = $arr_export;
@@ -369,7 +345,9 @@ class PHICController extends Controller
         $arr_export['Name'] =  '';
         $arr_export['No. of Sessions'] = '';
         $arr_export['Dates'] = 'Total';
-        $arr_export['total'] = $Grandtotal_paid_session;
+        $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session;
+        $arr_export['PHIC Sharing 2250'] = $Grandtotal_phic25sharing;
+        $arr_export['PNCSI Sharing(25%)'] = $Grandtotal_phic25sharing_withtax;
         $data_array_export[] = $arr_export;
 
         $datasets["data"] = $data_array;
@@ -382,3 +360,5 @@ class PHICController extends Controller
         return response()->json($datasets);
     }
 }
+
+

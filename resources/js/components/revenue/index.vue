@@ -119,7 +119,7 @@
 
 
             <div id="chart">
-              <apexchart ref="radar" type="bar" height="350" :options="chartOptions" :series="series"></apexchart>
+              <apexchart ref="radar" type="line" height="350" :options="chartOptions" :series="series"></apexchart>
             </div>
           </div>
 
@@ -160,13 +160,30 @@ export default {
       chartOptions: {
         chart: {
           height: 350,
-          type: 'bar',
+          type: 'line',
           zoom: {
             enabled: false
           }
         },
         dataLabels: {
-          enabled: true
+          enabled: true,
+  background: {
+    enabled: true,
+    foreColor: '#000000',
+    padding: 4,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: '#000000',
+    opacity: 0.9,
+    dropShadow: {
+      enabled: false,
+      top: 1,
+      left: 1,
+      blur: 1,
+      color: '#000000',
+      opacity: 0.45
+    }
+  },
         },
         stroke: {
           curve: 'straight'

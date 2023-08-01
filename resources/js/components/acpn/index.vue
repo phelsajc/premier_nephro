@@ -29,17 +29,6 @@
             </div>
 
             <div class="card-body">
-              <div class="row">
-                <div class="col-md-2">
-                  <p>LEGENDS</p>
-                </div>
-                <div class="col-md-2">
-                  <button type="button" class="btn btn-block btn-success btn-xs">PAID</button>
-                </div>
-                <div class="col-md-2">
-                  <button type="button" class="btn btn-block btn-warning btn-xs">PENDING</button>
-                </div>
-              </div>
 
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
@@ -110,7 +99,10 @@
                       <th>Patient</th>
                       <th>Paid Sessions</th>
                       <th>Date</th>
-                      <th>Total</th>
+                      <th>PHIC NEPHRO 350</th>
+                      <th>PHIC Sharing 2250</th>
+                      <th>PNCSI Sharing(25%)</th>
+                      <!-- <th>Remarks</th> -->
                     </tr>
                   </thead>
                   <tbody>
@@ -122,8 +114,8 @@
                         {{ e.sessions }}
                       </td>
                       <td>
-                        <button type="button" @click="showModal = true; getId(d.id)"
-                          :class="['btn', 'btn-xs', { 'btn-warning': d.status == 'UNPAID' }, { 'btn-success': d.status == 'PAID' }]"
+                        <button type="button"
+                          class="btn btn-success"
                           style="margin-right:5px;" v-for="d in e.datesArr">
                           {{ d.date }}
                         </button>
@@ -131,6 +123,15 @@
                       <td>
                         {{ e.total }}
                       </td>
+                      <td>
+                        {{ e.phic25 }}
+                      </td>
+                      <td>
+                        {{ e.phic25tax }}
+                      </td>
+                      <!-- <td>
+                        {{ e.remakrs }}
+                      </td> -->
                     </tr>
                   </tbody>
                 </table>
