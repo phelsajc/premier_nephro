@@ -107,6 +107,7 @@
                   <dt class="col-sm-2">Doctor:</dt>
                   <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
                 </dl>
+                <progressBar :getStatus="showProgress"></progressBar>
                 <table class="table">
                   <thead>
                     <tr>
@@ -137,7 +138,7 @@
             </div>
           </div>
         </div>
-        <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal>
+        <phicModal v-if="showModal" @close="closeModal()" :sessionid="getsessionid.toString()"></phicModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -159,10 +160,11 @@ export default {
     this.getDoctors();
   },
   components: {
-    Datepicker,
+    Datepicker
   },
   data() {
     return {
+      progressStatus: true,
       showModal: false,
       filter: {
         fdate: '',
@@ -198,9 +200,16 @@ export default {
     },
     unpaid() {
       return this.total_sessions - this.getPaidClaims
+    },
+    showProgress() {
+      return this.progressStatus;
     }
   },
   methods: {
+    closeModal() {
+      this.showModal = false;
+      this.showReport();
+    },
     getCompany() {
       api.get('getCompanies')
         .then(response => {
@@ -208,6 +217,7 @@ export default {
         }).catch(error => console.log(error))
     },
     showReport() {
+      this.progressStatus = false;
       api.post('phic-report', this.filter)
         .then(response => {
           this.getTotalPaidClaims = response.data.getPaidClaims
@@ -219,6 +229,7 @@ export default {
             icon: 'success',
             title: 'Saved successfully'
           });
+          this.progressStatus = true;
         })
         .catch(error => console.log(error))
     },

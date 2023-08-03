@@ -18,6 +18,11 @@
                             <input type="text" class="form-control" placeholder="Enter Desctiption" v-model="form.remarks">
                             <input type="hidden" class="form-control" v-model="form.id">
                         </div>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">ACPN</label>
+                            <input type="text" class="form-control" placeholder="Enter ACPN Numbere" v-model="form.acpn">
+                            <input type="hidden" class="form-control" v-model="form.acpn">
+                        </div>
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" v-model="form.status">
                             <label class="form-check-label" for="exampleCheck1">Is Paid?</label>
@@ -61,6 +66,7 @@ export default {
               form: {
                   id: this.sessionid,
                   remarks: '',
+                  acpn: '',
                   status: false,
               },
       }
@@ -113,6 +119,7 @@ export default {
                           console.log(res);
                             this.form.status = res.data.status == 'PAID'? true:false;
                             this.form.remarks = res.data.remarks;
+                            this.form.acpn = res.data.acpn_no;
                             //alert(this.form.status)
                         })
                         .catch(error => console.log(error))

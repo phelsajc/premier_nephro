@@ -127,6 +127,7 @@ class PHICController extends Controller
         Phic::where(['id' => $request->data['id']])->update([
             'status' => $request->data['status'] ? 'PAID' : 'UNPAID',
             'remarks' => $request->data['remarks'],
+            'acpn_no' => $request->data['acpn'],
             'updated_by' => auth()->id(),
             'updated_dt' => date('Y-m-d'),
         ]);
@@ -289,6 +290,7 @@ class PHICController extends Controller
          
 
             $date_of_sessions = '';
+            $acpnStr = '';
             $date_of_sessionsArr = array();
             $paid_session = 0;
             foreach ($get_dates as $gkey => $gvalue) {
@@ -307,7 +309,12 @@ class PHICController extends Controller
                 $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->date_session), 'Y-m-d');
                 $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
-                $date_of_sessions .= date_format(date_create($gvalue->date_session), 'F d Y') . ', ';
+                $date_of_sessions .= date_format(date_create($gvalue->date_session), 'F d Y')."\n";
+                if($gvalue->acpn_no==$acpnStr){
+                    $acpnStr = $gvalue->acpn_no;
+                }else{
+                    $acpnStr .= $gvalue->acpn_no;
+                }
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
             $arr['name'] =  $value->name;
@@ -315,6 +322,7 @@ class PHICController extends Controller
             $arr['sessions'] = $no_of_sessions_paid;
             $arr['paidSessions'] =  $total_paid_session += $paid_session;
             $arr['dates'] =  $date_of_sessions;
+            $arr['acpn'] =  $acpnStr;
             $arr['datesArr'] =  $date_of_sessionsArr;
             $arr['get_dates'] =  $get_dates;
             $arr['total'] =  $no_of_sessions_paid * 350;
@@ -323,7 +331,7 @@ class PHICController extends Controller
             $phic25_withtax = $phic25 * 0.25;
             $arr['phic25'] =  $phic25;
             $arr['phic25tax'] =  $phic25_withtax;
-            $arr['remarks'] =  '';//$value->remarks;
+            $arr['ACPN No.'] =  '';//$value->remarks;
             $Grandtotal_paid_session += $calculate_total;
             $Grandtotal_phic25sharing += $phic25;
             $Grandtotal_phic25sharing_withtax += $phic25_withtax;
@@ -333,7 +341,7 @@ class PHICController extends Controller
             $arr_export['PHIC NEPHRO 350'] =  $calculate_total;
             $arr_export['PHIC Sharing 2250'] =  $phic25;
             $arr_export['PNCSI Sharing(25%)'] =  $phic25_withtax;
-            $arr_export['Remarks'] = '';// $value->remarks;
+            $arr_export['ACPN No.'] = $acpnStr?$acpnStr:'';
             if(sizeof($get_dates)>0){
                 $data_array[] = $arr;
                 $data_array_export[] = $arr_export;

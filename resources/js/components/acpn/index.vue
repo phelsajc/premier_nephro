@@ -49,7 +49,7 @@
                   <div class="col-sm-2">
                     <div class="form-group">
                       <label>Batch</label>
-                      <input type="text" class="form-control"  v-model="filter.batch">
+                      <input type="text" class="form-control" v-model="filter.batch">
                     </div>
                   </div>
                   <div class="col-sm-2">
@@ -64,35 +64,11 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- <dl class="row">
-                  <dt class="col-sm-2">Total Session:</dt>
-                  <dd class="col-sm-8">{{ total_sessions }}</dd>
-                </dl> -->
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount:</dt>
                   <dd class="col-sm-8">{{ totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
                 </dl>
-                <!-- <dl class="row">
-                  <dt class="col-sm-2">Total PAID:</dt>
-                  <dd class="col-sm-8">{{ totalAmountPaid.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
-                </dl>
-                <dl class="row">
-                  <dt class="col-sm-2">Balance:</dt>
-                  <dd class="col-sm-8">{{ balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
-                </dl>
-                <dl class="row">
-                  <dt class="col-sm-2">Total PAID Session:</dt>
-                  <dd class="col-sm-8">{{ getPaidClaims }}</dd>
-                </dl>
-                <dl class="row">
-                  <dt class="col-sm-2">Total UnpAID Session:</dt>
-                  <dd class="col-sm-8">{{ unpaid }}</dd>
-                </dl>
-                <dl class="row">
-                  <dt class="col-sm-2">Doctor:</dt>
-                  <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
-                </dl> -->
+                <progressBar :getStatus="showProgress"></progressBar>
                 <table class="table">
                   <thead>
                     <tr>
@@ -102,7 +78,7 @@
                       <th>PHIC NEPHRO 350</th>
                       <th>PHIC Sharing 2250</th>
                       <th>PNCSI Sharing(25%)</th>
-                      <!-- <th>Remarks</th> -->
+                      <th>ACPN No.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -114,9 +90,8 @@
                         {{ e.sessions }}
                       </td>
                       <td>
-                        <button type="button"
-                          class="btn btn-success"
-                          style="margin-right:5px;" v-for="d in e.datesArr">
+                        <button type="button" class="btn btn-xs btn-success" style="margin-right:5px;"
+                          v-for="d in e.datesArr">
                           {{ d.date }}
                         </button>
                       </td>
@@ -128,6 +103,9 @@
                       </td>
                       <td>
                         {{ e.phic25tax }}
+                      </td>
+                      <td>
+                        {{ e.acpn }}
                       </td>
                       <!-- <td>
                         {{ e.remakrs }}
@@ -165,6 +143,7 @@ export default {
   },
   data() {
     return {
+      progressStatus: true,
       showModal: false,
       filter: {
         fdate: '',
@@ -200,6 +179,9 @@ export default {
     },
     unpaid() {
       return this.total_sessions - this.getPaidClaims
+    },
+    showProgress() {
+      return this.progressStatus;
     }
   },
   methods: {
@@ -210,6 +192,7 @@ export default {
         }).catch(error => console.log(error))
     },
     showReport() {
+      this.progressStatus = false;
       api.post('acpn-report', this.filter)
         .then(response => {
           this.getTotalPaidClaims = response.data.getPaidClaims
@@ -221,22 +204,10 @@ export default {
             icon: 'success',
             title: 'Saved successfully'
           });
+          this.progressStatus = true;
         })
         .catch(error => console.log(error))
     },
-    /* checkToken() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      }
-      axios.get('/api/validate', {
-        headers: headers
-      }
-      )
-        .then(res => {
-
-        })
-        .catch(error => console.log(error))
-    }, */
     getDoctors() {
       api.get('getDoctors')
         .then(response => {
@@ -253,7 +224,7 @@ export default {
         decimalSeparator: '.',
         showLabels: true,
         showTitle: true,
-        title: 'ACPN REPORT \n '+ moment(this.filter.fdate).format('MMMM DD YYYY')+ ' '+ moment(this.filter.tdate).format('MMMM DD YYYY'),
+        title: 'ACPN REPORT \n ' + moment(this.filter.fdate).format('MMMM DD YYYY') + ' ' + moment(this.filter.tdate).format('MMMM DD YYYY'),
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,

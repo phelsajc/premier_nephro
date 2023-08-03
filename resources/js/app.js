@@ -37,8 +37,9 @@ Vue.component('pxmodal', require('./components/Prescription.vue').default);
 Vue.component('navComponent', require('./components/template/nav.vue').default);
 Vue.component('sidemenuComponent', require('./components/template/sidemenu.vue').default);
 Vue.component('footerComponent', require('./components/template/footer.vue').default);
-Vue.component('loaderComponent', require('./components/template/loader.vue').default);
+//Vue.component('loaderComponent', require('./components/template/loader.vue').default);
 Vue.component('products', require('./components/Products.vue').default);
+Vue.component('progressBar', require('./components/ProgressBar.vue').default);
 const Toast = Swal.mixin({
     toast: true,
     position: 'top-end',

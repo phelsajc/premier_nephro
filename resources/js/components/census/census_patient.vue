@@ -82,7 +82,7 @@
                     <tr>
                       <th>Patient</th>
                       <th>Doctor</th>
-                      <th  @click="sortTable('dates')">Date</th>
+                      <th @click="sortTable('dates')">Date</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -107,7 +107,7 @@
                         </button>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-warning" @click="editSession()" >Edit</button>
+                        <button type="button" class="btn btn-warning" @click="editSession()">Edit</button>
                       </td>
                     </tr>
                   </tbody>
@@ -133,8 +133,6 @@ export default {
     if (!User.loggedIn()) {
       this.$router.push({ name: '/' })
     }
-
-    //this.checkToken()
   },
   components: {
     Datepicker,
@@ -182,24 +180,8 @@ export default {
   },
   methods: {
     showReport() {
-      /* const headers = {
-              Authorization: "Bearer ".concat(this.token),
-            }
-          axios.post('/api/census-report', {
-                      data:this.filter,
-                  } ,{
-                  headers: headers
-                }
-                  )
-                  .then(res => {
-                    this.results = res.data
-              this.month = moment(this.filter.date).format('MMMM YYYY')
-                      Toast.fire({
-                          icon: 'success',
-                          title: 'Saved successfully'
-                      });
-                  }) */
-
+      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
+      this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
       api.post('census_px-report', this.filter)
         .then(response => {
           this.results = response.data
@@ -210,19 +192,6 @@ export default {
         })
         .catch(error => console.log(error))
     },
-    /* checkToken(){                
-      const headers = {
-              Authorization: "Bearer ".concat(this.token),
-      }
-          axios.get('/api/validate', {
-                  headers: headers
-                }
-                  )
-                  .then(res => {
-                    
-                  })
-                  .catch(error => console.log(error))
-    }, */
     sortTable(column) {
       console.log(column)
       if (this.sortColumn === column) {

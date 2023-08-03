@@ -25,10 +25,10 @@
                     <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
                   </div>
                 </div>
-                <div class="card-body">                  
-                  <div class="text-center" :class="{ 'd-none': isHidden }">                      
-                      import on-progress... 
-                    </div><br>
+                <div class="card-body">
+                  <div class="text-center" :class="{ 'd-none': isHidden }">
+                    import on-progress...
+                  </div><br>
                   <div class="d-flex justify-content-center">
                     <div class="spinner-border" role="status" :class="{ 'd-none': isHidden }">
                       <span class="sr-only">Loading...</span>
@@ -152,7 +152,7 @@ export default {
       this.employees = []
       this.countRecords = null
       this.form.start = 0
-      this.isHidden = false     
+      this.isHidden = false
       api.post('schedule', this.form)
         .then(response => {
           this.employees = response.data[0].data
@@ -203,7 +203,7 @@ export default {
 
     },
     delete_session(id) {
-      
+
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -214,18 +214,18 @@ export default {
         confirmButtonText: 'Yes, delete it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          
-      api.get('schedule-delete/' + id)
-        .then(response => {
-          this.todayPatient();
-          Toast.fire({
-            icon: 'success',
-            title: 'Deleted successfully'
-          });
-        })
-        .catch(error => {
-          console.log(error);
-        });
+
+          api.get('schedule-delete/' + id)
+            .then(response => {
+              this.todayPatient();
+              Toast.fire({
+                icon: 'success',
+                title: 'Deleted successfully'
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
           Swal.fire(
             'Deleted!',
             'Your file has been deleted.',
@@ -243,9 +243,11 @@ export default {
   height: 40px;
   width: 40px;
 }
+
 .to-right {
   float: right;
 }
+
 .spin_center {
   position: absolute;
   top: 50%;
@@ -255,6 +257,7 @@ export default {
   transform: translateX(-50%);
   /*display: none;*/
 }
+
 .btn-app {
   height: unset !important;
   padding: 0 1.5em 0 1.5em;

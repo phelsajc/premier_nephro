@@ -21,5 +21,6 @@ class Phic extends Model
         'doctor',
         'status',
         'state',
+        'acpn_no',
     ];
 }
