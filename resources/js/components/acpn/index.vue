@@ -53,6 +53,15 @@
                     </div>
                   </div>
                   <div class="col-sm-2">
+                    <div class="form-group ">
+                      <label>Doctor</label>
+                      <select class="form-control" v-model="filter.doctors">
+                        <option value="All">All</option>
+                        <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-sm-2">
                     <div class="form-group">
                       <label>&nbsp;</label> <br>
                       <button type="button" @click="showReport()" class="btn btn-info">
@@ -67,6 +76,10 @@
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount:</dt>
                   <dd class="col-sm-8">{{ totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
+                </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Total Session:</dt>
+                  <dd class="col-sm-8">{{ total_sessions.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
                 </dl>
                 <progressBar :getStatus="showProgress"></progressBar>
                 <table class="table">
