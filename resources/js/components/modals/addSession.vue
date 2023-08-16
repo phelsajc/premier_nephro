@@ -115,7 +115,7 @@ export default {
               icon: 'success',
               title: 'Saved successfully'
             });
-            console.log(response)
+            
             if(response.data){
               alert("Duplicate schedule. Cannot save record!")
             }
