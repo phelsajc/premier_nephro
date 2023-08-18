@@ -5,50 +5,28 @@
         <div class="modal-container">
           <div class="modal-header">
             <slot name="header">Update Status</slot>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-              @click="$emit('close')"
-            >
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="$emit('close')">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <slot name="body">
-              <form
-                class="user"
-                @submit.prevent="updatePhic"
-                enctype="multipart/form-data"
-              >
+              <form class="user" @submit.prevent="updatePhic" enctype="multipart/form-data">
                 <div class="card-body">
                   <div class="form-group">
-                    <label for="exampleInputEmail1">Remarks</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Enter Desctiption"
-                      v-model="form.remarks"
-                    />
+                    <label for="exampleInputEmail1">Batch</label>
+                    <select name="" id="" class="form-control" v-model="form.remarks" >
+                        <option v-for="e in batches" :value="e.batch">{{ e.batch }}</option>
+                    </select>
                     <input type="hidden" class="form-control" v-model="form.id" />
                   </div>
                   <div class="form-group">
                     <label for="exampleInputEmail1">ACPN</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Enter ACPN Numbere"
-                      v-model="form.acpn"
-                    />
+                    <input type="text" class="form-control" placeholder="Enter ACPN Numbere" v-model="form.acpn" />
                     <input type="hidden" class="form-control" v-model="form.acpn" />
                   </div>
                   <div class="form-check">
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
-                      v-model="form.status"
-                    />
+                    <input type="checkbox" class="form-check-input" v-model="form.status" />
                     <label class="form-check-label" for="exampleCheck1">Is Paid?</label>
                   </div>
                 </div>
@@ -82,10 +60,13 @@ export default {
     },
   },
   created() {
+    this.getBatches();
     this.getSessionData();
   },
   data() {
+    
     return {
+      batches: [],
       token: localStorage.getItem("token"),
       form: {
         id: this.sessionid,
@@ -123,19 +104,6 @@ export default {
         })
         .catch((error) => console.log(error));
     },
-    id: function (value) {
-      this.form.equipment_id_id = value.id;
-      this.form.equipment_id_value = value.name;
-    },
-    showVendor: function (value) {
-      console.log(value);
-      this.form.vendor_id_id = value.id;
-      this.form.vendor_id_value = value.name;
-    },
-    showDepartment: function (value) {
-      this.form.dept_id_id = value.id;
-      this.form.dept_id_value = value.name;
-    },
     getSessionData() {
       const headers = {
         Authorization: "Bearer ".concat(this.token),
@@ -149,9 +117,14 @@ export default {
           this.form.status = res.data.status == "PAID" ? true : false;
           this.form.remarks = res.data.remarks;
           this.form.acpn = res.data.acpn_no;
-          //alert(this.form.status)
         })
         .catch((error) => console.log(error));
+    },
+    getBatches() {
+      axios.get('api/get-batches')
+        .then(response => {
+          this.batches = response.data
+        }).catch(error => console.log(error))
     },
   },
 };
@@ -161,7 +134,8 @@ export default {
   position: relative;
   overflow: hidden;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
+  padding-top: 56.25%;
+  /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
 }
 
 /* Then style the iframe to fit in the container div with full height and width */
@@ -178,6 +152,7 @@ export default {
 * {
   box-sizing: border-box;
 }
+
 .modal-mask {
   position: fixed;
   z-index: 9998;
@@ -189,6 +164,7 @@ export default {
   transition: opacity 0.3s ease;
   overflow-x: auto;
 }
+
 .modal-container {
   width: 75%;
   height: 100%;
@@ -199,9 +175,11 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
   transition: all 0.3s ease;
 }
+
 .modal-body {
   margin: 20px 0;
 }
+
 /*
            * The following styles are auto-applied to elements with
            * transition="modal" when their visibility is toggled
@@ -213,9 +191,11 @@ export default {
 .modal-enter {
   opacity: 0;
 }
+
 .modal-leave-active {
   opacity: 0;
 }
+
 .modal-enter .modal-container,
 .modal-leave-active .modal-container {
   -webkit-transform: scale(1.1);

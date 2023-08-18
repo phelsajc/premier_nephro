@@ -14,9 +14,9 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Master Files
@@ -35,6 +35,13 @@
                     :class="{ 'active': this.$route.name == 'doctors_list' || this.$route.name == 'doctors_add' }">
                     <i class="far fa-circle nav-icon"></i>
                     Doctors
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/batch_list"> <a href="#" class="nav-link"
+                    :class="{ 'active': this.$route.name == 'batch_list' || this.$route.name == 'batch_add' }">
+                    <i class="far fa-circle nav-icon"></i>
+                    Batches
                   </a></router-link>
               </li>
             </ul>

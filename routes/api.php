@@ -120,6 +120,14 @@ Route::match(['get','post'],'doctors-detail/{id}','DoctorsController@edit');
 Route::match(['get','post'],'doctors-delete/{id}','DoctorsController@delete');
 Route::match(['get','post'],'getDoctors','DoctorsController@getDoctors');
 
+#Batches
+Route::match(['get','post'],'batch-add','BatchController@store');
+Route::match(['get','post'],'batch-update','BatchController@update');
+Route::match(['get','post'],'batches','BatchController@index');
+Route::match(['get','post'],'batch-detail/{id}','BatchController@edit');
+Route::match(['get','post'],'batch-delete/{id}','BatchController@delete');
+Route::match(['get','post'],'get-batches','BatchController@batches');
+
 #Schedule || Session
 Route::match(['get','post'],'schedule-import','ScheduleController@import');
 Route::match(['get','post'],'schedule-add','ScheduleController@store');

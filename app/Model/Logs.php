@@ -17,6 +17,6 @@ class Logs extends Model
         'action',
         'created_by',
         'created_dt',
-        'schedule',
+        'schedule'
     ];
 }

@@ -17,5 +17,8 @@ class Transaction_log extends Model
         'action',
         'created_by',
         'created_at',
+        'module',
+        'phic_id',
+        'remarks',
     ];
 }

@@ -16,14 +16,14 @@ class BatchController extends Controller
         $start = $request->start?$request->start:0;
         $val = $request->searchTerm2;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select * from batch where batch like '%".$val."%' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select * from batch where batch like '%".$val."%' ");
+            $data =  DB::connection('mysql')->select("select * from batches where batch like '%".$val."%' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select * from batches where batch like '%".$val."%' ");
         }else{
-            $data =  DB::connection('mysql')->select("select * from batch LIMIT $length");
-            $count =  DB::connection('mysql')->select("select * from batch");
+            $data =  DB::connection('mysql')->select("select * from batches LIMIT $length");
+            $count =  DB::connection('mysql')->select("select * from batches");
         }
         
-        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from batch");
+        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from batches");
 
         $data_array = array();
 
@@ -31,6 +31,7 @@ class BatchController extends Controller
             $arr = array();
             $arr['id'] =  $value->id;
             $arr['batch'] =  $value->batch;
+            $arr['desc'] =  $value->description;
             $data_array[] = $arr;
         }
         $page = sizeof($count)/$length;
@@ -42,10 +43,20 @@ class BatchController extends Controller
             }
         }
         
-        $datasets["data"] = $data_array;
+        /* $datasets["data"] = $data_array;
         $datasets["count"] = $page_count;
         $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
-        $datasets["patient"] = $data_array;
+        $datasets["patient"] = $data_array; */
+        $datasets = array([
+            "data" => $data_array,
+            "count" => $page_count,
+            "showing" =>
+            sizeof($count_all_record) > 0 ?
+                "Showing " . (($start + 10) - 9) . " to " . ($start + 10 > $count_all_record[0]->count ?
+                    $count_all_record[0]->count :
+                    $start + 10) . " of " . $count_all_record[0]->count : '',
+            "patient" => $data_array
+        ]);
         return response()->json($datasets);
     } 
 
@@ -54,6 +65,7 @@ class BatchController extends Controller
         date_default_timezone_set('Asia/Manila');
         $p = new Batch;
         $p->batch = $request->batch;
+        $p->description = $request->description;
         $p->save();         
         return true;
     }
@@ -68,6 +80,7 @@ class BatchController extends Controller
     {
         Batch::where(['id'=>$request->id])->update([
             'batch'=> $request->batch,
+            'description'=> $request->description,
         ]);
         return true;
     }
@@ -76,5 +89,10 @@ class BatchController extends Controller
     {
         Batch::where('id',$id)->delete();
         return true;
+    }  
+
+    public function batches()
+    {
+       return Batch::orderByRaw('CONVERT(batch, SIGNED) ASC')->get();
     }  
 }

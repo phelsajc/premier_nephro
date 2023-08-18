@@ -14,7 +14,7 @@ class Notification{
             type: 'alert',
             layout: 'topRight',
             text: 'Are you sure?',
-            timeout: 1000,
+            timeout: 3000,
         }).show();
     } 
 
@@ -24,7 +24,7 @@ class Notification{
             type: 'danger',
             layout: 'topRight',
             text: 'Something went wrong',
-            timeout: 1000,
+            timeout: 3000,
         }).show();
     }
 
@@ -34,7 +34,7 @@ class Notification{
             type: 'warning',
             layout: 'topRight',
             text: 'Opps Wrong',
-            timeout: 1000,
+            timeout: 3000,
         }).show();
     }  
 

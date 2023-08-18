@@ -27,12 +27,7 @@
                 </div>
 
                 <div class="card-body">
-
-                  <input type="file" accept=".csv" @change="handleFileUpload($event)" />
-                  <button type="button" @click="test()" class="btn btn-info btn-sm">Upload</button>
-                  <br>
                   <div class="spin_center" :class="{ 'd-none': isHidden }">
-
                     <div class="overlay"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
                       <div class="text-bold pt-2">Loading...</div>
                     </div>

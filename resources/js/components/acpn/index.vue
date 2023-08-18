@@ -49,7 +49,9 @@
                   <div class="col-sm-2">
                     <div class="form-group">
                       <label>Batch</label>
-                      <input type="text" class="form-control" v-model="filter.batch">
+                      <select name="" id="" class="form-control" v-model="filter.batch" >
+                          <option v-for="e in batches" :value="e.batch">{{ e.batch }}</option>
+                      </select>
                     </div>
                   </div>
                   <div class="col-sm-2">
@@ -103,9 +105,9 @@
                         {{ e.sessions }}
                       </td>
                       <td>
-                        <button type="button" class="btn btn-xs btn-success" style="margin-right:5px;"
+                        <button type="button" data-toggle="tooltip" data-placement="top" :title="e.update_by" class="btn btn-xs btn-success" style="margin-right:5px;"
                           v-for="d in e.datesArr">
-                          {{ d.date }}
+                          {{ d.date }} {{ d.name }}
                         </button>
                       </td>
                       <td>
@@ -149,6 +151,7 @@ export default {
       this.$router.push({ name: '/' })
     }
     //this.checkToken()
+    this.getBatches();
     this.getDoctors();
   },
   components: {
@@ -156,6 +159,7 @@ export default {
   },
   data() {
     return {
+      batches:[],
       progressStatus: true,
       showModal: false,
       filter: {
@@ -245,7 +249,13 @@ export default {
       };
       const csvExporter = new ExportToCsv(options);
       csvExporter.generateCsv(this.export);
-    }
+    },
+    getBatches() {
+      axios.get('api/get-batches')
+        .then(response => {
+          this.batches = response.data
+        }).catch(error => console.log(error))
+    },
   }
 }
 

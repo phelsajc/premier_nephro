@@ -9,7 +9,9 @@ use App\Model\Schedule;
 use App\Model\Copay;
 use App\Model\Doctors;
 use App\Model\Patients;
+use App\Model\Transaction_log;
 use App\Model\Phic;
+use App\User;
 use DB;
 
 class PHICController extends Controller
@@ -22,6 +24,7 @@ class PHICController extends Controller
      */
     public function __construct()
     {
+        date_default_timezone_set('Asia/Manila');
         //$this->middleware('auth:api');
         $this->middleware('JWT');
     }
@@ -124,13 +127,20 @@ class PHICController extends Controller
 
     public function update(Request $request)
     {
+        $status = $request->data['status'] ? 'PAID' : 'UNPAID';
         Phic::where(['id' => $request->data['id']])->update([
-            'status' => $request->data['status'] ? 'PAID' : 'UNPAID',
+            'status' => $status,
             'remarks' => $request->data['remarks'],
             'acpn_no' => $request->data['acpn'],
             'updated_by' => auth()->id(),
-            'updated_dt' => date('Y-m-d'),
+            'updated_dt' => date('Y-m-d H:i:s'),
         ]);
+        $logs = new Transaction_log();
+        $logs->action = 'Update by '.auth()->user()->name.' on '.date('F d, Y H:i:s');
+        $logs->module = 'PHIC PAYMENT';
+        $logs->phic_id = $request->data['id'];
+        $logs->remarks = $request->data['remarks'].' '.$request->data['acpn'].' '.$status;
+        $logs->save();
         return true;
     }
 
@@ -279,7 +289,7 @@ class PHICController extends Controller
 
         if ($doctors != 'All') {
             $data =  DB::connection('mysql')->select("
-            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session ,s.id,c.acpn_no FROM `schedule` s
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
             left join patients p on s.patient_id = p.id
             left join phic c on c.patient_id  = s.patient_id 
             where c.date_session between '$fdate' and '$tdate'  and 
@@ -290,7 +300,7 @@ class PHICController extends Controller
             ");
         }else{
             $data =  DB::connection('mysql')->select("
-            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session ,s.id,c.acpn_no FROM `schedule` s
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
             left join patients p on s.patient_id = p.id
             left join phic c on c.patient_id  = s.patient_id 
             where c.date_session between '$fdate' and '$tdate'  and 
@@ -365,6 +375,8 @@ class PHICController extends Controller
                 }
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
+            $getUser = User::where(['id'=>$value->updated_by])->first();
+            $arr['update_by'] =  $getUser->name.' on '.date_format(date_create($value->updated_dt), 'F d, Y h:i:s A');
             $arr['name'] =  $value->name;
             $no_of_sessions_paid = sizeof($date_of_sessionsArr);
             $arr['sessions'] = $no_of_sessions_paid;

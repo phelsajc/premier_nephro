@@ -57,6 +57,10 @@ let patients_add = require('./components/patients/create.vue').default
 let doctors_list = require('./components/doctors/index.vue').default
 let doctors_add = require('./components/doctors/create.vue').default
 
+//Doctors
+let batch_list = require('./components/batch/index.vue').default
+let batch_add = require('./components/batch/create.vue').default
+
 //CoPay
 let copay_list = require('./components/copay/index.vue').default
 //let copay_add = require('./components/copay/create.vue').default
@@ -110,6 +114,12 @@ export const routes = [
     //Products
     { path: '/product_list', component: product_list, name: 'product_list' },
     { path: '/product_add/:id', component: product_add, name: 'product_add' },
+
+    
+    //Batches
+    { path: '/batch_list', component: batch_list, name: 'batch_list' },
+    { path: '/batch_add/:id', component: batch_add, name: 'batch_add' },
+
 
     //Company
     { path: '/company_list', component: company_list, name: 'company_list' },

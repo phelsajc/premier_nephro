@@ -82,7 +82,7 @@
                     <tr>
                       <th>Patient</th>
                       <th>Doctor</th>
-                      <th @click="sortTable('dates')">Date</th>
+                      <th @click="sortTable('dates')">Session Date</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -107,7 +107,7 @@
                         </button>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-warning" @click="editSession()">Edit</button>
+                        <button type="button" class="btn btn-warning" @click="showModal = true">Edit</button>
                       </td>
                     </tr>
                   </tbody>
@@ -117,7 +117,8 @@
             <!-- /.card-body -->
           </div>
         </div>
-        <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal>
+        <!-- <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal> -->
+        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'"></addSessionModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -189,8 +190,15 @@ export default {
             icon: 'success',
             title: 'Saved successfully'
           });
-        })
-        .catch(error => console.log(error))
+        }).catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
     sortTable(column) {
       console.log(column)
@@ -211,7 +219,7 @@ export default {
     },
     getReturnResponse: function (id) {
       this.filter.patient = id.id
-    }
+    },
   }
 }
 
