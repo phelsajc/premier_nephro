@@ -45,20 +45,41 @@
 import Datepicker from 'vuejs-datepicker';
 import api from '../../Helpers/api';
 export default {
-  /* props: {
+  props: {
       sessionid: {
-            type: String,
-            default: ''
+            type: Number,
+            default: 0
         },
-  }, */
+        doctorId: {
+            type: Number,
+            default: 0
+        },
+        scheduleDate: {
+            type: String,
+            default: null
+        },
+        patientid: {
+            type: Number,
+            default: 0
+        },
+  },
   components: {
     Datepicker,
   },
-  /* watch: {
+  watch: {
     sessionid(v) {
-      this.form.id = v
+      this.form.sessid = v
+    },  
+    doctorId(v) {
+      this.form.doctor = v
+    },  
+    scheduleDate(v) {
+      this.form.schedule = v
+    },
+    patientid(v) {
+      this.form.patientid = v
     },       
-  }, */
+  },
   created() {
     this.getDoctors();
   },
@@ -68,7 +89,8 @@ export default {
         searchVal: null,
         schedule: null,
         doctor: 0,
-        patientid: 0,
+        patientid: this.patientid,
+        sessid: 0,
       },
       doctors: [],
       results: [],

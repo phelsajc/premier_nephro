@@ -231,7 +231,7 @@ class CensusController extends Controller
         $px = $request->patient;
         if (!$request->isall) {
             $data =  DB::connection('mysql')->select("
-                select p.name,s.schedule,s.doctor,s.patient_id  from schedule s 
+                select p.name,s.schedule,s.doctor,s.patient_id,s.id as schedule_id  from schedule s 
                 left join patients p on s.patient_id = p.id
                 where s.schedule between '$fdate' and '$tdate' and
                 s.patient_id = $px and s.status = 'ACTIVE'
@@ -239,7 +239,7 @@ class CensusController extends Controller
             ");
         } else {
             $data =  DB::connection('mysql')->select("
-            select p.name,s.schedule,s.doctor,s.patient_id  from schedule s 
+            select p.name,s.schedule,s.doctor,s.patient_id,s.id as schedule_id  from schedule s 
                 left join patients p on s.patient_id = p.id
                 where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
                 group by s.patient_id
@@ -250,6 +250,10 @@ class CensusController extends Controller
         if ($request->isall) {
             foreach ($data as $key => $value) {
                 $arr = array();
+                $arr['schedule_id'] =  $value->schedule_id;
+                $arr['doctor_id'] =  $value->doctor;
+                $arr['schedule'] =  $value->schedule;
+                $arr['pid'] =  $value->patient_id;
                 $arr['name'] =  $value->name;
                 $doctor  = Doctors::where(['id' => $value->doctor])->first();
                 $arr['doctor'] =  $doctor->name;
@@ -295,9 +299,13 @@ class CensusController extends Controller
 
             foreach ($data as $key => $value) {
                 $arr = array();
+                $arr['schedule_id'] =  $value->schedule_id;
                 $arr['name'] =  $value->name;
                 $doctor  = Doctors::where(['id' => $value->doctor])->first();
                 $arr['doctor'] =  $doctor->name;
+                $arr['doctor_id'] =  $value->doctor;
+                $arr['schedule'] =  $value->schedule;
+                $arr['pid'] =  $value->patient_id;
                 /* $data_array = array();
                 foreach ($data as $key => $value) {
                         $arr = array();

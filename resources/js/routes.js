@@ -78,6 +78,7 @@ let phic_list = require('./components/phic/index.vue').default
 
 //Acpn
 let acpn_list = require('./components/acpn/index.vue').default
+let acpn_report = require('./components/acpn/report.vue').default
 
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
@@ -165,6 +166,7 @@ export const routes = [
 
     //Acpn
     { path: '/acpn_list', component: acpn_list, name: 'acpn_list' },    
+    { path: '/acpn_report', component: acpn_report, name: 'acpn_report' },    
 
     //census
     { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },

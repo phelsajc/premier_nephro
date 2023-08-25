@@ -12,6 +12,7 @@ use App\Model\Patients;
 use App\Model\Transaction_log;
 use App\Model\Phic;
 use App\User;
+use Helper; 
 use DB;
 
 class PHICController extends Controller
@@ -225,9 +226,14 @@ class PHICController extends Controller
                 SELECT * from phic
                     where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and status <> 'INACTIVE'
                 "); */
-                $data_sessions  = DB::connection('mysql')->select("
+                /* $data_sessions  = DB::connection('mysql')->select("
                 SELECT * from phic
                     where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE'
+                "); */
+
+                $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE'
                 ");
                 if ($data_sessions) {
                     $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
@@ -310,6 +316,30 @@ class PHICController extends Controller
             ");
         }
 
+        /* if ($doctors != 'All') {
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            c.status = 'PAID' and
+            c.state = 'ACTIVE' and
+            c.acpn_no is not null
+            and s.doctor = $doctors
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            c.status = 'PAID' and
+            c.state = 'ACTIVE'
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        } */
+
 
 
         $getPaidClaims =  DB::connection('mysql')->select("
@@ -342,7 +372,12 @@ class PHICController extends Controller
             SELECT * from phic
                 where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' and 
                 remarks like '%$request->batch%' and acpn_no = '$value->acpn_no'
-            ");         
+            ");  
+            /* $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state = 'ACTIVE' and status = 'PAID' and 
+                remarks like '%$request->batch%' and acpn_no = '$value->acpn_no'
+            ");   */       
         }
             
      
@@ -356,12 +391,17 @@ class PHICController extends Controller
                 $s_date = date_format(date_create($gvalue->date_session), 'F d, Y');
                 $date_of_sessionsArr_set['date'] = $s_date;
                 $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                /* $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                "); */
                 $data_sessions  = DB::connection('mysql')->select("
                 SELECT * from phic
-                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' 
+                    where  patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and status = 'PAID' and acpn_no = '$value->acpn_no'
                 ");
                 if ($data_sessions) {
-                    $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
+                    //$data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
+                    $data_sessions[0]->status = 'PAID' ? $paid_session++ : 0;
                 }
                 $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
                 $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
@@ -385,6 +425,7 @@ class PHICController extends Controller
             $arr['acpn'] =  $acpnStr;
             $arr['datesArr'] =  $date_of_sessionsArr;
             $arr['get_dates'] =  $get_dates;
+            $arr['cget_dates'] =  count($get_dates);
             $arr['total'] =  $no_of_sessions_paid * 350;
             $calculate_total = $no_of_sessions_paid * 350;
             $phic25 = $no_of_sessions_paid * 2250;
@@ -423,8 +464,292 @@ class PHICController extends Controller
         $datasets["export"] = $data_array_export;
         $datasets["Doctors"] = $getDoctor;
         $datasets['totalPaidSessions'] =  $total_paid_session;
-        $datasets["getPaidClaims"] = count($getPaidClaims);
-        $datasets["getPaidClaims"] = count($getPaidClaims);
+        $datasets["getPaidClaims"] = count($getPaidClaims);        
+
+        return response()->json($datasets);
+    }
+
+    public function acpn_report_1617(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $doctors = $request->doctors;
+        $getDoctor = Doctors::where(["id" => $doctors])->first();
+        /* $data =  DB::connection('mysql')->select("
+        SELECT p.name,  s.patient_id,s.schedule,s.id
+            FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+            group by s.patient_id;
+        "); */
+        /* $data =  DB::connection('mysql')->select("
+        SELECT s.patient_id, p.name, s.patient_id,s.schedule,s.id,c.acpn_no FROM `schedule` s 
+        left join patients p on s.patient_id = p.id 
+        left join phic c on c.patient_id = s.patient_id 
+        where c.date_session between '$fdate' and '$tdate' 
+        and s.status = 'ACTIVE'
+            group by c.acpn_no order by p.name;
+        "); */
+
+        /* if ($doctors != 'All') {
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            s.status = 'ACTIVE' and
+            c.acpn_no is not null
+            and s.doctor = $doctors
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            s.status = 'ACTIVE' and
+            c.acpn_no is not null
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        } */
+
+        if ($doctors != 'All') {
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            c.status = 'PAID' and
+            c.state = 'ACTIVE' and
+            c.acpn_no is not null
+            and s.doctor = $doctors
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+            SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+            left join patients p on s.patient_id = p.id
+            left join phic c on c.patient_id  = s.patient_id 
+            where c.date_session between '$fdate' and '$tdate'  and 
+            c.status = 'PAID' and
+            c.state = 'ACTIVE'
+            group by s.patient_id, c.acpn_no order by p.name;
+            ");
+        }
+
+
+
+        $getPaidClaims =  DB::connection('mysql')->select("
+            select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
+        ");
+        $data_array = array();
+        $data_array_export = array();
+
+        $total_paid_session = 0;
+        $Grandtotal_paid_session = 0;
+        $Grandtotal_phic25sharing = 0;
+        $Grandtotal_phic25sharing_withtax = 0;
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr_export = array();
+
+            /* $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' and remarks like '%$request->batch%' group by acpn_no
+            "); */
+
+        if ($doctors != 'All') {
+            $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and 
+                status = 'PAID' and remarks like '%$request->batch%' and acpn_no = '$value->acpn_no' and doctor = $doctors
+            ");         
+        }else{
+           /*  $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' and 
+                remarks like '%$request->batch%' and acpn_no = '$value->acpn_no'
+            ");  */ 
+            $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state = 'ACTIVE'  and 
+                remarks like '%$request->batch%' and acpn_no = '$value->acpn_no'
+            ");         
+        }
+            
+     
+
+            $date_of_sessions = '';
+            $acpnStr = '';
+            $date_of_sessionsArr = array();
+            $paid_session = 0;
+            foreach ($get_dates as $gkey => $gvalue) {
+                $date_of_sessionsArr_set = array();
+                $s_date = date_format(date_create($gvalue->date_session), 'F d, Y');
+                $date_of_sessionsArr_set['date'] = $s_date;
+                $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                /* $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                "); */
+                $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where  patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and status = 'PAID' and acpn_no = '$value->acpn_no'
+                ");
+                if ($data_sessions) {
+                    //$data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
+                    $data_sessions[0]->status = 'PAID' ? $paid_session++ : 0;
+                }
+                $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
+                $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
+                $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
+                $date_of_sessions .= date_format(date_create($gvalue->date_session), 'F d Y')."\n";
+                if($gvalue->acpn_no==$acpnStr){
+                    $acpnStr = $gvalue->acpn_no;
+                }else{
+                    $acpnStr .= $gvalue->acpn_no;
+                }
+                $date_of_sessionsArr[] = $date_of_sessionsArr_set;
+            }
+            $getUser = User::where(['id'=>$value->updated_by])->first();
+            $arr['update_by'] =  $getUser->name.' on '.date_format(date_create($value->updated_dt), 'F d, Y h:i:s A');
+            $arr['name'] =  $value->name;
+            $no_of_sessions_paid = sizeof($date_of_sessionsArr);
+            $arr['sessions'] = $no_of_sessions_paid;
+            $arr['paidSessions'] =  $total_paid_session += $paid_session;
+            $arr['dates'] =  $date_of_sessions;
+            $arr['acpn'] =  $acpnStr;
+            $arr['datesArr'] =  $date_of_sessionsArr;
+            $arr['get_dates'] =  $get_dates;
+            $arr['cget_dates'] =  count($get_dates);
+            $arr['total'] =  $no_of_sessions_paid * 350;
+            $calculate_total = $no_of_sessions_paid * 350;
+            $phic25 = $no_of_sessions_paid * 2250;
+            $phic25_withtax = $phic25 * 0.25;
+            $arr['phic25'] =  $phic25;
+            $arr['phic25tax'] =  $phic25_withtax;
+            $arr['ACPN No.'] =  '';//$value->remarks;
+            $Grandtotal_paid_session += $calculate_total;
+            $Grandtotal_phic25sharing += $phic25;
+            $Grandtotal_phic25sharing_withtax += $phic25_withtax;
+            $arr_export['Name'] =  $value->name;
+            $arr_export['No. of Sessions'] = count($get_dates); 
+            $arr_export['Dates'] =  ltrim($date_of_sessions," ");
+            $arr_export['PHIC NEPHRO 350'] =  $calculate_total;
+            $arr_export['PHIC Sharing 2250'] =  $phic25;
+            $arr_export['PNCSI Sharing(25%)'] =  $phic25_withtax;
+            $arr_export['ACPN No.'] = $acpnStr?$acpnStr:'';
+            if(sizeof($get_dates)>0){
+                $data_array[] = $arr;
+                $data_array_export[] = $arr_export;
+            }
+            $date_of_sessions = '';
+        }
+        $datasets = array();
+        
+        $arr_export['Name'] =  '';
+        $arr_export['No. of Sessions'] = '';
+        $arr_export['Dates'] = 'Total';
+        $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session;
+        $arr_export['PHIC Sharing 2250'] = $Grandtotal_phic25sharing;
+        $arr_export['PNCSI Sharing(25%)'] = $Grandtotal_phic25sharing_withtax;
+        $arr_export['ACPN No.'] = '';
+        $data_array_export[] = $arr_export;
+
+        $datasets["data"] = $data_array;
+        $datasets["export"] = $data_array_export;
+        $datasets["Doctors"] = $getDoctor;
+        $datasets['totalPaidSessions'] =  $total_paid_session;
+        $datasets["getPaidClaims"] = count($getPaidClaims);        
+
+        return response()->json($datasets);
+    }
+
+    public function acpn_report_list(Request $request)
+    {
+        $acpn_data = Phic::where(['acpn_no'=>$request->acpn,'status'=>'PAID','state'=>'ACTIVE'])->get();
+
+        $data_array = array();
+        foreach ($acpn_data as $key => $value) {
+            $arr = array();
+            $arr['patient'] =  Helper::patientDetail($value->patient_id)->name;
+            $arr['batch'] =  $value->remarks;
+            $arr['doctor'] = Helper::doctorzDetail($value->doctor)->name;
+            $arr['session'] =  date_format(date_create($value->date_session),'F d,Y');
+            $arr['updated'] =  Helper::userDetail($value->updated_by)->name. ' on '.date_format(date_create($value->updated_dt),'F d,Y');
+            $data_array[] = $arr;
+        }
+        $datasets["acpn"] = $data_array;
+        $datasets["total"] = count($acpn_data);
+        $datasets["total_amount"] = count($acpn_data) * 350;
+        return response()->json($datasets);
+    }
+
+    public function acpn_report_list1(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        
+        $data =  DB::connection('mysql')->select("
+        SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.remarks,c.doctor,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
+        left join patients p on s.patient_id = p.id
+        left join phic c on c.patient_id  = s.patient_id 
+        where 
+        c.acpn_no is not null
+        group by s.patient_id, c.acpn_no order by p.name;
+        ");
+
+
+        $data_array = array();
+        $data_array_export = array();
+
+        $total_paid_session = 0;
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr_export = array();
+
+            $arr['patient'] =  Helper::patientDetail($value->patient_id)->name;
+            $arr['batch'] =  $value->remarks;
+            $arr['doctor'] = Helper::doctorzDetail($value->doctor)->name;
+            $arr['session'] =  date_format(date_create($value->date_session),'F d,Y');
+            $arr['updated'] =  Helper::userDetail($value->updated_by)->name. ' on '.date_format(date_create($value->updated_dt),'F d,Y');
+     
+            /* $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where  state <> 'INACTIVE' and status = 'PAID' and  acpn_no = '$acpn'
+            ");  */    
+            $get_dates  = DB::connection('mysql')->select("
+            SELECT * from phic
+                where   acpn_no = '$request->acpn'
+            ");     
+
+            $paid_session = 0;
+            foreach ($get_dates as $gkey => $gvalue) {
+                $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
+                /* $data_sessions  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' 
+                "); */
+                if ($gvalue->status == 'PAID') {
+                    $paid_session++;
+                }
+            }
+            $arr['get_dates'] =  $get_dates;
+            //$arr['paidSessions'] =  $total_paid_session += $paid_session;
+            $arr['paidSessions'] =  $total_paid_session += $paid_session;
+            if(sizeof($get_dates)>0){
+                $data_array[] = $arr;
+                $data_array_export[] = $arr_export;
+            }
+            $paid_session = 0;
+        }
+        $datasets = array();
+        
+        $datasets["acpn"] = $data_array;
+        $datasets["total"] = count($data);
+        $datasets['totalPaidSessions'] =  $total_paid_session;
 
         return response()->json($datasets);
     }

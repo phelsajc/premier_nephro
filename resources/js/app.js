@@ -60,6 +60,8 @@ const router = new VueRouter({
     mode:'history'
 })
   
+import api from './Helpers/api';
+window.api = api
 
 const app = new Vue({
     el: '#app',

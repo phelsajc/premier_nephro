@@ -92,9 +92,9 @@
             </ul>
           </li>
 
-          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' }">
+          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report'}">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' }">
+              :class="{ 'active': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report' }">
               <i class="nav-icon fas fa-file-invoice"></i>
               <p>
                 Reports
@@ -114,6 +114,13 @@
                     :class="{ 'active': this.$route.name == 'phic_list' }">
                     <i class="far fa-circle nav-icon"></i>
                     PHIC
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/acpn_report" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
+                    :class="{ 'active': this.$route.name == 'acpn_report' }">
+                    <i class="far fa-circle nav-icon"></i>
+                    ACPN
                   </a></router-link>
               </li>
 

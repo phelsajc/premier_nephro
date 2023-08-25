@@ -107,7 +107,7 @@
                         </button>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-warning" @click="showModal = true">Edit</button>
+                        <button type="button" class="btn btn-warning" @click="editSchedule(e.schedule_id,e.doctor_id,e.schedule,e.pid);showModal = true">Edit</button>
                       </td>
                     </tr>
                   </tbody>
@@ -118,7 +118,7 @@
           </div>
         </div>
         <!-- <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal> -->
-        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'"></addSessionModal>
+        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="getScheduleId" :doctorId="doctorid" :scheduleDate="scheduledt" :patientid="pid"></addSessionModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -128,7 +128,6 @@
 <script type="text/javascript">
 import Datepicker from 'vuejs-datepicker'
 import moment from 'moment';
-import api from '../../Helpers/api';
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -143,6 +142,10 @@ export default {
       sortKey: 'date',
       columns: ['date'],
       reverse: false,
+      getScheduleId: null,
+      pid: null,
+      doctorid: null,
+      scheduledt: null,
       showModal: false,
       filter: {
         fdate: '',
@@ -220,6 +223,12 @@ export default {
     getReturnResponse: function (id) {
       this.filter.patient = id.id
     },
+    editSchedule(id,doctor,sd,p){
+      this.getScheduleId = id;
+      this.doctorid = doctor;
+      this.scheduledt = sd;     
+      this.pid = p;
+    }
   }
 }
 

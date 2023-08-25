@@ -14,7 +14,15 @@ export default {
     return apiClient.get(url);
   },
   post(url,data) {
-    return apiClient.post(url, data);
+    return apiClient.post(url, data)/* .catch(error => {
+      if(error.response.data.message == 'Token has expired'){
+       this.$router.push({ name: '/' });
+       Toast.fire({
+         icon: 'error',
+         title: 'Token has expired'
+       })
+      }
+   }); */
   },
   update(id, data) {
     return apiClient.put(`/items/${id}`, data);
