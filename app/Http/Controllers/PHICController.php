@@ -440,8 +440,8 @@ class PHICController extends Controller
             $arr_export['No. of Sessions'] = count($get_dates); 
             $arr_export['Dates'] =  ltrim($date_of_sessions," ");
             $arr_export['PHIC NEPHRO 350'] =  $calculate_total;
-            $arr_export['PHIC Sharing 2250'] =  $phic25;
-            $arr_export['PNCSI Sharing(25%)'] =  $phic25_withtax;
+            //$arr_export['PHIC Sharing 2250'] =  $phic25;
+            //$arr_export['PNCSI Sharing(25%)'] =  $phic25_withtax;
             $arr_export['ACPN No.'] = $acpnStr?$acpnStr:'';
             if(sizeof($get_dates)>0){
                 $data_array[] = $arr;
@@ -455,8 +455,8 @@ class PHICController extends Controller
         $arr_export['No. of Sessions'] = '';
         $arr_export['Dates'] = 'Total';
         $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session;
-        $arr_export['PHIC Sharing 2250'] = $Grandtotal_phic25sharing;
-        $arr_export['PNCSI Sharing(25%)'] = $Grandtotal_phic25sharing_withtax;
+        //$arr_export['PHIC Sharing 2250'] = $Grandtotal_phic25sharing;
+       // $arr_export['PNCSI Sharing(25%)'] = $Grandtotal_phic25sharing_withtax;
         $arr_export['ACPN No.'] = '';
         $data_array_export[] = $arr_export;
 

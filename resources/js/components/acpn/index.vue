@@ -83,6 +83,10 @@
                   <dt class="col-sm-2">Total Session:</dt>
                   <dd class="col-sm-8">{{ total_sessions.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</dd>
                 </dl>
+                <dl class="row">
+                  <dt class="col-sm-2">Doctor:</dt>
+                  <dd class="col-sm-8">{{ filter.doctors!='All'?  getDoctorName :'' }}</dd>
+                </dl>
                 <progressBar :getStatus="showProgress"></progressBar>
                 <table class="table">
                   <thead>
@@ -91,8 +95,8 @@
                       <th>Paid Sessions</th>
                       <th>Date</th>
                       <th>PHIC NEPHRO 350</th>
-                      <th>PHIC Sharing 2250</th>
-                      <th>PNCSI Sharing(25%)</th>
+                      <!-- <th>PHIC Sharing 2250</th>
+                      <th>PNCSI Sharing(25%)</th> -->
                       <th>ACPN No.</th>
                     </tr>
                   </thead>
@@ -113,12 +117,12 @@
                       <td>
                         {{ e.total }}
                       </td>
-                      <td>
+                      <!-- <td>
                         {{ e.phic25 }}
                       </td>
                       <td>
                         {{ e.phic25tax }}
-                      </td>
+                      </td> -->
                       <td>
                         {{ e.acpn }}
                       </td>
@@ -176,6 +180,7 @@ export default {
       getPaidClaims: 0,
       getTotalPaidClaims: 0,
       token: localStorage.getItem('token'),
+      getDoctorName: null,
     }
   },
   computed: {
@@ -209,6 +214,9 @@ export default {
         }).catch(error => console.log(error))
     },
     showReport() {
+      if(this.filter.doctors!='All'){
+        this.getDoctorName = this.getDoctor.name
+      }
       this.progressStatus = false;
       api.post('acpn-report', this.filter)
         .then(response => {
@@ -222,8 +230,15 @@ export default {
             title: 'Saved successfully'
           });
           this.progressStatus = true;
-        })
-        .catch(error => console.log(error))
+        }).catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
     getDoctors() {
       api.get('getDoctors')
@@ -235,13 +250,19 @@ export default {
       this.getsessionid = id
     },
     exportCsv() {
+      console.log(this.filter.doctors)
+      let name = ''
+      if(this.filter.doctors!='All'){
+        name = this.getDoctor.name
+      }
       const options = {
         fieldSeparator: ',',
         quoteStrings: '"',
         decimalSeparator: '.',
         showLabels: true,
         showTitle: true,
-        title: 'ACPN REPORT \n ' + moment(this.filter.fdate).format('MMMM DD YYYY') + ' ' + moment(this.filter.tdate).format('MMMM DD YYYY'),
+        //title: 'ACPN REPORT \n ' + moment(this.filter.fdate).format('MMMM DD YYYY') + ' ' + moment(this.filter.tdate).format('MMMM DD YYYY')+' \n'+this.getDoctor.name,
+        title: 'ACPN REPORT \n ' + this.filter.batch+' \n'+name,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,

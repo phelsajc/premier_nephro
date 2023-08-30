@@ -92,9 +92,9 @@
             </ul>
           </li>
 
-          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report'}">
+          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list'}">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report' }">
+              :class="{ 'active': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list' }">
               <i class="nav-icon fas fa-file-invoice"></i>
               <p>
                 Reports
@@ -120,7 +120,14 @@
                 <router-link to="/acpn_report" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
                     :class="{ 'active': this.$route.name == 'acpn_report' }">
                     <i class="far fa-circle nav-icon"></i>
-                    ACPN
+                    PER SET ACPN  
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/acpn_list" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
+                    :class="{ 'active': this.$route.name == 'acpn_list' }">
+                    <i class="far fa-circle nav-icon"></i>
+                    ACPN PER BATCH
                   </a></router-link>
               </li>
 
@@ -135,14 +142,6 @@
               </a> </router-link>
           </li>
 
-          
-          <li class="nav-item">
-            <router-link to="/acpn_list" class="collapse-item"><a href="#" class="nav-link" id="acpnmenu"
-                :class="{ 'active': this.$route.name == 'acpn_list' }">
-                <i class="far fa-circle nav-icon"></i>
-                ACPN
-              </a> </router-link>
-          </li>
 
           <li class="nav-item">
             <router-link to="/logs" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu"
