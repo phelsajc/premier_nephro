@@ -43,12 +43,13 @@
                   <div class="row">
                     <div class="pull-left col-md-3">
                       <select class="form-control" v-model="form.doctor">
-                        <option selected value="0">None</option>
+                        <option selected value="0">All</option>
                         <option v-for="e in doctors" :value="e.id">{{ e.name }}</option>
                       </select>
                     </div>
                     <div class="pull-left col-md-3">
-                      <button type="button" @click="filter()" class="btn btn-info ">Filter</button>
+                      <button type="button" @click="filterEmployeesDoctor()" class="btn btn-info ">Filter</button>
+                      <button type="button" @click="cleasFilter()" class="btn btn-warning ">Clear</button>
                     </div>
                   </div>
                   <br>
@@ -115,7 +116,8 @@ export default {
       doctors: [],
       form: {
         searchTerm2: null,
-        start: 0
+        start: 0,
+        doctor: 0
       },
       employees: [],
       searchTerm: '',
@@ -165,6 +167,24 @@ export default {
           this.isHidden = true
         })
         .catch(error => this.errors = error.response.data.errors)
+    },
+    
+    filterEmployeesDoctor() {
+      this.employees = []
+      this.countRecords = null
+      this.form.start = 0
+      this.isHidden = false
+      api.post('patients', this.form)
+        .then(response => {
+          this.employees = response.data.data;
+          this.countRecords = response.data.count;
+          this.isHidden = true
+        })
+        .catch(error => this.errors = error.response.data.errors)
+    },
+    cleasFilter(){
+      this.form.doctor = 0;
+      this.filterEmployeesDoctor();
     },
     getPageNo(id) {
       this.form.start = (id - 1) * 10

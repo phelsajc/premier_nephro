@@ -41,15 +41,30 @@ class PatientsController extends Controller
         $length = 10;
         $start = $request->start?$request->start:0;
         $val = $request->searchTerm2;
-        if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' ");
+        $doctor = $request->doctor;
+        if($val!=''||$doctor!=0||$start>0){   
+            if($doctor!=0){
+                $data =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' and attending_doctor = $doctor LIMIT $length offset $start");
+                $count =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' and attending_doctor = $doctor ");
+            }else{
+                $data =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' LIMIT $length offset $start");
+                $count =  DB::connection('mysql')->select("select * from patients where name like '%".$val."%' ");
+            }
         }else{
-            $data =  DB::connection('mysql')->select("select * from patients LIMIT $length");
-            $count =  DB::connection('mysql')->select("select * from patients");
+            if($doctor!=0){
+                $data =  DB::connection('mysql')->select("select * from patients where attending_doctor = $doctor LIMIT $length");
+                $count =  DB::connection('mysql')->select("select * from patients where attending_doctor = $doctor");
+            }else{
+                $data =  DB::connection('mysql')->select("select * from patients LIMIT $length");
+                $count =  DB::connection('mysql')->select("select * from patients");
+            }
         }
         
-        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from patients");
+        if($doctor!=0){
+            $count_all_record =  DB::connection('mysql')->select("select count(*) as count from patients where attending_doctor = $doctor");
+        }else{
+            $count_all_record =  DB::connection('mysql')->select("select count(*) as count from patients");
+        }
 
         $data_array = array();
 
