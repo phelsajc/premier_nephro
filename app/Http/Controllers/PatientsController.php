@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Model\Patients;
 use App\Model\Doctors;
 use DB;
+use Helper; 
 
 class PatientsController extends Controller
 {  
@@ -135,7 +136,8 @@ class PatientsController extends Controller
         foreach ($data as $key => $value) {
             $arr = array();
             $arr['id'] =  $value->id;
-            $arr['name'] =  $value->name;;
+            $arr['name'] =  $value->name;
+            $arr['doctor'] =  Helper::doctorzDetail($value->attending_doctor)->name;
             $data_array[] = $arr;
         }
         //$datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);

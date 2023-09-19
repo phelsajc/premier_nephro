@@ -144,6 +144,7 @@ Route::match(['get','post'],'copay-report','CopayController@report');
 Route::match(['get','post'],'phic-report','PHICController@report');
 Route::match(['get','post'],'phic-update','PHICController@update');
 Route::match(['get','post'],'phic-edit/{id}','PHICController@edit');
+Route::match(['get','post'],'phic-summary-report','PHICController@report_summary');
 
 #acpn
 Route::match(['get','post'],'acpn-report','PHICController@acpn_report');
@@ -156,6 +157,7 @@ Route::match(['get','post'],'revenue-report','CensusController@revenue');
 
 #Census
 Route::match(['get','post'],'log-report','LogsController@report');
+
 
 
 

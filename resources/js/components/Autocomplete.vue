@@ -40,7 +40,7 @@ export default {
       }
     },
     getPatient(id) {
-      this.results2.id = id.id;
+      this.results2.id = id;
       this.form.searchVal = id.name;
       this.results = []
       this.$emit('return-response', this.results2);
@@ -53,7 +53,7 @@ export default {
     }
 
   },
-
+  props:['patientid'],//sds
   created() {
     this.$parent.$on('update', this.setValue);
   },

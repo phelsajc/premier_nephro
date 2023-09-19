@@ -176,7 +176,6 @@ class ScheduleController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $check_data = Schedule::where(['patient_id'=>$request->patientid,'status'=>'ACTIVE','schedule'=>date_format(date_create($request->schedule),'Y-m-d')])->first();
-        //return $check_data;
         if(!$check_data){
             $p = new Schedule;
             $p->patient_id = $request->patientid;
@@ -203,33 +202,7 @@ class ScheduleController extends Controller
             return response()->json(false);
         }else{
             return response()->json(true);
-        }
-        /* $p = new Schedule;
-        $p->patient_id = $request->patientid;
-        $p->schedule = $request->schedule;
-        $pxDctr = Patients::where(['id'=>$request->patientid])->first();
-        $p->doctor = $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor;
-        $p->save();          
-        
-        $c = new Copay;
-        $c->date_session = date_create($request->schedule);
-        $c->created_dt = date("Y-m-d");
-        $c->created_by =  auth()->id();
-        $c->doctor = $p->doctor;
-        $c->patient_id = $p->patient_id;
-        $c->save();  
-
-        $ph = new Phic;
-        $ph->date_session = date_create($request->schedule);
-        $ph->created_dt = date("Y-m-d");
-        $ph->created_by =  auth()->id();
-        $ph->doctor = $p->doctor;
-        $ph->patient_id = $p->patient_id;
-        $ph->save(); */
-
-        
-
-        
+        } 
     }
 
     public function edit($id)
@@ -240,8 +213,31 @@ class ScheduleController extends Controller
     
     public function update(Request $request)
     {
-        Schedule::where(['id'=>$request->id])->update([
-            'name'=> $request->data['name'],
+        date_default_timezone_set('Asia/Manila');
+        $pxDctr = Patients::where(['id'=>$request->pxid])->first();
+        
+        $logs = new Transaction_log();
+        $logs->action = 'Update by '.auth()->user()->name.' on '.date('F d, Y H:i:s');
+        $logs->module = 'SCHEDULE';
+        $logs->phic_id = $request->sessid;
+        $logs->remarks = 'UPDATE SCHEDULE OF '.$pxDctr->name.' FROM '.$request->originalDate.' TO '.$request->schedule;
+        $logs->save();
+
+        Schedule::where(['id'=>$request->sessid])->update([
+            'schedule'=> $request->schedule,
+            'doctor'=> $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor,
+        ]);
+        $copay = Copay::where(['date_session'=>$request->originalDate,'patient_id'=>$request->pxid,'status'=>'ACTIVE'])->first();
+        Copay::where(['id'=>$copay->id])->update([
+            'date_session'=> $request->schedule,
+            'doctor'=> $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor,
+        ]);
+        $phic = Phic::where(['date_session'=>$request->originalDate,'patient_id'=>$request->pxid,'state'=>'ACTIVE'])->first();
+        Phic::where(['id'=>$phic->id])->update([
+            'date_session'=> $request->schedule,
+            'doctor'=> $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor,
+            'updated_by' =>  auth()->id(),
+            'updated_dt' =>  date('Y-m-d'),
         ]);
         return true;
     }
@@ -250,24 +246,30 @@ class ScheduleController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $get_schedule = Schedule::where(['id'=>$id])->first();
+        $get_patient = Patients::where(['id'=>$get_schedule->patient_id])->first();
+        
+        $logs = new Transaction_log();
+        $logs->action = 'Update by '.auth()->user()->name.' on '.date('F d, Y H:i:s');
+        $logs->module = 'SCHEDULE';
+        $logs->phic_id = $id;
+        $logs->remarks = 'DELETE SCHEDULE OF '.$get_patient->name.' '.$get_schedule->schedule;
+        $logs->save();
+
         Schedule::where(['id'=>$id])->update([
             'status'=> 'INACTIVE',
         ]);
         Copay::where(['patient_id'=>$get_schedule->patient_id,'date_session'=>$get_schedule->schedule,'status'=>'ACTIVE'])->update([
             'status'=> 'INACTIVE',
         ]);
-        //Phic::where(['id'=>$id])->update([
         Phic::where(['patient_id'=>$get_schedule->patient_id,'date_session'=>$get_schedule->schedule,'state'=>'ACTIVE'])->update([
-            //'status'=> 'INACTIVE',
             'state'=> 'INACTIVE',
         ]);
-        $get_patient = Patients::where(['id'=>$get_schedule->patient_id])->first();
         $p = new FailedSchedule;
         $p->status = 'DELETE SESSION OF '.$get_patient->name.' on '.$get_schedule->schedule;
         $p->created_dt = date("Y-m-d H:i");
         $p->schedule = $get_schedule->schedule;
         $p->created_by = auth()->id();   
-        $p->save();         
+        $p->save();             
         return true;
     }  
 

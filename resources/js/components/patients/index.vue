@@ -24,9 +24,13 @@
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
                   <router-link to="/patients_add/0" class="btn btn-primary pull-left">Add</router-link>
+
+
+
+
                   <div class="pull-right">
                     <input type="file" accept=".csv" @change="handleFileUpload($event)" />
-                  <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
+                    <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
                   </div>
                 </div>
                 <div class="card-body">
@@ -35,10 +39,25 @@
                       <div class="text-bold pt-2">Loading...</div>
                     </div>
                   </div>
+
+                  <div class="row">
+                    <div class="pull-left col-md-3">
+                      <select class="form-control" v-model="form.doctor">
+                        <option selected value="0">None</option>
+                        <option v-for="e in doctors" :value="e.id">{{ e.name }}</option>
+                      </select>
+                    </div>
+                    <div class="pull-left col-md-3">
+                      <button type="button" @click="filter()" class="btn btn-info ">Filter</button>
+                    </div>
+                  </div>
+                  <br>
+
                   <ul class="list-group">
                     <input type="text" v-model="form.searchTerm2" @change="filterEmployee()" class="form-control to-right"
                       style="width:100%;" placeholder="Search patients here">
-                    <router-link v-for="e in filtersearch" :key="e.id" :to="{ name: 'patients_add', params: { id: e.id } }">
+                    <router-link v-for="e in filtersearch" :key="e.id"
+                      :to="{ name: 'patients_add', params: { id: e.id } }">
                       <li class="list-group-item ">
                         <div class="row">
                           <div class="col-6  float-left">
@@ -81,6 +100,7 @@ export default {
     if (!User.loggedIn()) {
       this.$router.push({ name: '/' })
     }
+    this.getDoctors();
     //Notification.success()
     this.allPatients();
     //this.me();
@@ -92,6 +112,7 @@ export default {
       parsed: false,
       hasError: false,
       isHidden: true,
+      doctors: [],
       form: {
         searchTerm2: null,
         start: 0
@@ -113,14 +134,23 @@ export default {
     },
   },
   methods: {
+    getDoctors() {
+      api.get('getDoctors')
+        .then(response => {
+          this.doctors = response.data
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    },
     allPatients() {
       this.isHidden = false
       api.get('patients')
         .then(response => {
           this.employees = response.data.data,
-          this.countRecords = response.data.count,
-          this.showing = response.data.showing,
-          this.isHidden = true
+            this.countRecords = response.data.count,
+            this.showing = response.data.showing,
+            this.isHidden = true
         }).catch(error => console.log(error))
     },
     filterEmployee() {
@@ -144,7 +174,7 @@ export default {
           this.employees = response.data.data
           this.countRecords = response.data.count
           this.showing = response.data.showing,
-          this.isHidden = true
+            this.isHidden = true
         })
         .catch(error => this.errors = error.response.data.errors)
     },
@@ -165,7 +195,7 @@ export default {
     },
     uploadCSV() {
       this.isHidden = false
-      
+
       api.post('patients-import', this.form)
         .then(response => {
           this.allPatients();
@@ -205,4 +235,5 @@ export default {
 .btn-app {
   height: unset !important;
   padding: 0 1.5em 0 1.5em;
-}</style>
+}
+</style>

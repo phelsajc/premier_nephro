@@ -69,25 +69,27 @@
                   </div>
                 </div>
 
-                <dl class="row">
+                <!-- <dl class="row">
                   <dt class="col-sm-2">Month:</dt>
                   <dd class="col-sm-8">{{ month }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
                   <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
-                </dl>
+                </dl> -->
+                <progressBar :getStatus="showProgress"></progressBar>
                 <table class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
                       <th>Doctor</th>
                       <th @click="sortTable('dates')">Session Date</th>
-                      <th>Action</th>
+                      <th v-if="!filter.isall">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for=" e  in  sortedData ">
+                    <!-- <tr v-for=" e  in  sortedData "> -->
+                    <tr v-for=" e  in  results ">
                       <td>
                         {{ e.name }}
                       </td>
@@ -106,8 +108,11 @@
                           {{ d.date }}
                         </button>
                       </td>
-                      <td>
-                        <button type="button" class="btn btn-warning" @click="editSchedule(e.schedule_id,e.doctor_id,e.schedule,e.pid);showModal = true">Edit</button>
+                      <td v-if="!filter.isall">
+                        <button type="button" class="btn btn-warning"
+                          @click="editSchedule(e.schedule_id, e.doctor_id, e.schedule, e.pid); showModal = true">Edit</button>
+                        <button type="button" class="btn btn-danger"
+                          @click="deleteSchedule(e.schedule_id)">Delete</button>
                       </td>
                     </tr>
                   </tbody>
@@ -118,7 +123,8 @@
           </div>
         </div>
         <!-- <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal> -->
-        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="getScheduleId" :doctorId="doctorid" :scheduleDate="scheduledt" :patientid="pid"></addSessionModal>
+        <addSessionModal @return-response2="getReturnResponse2" v-if="showModal" @close="showModal = false"
+          :sessionid="getScheduleId" :doctorId="doctorid" :scheduleDate="scheduledt" :patientid="pid" v-on:close="showReport"></addSessionModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -139,6 +145,7 @@ export default {
   },
   data() {
     return {
+      progressStatus: true,
       sortKey: 'date',
       columns: ['date'],
       reverse: false,
@@ -181,9 +188,19 @@ export default {
         return 0;
       });
     },
+    upDatedList() {
+      /* return this.employees.filter(e => {
+        return e.name.match(this.searchTerm)
+      }) */
+      return this.results
+    },
+    showProgress() {
+      return this.progressStatus;
+    }
   },
   methods: {
     showReport() {
+      this.progressStatus = false;
       this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
       this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
       api.post('census_px-report', this.filter)
@@ -193,15 +210,16 @@ export default {
             icon: 'success',
             title: 'Saved successfully'
           });
+          this.progressStatus = true;
         }).catch(error => {
-         if(error.response.data.message == 'Token has expired'){
-          this.$router.push({ name: '/' });
-          Toast.fire({
-            icon: 'error',
-            title: 'Token has expired'
-          })
-         }
-      });
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
     },
     sortTable(column) {
       console.log(column)
@@ -221,13 +239,50 @@ export default {
       this.getsessionid = id
     },
     getReturnResponse: function (id) {
-      this.filter.patient = id.id
+      this.filter.patient = id.id.id
     },
-    editSchedule(id,doctor,sd,p){
+    getReturnResponse2: function (id) {
+      this.results = []
+      this.showReport();
+      //this.sortTable('dates')
+    },
+    editSchedule(id, doctor, sd, p) {
       this.getScheduleId = id;
       this.doctorid = doctor;
-      this.scheduledt = sd;     
+      this.scheduledt = sd;
       this.pid = p;
+    },
+    deleteSchedule(id) {
+
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+          api.get('schedule-delete/' + id)
+            .then(response => {
+              this.showReport();
+              Toast.fire({
+                icon: 'success',
+                title: 'Deleted successfully'
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
+          Swal.fire(
+            'Deleted!',
+            'Your file has been deleted.',
+            'success'
+          )
+        }
+      });
     }
   }
 }
@@ -241,5 +296,4 @@ export default {
 
 .dpicker {
   background-color: white !important;
-}
-</style>
+}</style>

@@ -62,6 +62,7 @@
                       <label>Doctor</label>
                       <select class="form-control" v-model="filter.doctors">
                         <option value="All">All for the month</option>
+                        <option value="summary">Summary</option>
                         <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
                       </select>
                     </div>
@@ -105,10 +106,11 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
-                  <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
+                  <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All'  && filter.doctors != 'summary'  ? getDoctor.name : '' }}</dd>
                 </dl>
                 <progressBar :getStatus="showProgress"></progressBar>
-                <table class="table">
+              
+                <table v-if="filter.doctors != 'summary'" class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
@@ -130,6 +132,42 @@
                           style="margin-right:5px;" v-for="d in e.datesArr">
                           {{ d.date }}
                         </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+
+                <table v-else class="table">
+                  <thead>
+                    <tr>
+                      <th>Nephrologist</th>
+                      <th># of Sessions</th>
+                      <th>Amount</th>
+                      <th>Total Amount</th>
+                      <th>Less WTX</th>
+                      <th>Net</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="e in resultsSummary">
+                      <td>
+                        {{ e.name }}
+                      </td>
+                      <td>
+                        {{ e.session }}
+                      </td>
+                      <td>
+                        350
+                      </td>
+                      <td>
+                        {{ e.total_amount }}
+                      </td>
+                      <td>
+                        {{ e.less_wtx }}
+                      </td>
+                      <td>
+                        {{ e.net }}
                       </td>
                     </tr>
                   </tbody>
@@ -169,22 +207,29 @@ export default {
       filter: {
         fdate: '',
         tdate: '',
-        doctors: null,
+        doctors: 'All',
         type: 'BOTH'
       },
       results: [],
+      resultsSummary: [],
       export: [],
+      export_summary: [],
       getsessionid: '',
       month: null,
       doctors_list: [],
       getPaidClaims: 0,
       getTotalPaidClaims: 0,
+      getMonthTitle: '',
       token: localStorage.getItem('token'),
     }
   },
   computed: {
     total_sessions() {
-      return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      if(this.filter.doctors != 'summary'){
+        return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      }else{
+        return this.resultsSummary.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      }
     },
     getDoctor() {
       return this.doctors_list.find(e => e.id == this.filter.doctors);
@@ -217,35 +262,44 @@ export default {
         }).catch(error => console.log(error))
     },
     showReport() {
-      this.progressStatus = false;
-      api.post('phic-report', this.filter)
+      if (this.filter.doctors != 'summary') {
+        this.progressStatus = false;
+        api.post('phic-report', this.filter)
+          .then(response => {
+            this.getTotalPaidClaims = response.data.getPaidClaims
+            this.getPaidClaims = response.data.getPaidClaims
+            this.results = response.data.data
+            this.export = response.data.export
+            this.month = moment(this.filter.date).format('MMMM YYYY')
+            Toast.fire({
+              icon: 'success',
+              title: 'Saved successfully'
+            });
+            this.progressStatus = true;
+          })
+          .catch(error => console.log(error))
+      }else{
+        this.showSummaryReport();
+      }
+    },
+    showSummaryReport() {
+      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
+      this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
+      api.post('phic-summary-report', this.filter)
         .then(response => {
-          this.getTotalPaidClaims = response.data.getPaidClaims
-          this.getPaidClaims = response.data.getPaidClaims
-          this.results = response.data.data
-          this.export = response.data.export
-          this.month = moment(this.filter.date).format('MMMM YYYY')
+          //this.getTotalSession = response.data.sessions;
+          this.resultsSummary = response.data.data
+          this.export_summary = response.data.export
+          this.getMonthTitle = response.data.month
+        //  this.month_summary = moment(this.filter.date).format('MMMM YYYY')
+          //this.month = moment.utc(this.filter.date).utcOffset('+08:00').format(); // '+08:00' represents the UTC offset for Asia/Manila
           Toast.fire({
             icon: 'success',
             title: 'Saved successfully'
           });
-          this.progressStatus = true;
         })
         .catch(error => console.log(error))
     },
-    /* checkToken() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      }
-      axios.get('/api/validate', {
-        headers: headers
-      }
-      )
-        .then(res => {
-
-        })
-        .catch(error => console.log(error))
-    }, */
     getDoctors() {
       api.get('getDoctors')
         .then(response => {
@@ -256,20 +310,39 @@ export default {
       this.getsessionid = id
     },
     exportCsv() {
-      const options = {
-        fieldSeparator: ',',
-        quoteStrings: '"',
-        decimalSeparator: '.',
-        showLabels: true,
-        showTitle: true,
-        title: 'PHIC',
-        useTextFile: false,
-        useBom: true,
-        useKeysAsHeaders: true,
-        // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
-      };
-      const csvExporter = new ExportToCsv(options);
-      csvExporter.generateCsv(this.export);
+      if (this.filter.doctors != 'summary') {      
+        const options = {
+          fieldSeparator: ',',
+          quoteStrings: '"',
+          decimalSeparator: '.',
+          showLabels: true,
+          showTitle: true,
+          title: 'PHIC',
+          useTextFile: false,
+          useBom: true,
+          useKeysAsHeaders: true,
+          filename: 'phic_350_'+this.getMonthTitle
+          // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
+        };
+        const csvExporter = new ExportToCsv(options);
+        csvExporter.generateCsv(this.export);
+      }else{
+        const options = {
+          fieldSeparator: ',',
+          quoteStrings: '"',
+          decimalSeparator: '.',
+          showLabels: true,
+          showTitle: true,
+          title: 'Summary of Nephros(Co - Pay) \n for the month of '+this.getMonthTitle,
+          useTextFile: false,
+          useBom: true,
+          useKeysAsHeaders: true,
+          filename: 'phic_report'
+          // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
+        };
+        const csvExporter = new ExportToCsv(options);
+        csvExporter.generateCsv(this.export_summary);
+      }
     }
   }
 }

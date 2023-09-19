@@ -4,7 +4,8 @@
       <div class="modal-wrapper">
         <div class="modal-container">
           <div class="modal-header">
-            <slot name="header">Add Session</slot>
+            <slot name="header" v-if="patientid==0">Add Session</slot>
+            <slot name="header" v-else>Edit Session</slot>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="$emit('close')">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -13,9 +14,15 @@
             <slot name="body">
               <form class="user" @submit.prevent="save" enctype="multipart/form-data">
                 <div class="card-body">
+                  <div class="form-group" v-if="patientid==0">
+                    <label for="exampleInputEmail1">Patient <font color="red">*</font></label>
+                    <patientComponent ref="patientVal" :patientid="form.pxid" @return-response="getReturnResponse"></patientComponent>
+                  </div>
+                  <div class="form-group" v-else>
+                    <label for="exampleInputEmail1">Patient: {{ patientName }} </label>
+                  </div>                  
                   <div class="form-group">
-                    <label for="exampleInputEmail1">Patient <font color="red">*</font> </label>
-                    <patientComponent ref="patientVal" @return-response="getReturnResponse"></patientComponent>
+                    <label for="exampleInputEmail1">Attending Phyiscian: {{ attendingDoctor }} </label>
                   </div>
                   <div class="form-group">
                     <label for="exampleInputEmail1">Date <font color="red">*</font></label>
@@ -80,21 +87,35 @@ export default {
       this.form.patientid = v
     },       
   },
+  computed:{
+  },
   created() {
-    this.getDoctors();
+    this.getDoctors();    
+         api.get('patients-detail/'+this.patientid)
+        .then(response => {
+          console.log("response.data.name")
+          console.log(response.data.name)
+          return this.patientName = response.data.name
+        })
+        .catch(error => {
+          console.log(error);
+        });
   },
   data() {
     return {
       form: {
         searchVal: null,
-        schedule: null,
-        doctor: 0,
-        patientid: this.patientid,
-        sessid: 0,
+        schedule: this.scheduleDate,
+        doctor: this.doctorId,
+        originalDate: this.scheduleDate,
+        pxid: this.patientid,
+        sessid: this.sessionid,
       },
       doctors: [],
       results: [],
       sessionDate: '',
+      patientName: '',
+      attendingDoctor: '',
     }
   },
   methods: {
@@ -125,8 +146,8 @@ export default {
       this.results = [];
     },
     save() {
-      //console.log(this.$refs.patientVal)
       if (this.form.patientid != 0 && this.form.schedule != null) {
+        if(this.form.sessid==0){
         api.post('schedule-add', this.form)
           .then(response => {
             //this.form.patientid = 0;
@@ -141,8 +162,34 @@ export default {
             if(response.data){
               alert("Duplicate schedule. Cannot save record!")
             }
-          })
-          .catch(error => console.log(error))
+          }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
+
+        }else{
+          api.post('schedule-update', this.form)
+          .then(response => {
+            Toast.fire({
+              icon: 'success',
+              title: 'Saved successfully'
+            });            
+          }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
+          this.$emit('return-response2', true);
+        }
       } else {
         Toast.fire({
           icon: 'error',
@@ -150,8 +197,9 @@ export default {
         });
       }
     },
-    getReturnResponse: function (id) {
-      this.form.patientid = id.id
+    getReturnResponse: function (data) {
+      this.form.patientid = data.id.id
+      this.attendingDoctor = data.id.doctor
     }
   },
 }
@@ -162,7 +210,6 @@ export default {
   overflow: hidden;
   width: 100%;
   padding-top: 56.25%;
-  /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
 }
 
 /* Then style the iframe to fit in the container div with full height and width */

@@ -79,7 +79,7 @@
             </div>
           </div>
         </div>
-        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="'gfdgdfgfdg'" v-on:close="todayPatient">
+        <addSessionModal v-if="showModal" @close="showModal = false" :sessionid="0" v-on:close="todayPatient">
         </addSessionModal>
       </section>
     </div>
