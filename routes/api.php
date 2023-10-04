@@ -73,6 +73,7 @@ Route::match(['get','post'],'company','CompanyController@index');
 Route::match(['get','post'],'company-detail/{id}','CompanyController@edit');
 Route::match(['get','post'],'company-delete/{id}','CompanyController@delete');
 Route::match(['get','post'],'getCompanies','CompanyController@getCompanies');
+Route::match(['get','post'],'company-find','CompanyController@find');
 
 #Transaction
 Route::match(['get','post'],'saveTransaction','TransactionController@store');
@@ -92,6 +93,8 @@ Route::match(['get','post'],'rec_products','ReceivedProductController@index');
 Route::match(['get','post'],'rec_products-detail/{id}','ReceivedProductController@edit');
 Route::match(['get','post'],'rec_products-delete/{id}','ReceivedProductController@delete');
 Route::match(['get','post'],'rec_searchProduct','ReceivedProductController@searchProduct');
+Route::match(['get','post'],'getLastBalance','ReceivedProductController@getLastBalance');
+
 
 #Collections
 Route::match(['get','post'],'collection-add','CollectionController@store');

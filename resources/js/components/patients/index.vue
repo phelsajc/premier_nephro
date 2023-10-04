@@ -11,11 +11,8 @@
             </div>
 
           </div>
-        </div><!-- /.container-fluid -->
+        </div>
       </section>
-
-      <!-- Main content -->
-
       <section class="content">
         <div class="container-fluid">
           <div class="row">
@@ -24,10 +21,6 @@
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
                   <router-link to="/patients_add/0" class="btn btn-primary pull-left">Add</router-link>
-
-
-
-
                   <div class="pull-right">
                     <input type="file" accept=".csv" @change="handleFileUpload($event)" />
                     <button type="button" @click="uploadCSV()" class="btn btn-info btn-sm">Upload</button>
@@ -102,9 +95,7 @@ export default {
       this.$router.push({ name: '/' })
     }
     this.getDoctors();
-    //Notification.success()
     this.allPatients();
-    //this.me();
   },
   data() {
     return {
@@ -167,8 +158,7 @@ export default {
           this.isHidden = true
         })
         .catch(error => this.errors = error.response.data.errors)
-    },
-    
+    },    
     filterEmployeesDoctor() {
       this.employees = []
       this.countRecords = null
@@ -207,7 +197,6 @@ export default {
         header: true,
         skipEmptyLines: true,
         complete: function (results) {
-          //this.content = results;
           this.form = results;
           this.parsed = true;
         }.bind(this)
@@ -215,7 +204,6 @@ export default {
     },
     uploadCSV() {
       this.isHidden = false
-
       api.post('patients-import', this.form)
         .then(response => {
           this.allPatients();

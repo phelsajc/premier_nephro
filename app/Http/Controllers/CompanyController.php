@@ -86,5 +86,18 @@ class CompanyController extends Controller
         $p = Company::all();
         return response()->json($p);
     }
+
+    public function find(Request $request)
+    {
+        $data =  DB::connection('mysql')->select("select * from company where company like '%".$request->searchVal."%' ");
+        $data_array = array();
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['id'] =  $value->id;
+            $arr['name'] =  $value->company;
+            $data_array[] = $arr;
+        }
+        return response()->json($data_array);
+    }
    
 }

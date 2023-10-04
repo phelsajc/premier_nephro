@@ -277,7 +277,15 @@ export default {
             });
             this.progressStatus = true;
           })
-          .catch(error => console.log(error))
+        .catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired.'
+            })
+          }
+        });
       }else{
         this.showSummaryReport();
       }
@@ -285,6 +293,7 @@ export default {
     showSummaryReport() {
       this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
       this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
+      this.resultsSummary = [];
       api.post('phic-summary-report', this.filter)
         .then(response => {
           //this.getTotalSession = response.data.sessions;
@@ -298,7 +307,15 @@ export default {
             title: 'Saved successfully'
           });
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired.'
+            })
+          }
+        });
     },
     getDoctors() {
       api.get('getDoctors')

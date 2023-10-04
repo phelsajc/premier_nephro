@@ -382,6 +382,7 @@ class CensusController extends Controller
             $net_arr['name'] = "Net";
             $arr['total'] = $pnet;
             $arr['balance'] = $balance;
+            $arr['getPaidData'] = $getPaidData;
             $data_array[] = $arr;
             //$monthArr[] = $mon_arr;
             $netArr[] = $session;

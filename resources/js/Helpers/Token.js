@@ -6,7 +6,8 @@ class Token{
      console.log(payload)
      if (payload) {
       console.log("to login: "+payload.iss)
-       return payload.iss = "http://premier.census.net/api/auth/login" || "http://premier.census.net/api/auth/register" ? true : false
+      return payload.iss = "http://premier.census.net/api/auth/login" || "http://premier.census.net/api/auth/register" ? true : false
+      //return payload.iss = "http://rmci-testserver/api/auth/login" || "http://rmci-testserver/api/auth/register" ? true : false
      }
      return false
     }   

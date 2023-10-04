@@ -3,14 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+//use Tymon\JWTAuth\Facades\JWTAuth;
+//use JWTAuth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Model\Products;
 use App\Model\Ledger;
+use App\Model\MyLedger;
+use App\Model\Inventory;
 use App\Model\ReceivedProducts;
 use DB;
 
 class ReceivedProductController extends Controller
-{
+{ 
+    
+    /**
+    * Create a new AuthController instance.
+    *
+    * @return void
+    */
+   public function __construct()
+   {
+       //$this->middleware('auth:api');
+       $this->middleware('JWT');
+   }
     public function index(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
@@ -50,37 +66,67 @@ class ReceivedProductController extends Controller
                 $page_count = $getDecimal[0] + 1;
             }
         }
-        $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        return response()->json($datasets); */
+
+        $datasets["data"] = $data_array;
+        $datasets["count"] = $page_count;
+        $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
+        $datasets["patient"] = $data_array;
         return response()->json($datasets);
     }   
-
-    public function store(Request $request)
+    
+  
+    public function storex(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
         $product = Products::where(['id'=>$request->pid])->first();
         $p = new ReceivedProducts;
         $p->product = $product->product;
         $p->quantity = $request->qty;
-        $p->date_receive = $request->dop;
-        $p->pid = $request->pid;
-        $p->uom = $request->uom;
-        $p->created_dt = date("Y-m-d H:i");
+        $p->dop = date_create($request->dop);
+        $p->created_at = date("Y-m-d H:i");
         $p->created_by = auth()->id(); 
+        $p->pid = $request->pid;
+        $p->reference_no = $request->referenceNo;
+        $p->particulars = $request->particulars;
+        $p->unit_price = $request->price;
+        $p->purchase = $request->purchase;
+        $p->balance = $request->balance;
+        $p->company_id = $request->company;
+        $p->free = $request->free;
         $p->save();
 
+        $check_inventory = DB::connection('mysql')->select("select * from inventory order by id desc limit 1");
+
+        //if($check_inventory!=null){
+            $l = new Inventory();
+            //$product = Inventory::where(['id'=>$request->pid])->first();
+            $l->product = $product->product;
+            $l->quantity = $request->qty+$request->free;
+            $l->total_qty += $request->qty+$request->free;
+            $l->created_dt = date("Y-m-d H:i");
+            $l->created_by = auth()->id(); 
+            $l->pid = $request->pid;
+            $l->particulars = $request->particulars;
+            $l->cost = $request->purchase/($request->qty+$request->free);
+            $l->sold = 0;
+            $l->balance = $check_inventory?$check_inventory[0]->balance + $request->purchase:$request->purchase;//$request->qty+$request->free;        
+            $l->amount = $request->purchase; // user input
+    
+            $l->amount_balance =  $check_inventory?$check_inventory[0]->amount_balance + $request->purchase:$request->purchase;
+            $l->company_id = $request->company;
+            $l->transaction_dt = date("Y-m-d");
+            $l->save();
+        //}
+        return response()->json(auth()->user());
+    }
+    
+    public function store(Request $request)
+    {
         
-        $l = new Ledger();
-        $l->referenceno = $product->product;
-        $l->particulars = $request->qty;
-        $l->unit_price = $request->dop;
-        $l->total = $request->pid;
-        $l->payment = $request->uom;
-        $l->checkno = $request->uom;
-        $l->purchased_dt = $request->uom;
-        $l->created_dt = date("Y-m-d H:i");
-        $l->created_by = auth()->id(); 
-        $l->save();
-        return true;
+        $user = Auth::user();
+        return response()->json($user);
     }
 
     public function edit($id)
@@ -125,5 +171,11 @@ class ReceivedProductController extends Controller
             $data[] = $arr;
         }
         return response()->json($data);
+    }
+
+    public function getLastBalance()
+    {
+        $data = DB::connection('mysql')->select("select * from received_products order by id desc limit 1");
+        return $data;//>balance?$data:false;
     }
 }

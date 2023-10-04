@@ -51,6 +51,10 @@ return [
             'driver' => 'jwt-auth',
             'provider' => 'users'
         ], */
+        'jwt' => [
+            'driver' => 'jwt',
+            'provider' => 'users'
+        ],
     ],
 
     /*

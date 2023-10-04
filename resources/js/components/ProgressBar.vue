@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="text-center" :class="{ 'd-none': getProrgessStatus }">
+  <div class="spinner">
+    <div class="text-center " :class="{ 'd-none': getProrgessStatus }">
       Please wait. Process in-progress...
     </div><br>
     <div class="d-flex justify-content-center">
@@ -34,3 +34,13 @@ export default {
   
 }
 </script>
+
+<style>
+  .spinner{    
+    position: fixed;
+    margin: -5% 0% 0% 38%;
+    width: 20%;
+    /*background-color: rgba(136, 114, 114, 0.253);*/
+    border-radius: 20%;
+  }
+</style>
