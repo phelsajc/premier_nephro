@@ -27,32 +27,19 @@
                 <div class="card-header">
                   <h3 class="card-title">Add Product</h3>
                   <div class="card-tools">
-                    <button
-                      type="button"
-                      class="btn btn-tool"
-                      data-card-widget="collapse"
-                    >
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
                       <i class="fas fa-minus"></i>
                     </button>
                   </div>
                 </div>
                 <div class="card-body">
-                  <form
-                    class="user"
-                    @submit.prevent="addProduct"
-                    enctype="multipart/form-data"
-                  >
+                  <form class="user" @submit.prevent="addProduct" enctype="multipart/form-data">
                     <div class="row">
                       <div class="col-sm-3">
                         <div class="form-group">
                           <label>Product</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Product name"
-                            v-model="form.name"
-                          />
+                          <input type="text" class="form-control" id="" placeholder="Enter Product name"
+                            v-model="form.name" />
                           <small class="text-danger" v-if="errors.name">{{
                             errors.name[0]
                           }}</small>
@@ -61,29 +48,19 @@
                       <div class="col-sm-3">
                         <div class="form-group">
                           <label>Particulars</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Product Description"
-                            v-model="form.desc"
-                          />
+                          <input type="text" class="form-control" id="" placeholder="Enter Product Description"
+                            v-model="form.desc" />
                           <small class="text-danger" v-if="errors.desc">{{
                             errors.desc[0]
                           }}</small>
                         </div>
                       </div>
-                      
+
                       <div class="col-sm-3">
                         <div class="form-group">
                           <label>Beginning Inventory</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Balance"
-                            v-model="form.balance"
-                          />
+                          <input type="text" class="form-control" id="" placeholder="Enter Balance"
+                            v-model="form.balance" />
                           <small class="text-danger" v-if="errors.balance">{{
                             errors.balance[0]
                           }}</small>
@@ -92,13 +69,8 @@
                       <div class="col-sm-3">
                         <div class="form-group">
                           <label>Amount</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Amount"
-                            v-model="form.amount"
-                          />
+                          <input type="text" class="form-control" id="" placeholder="Enter Amount"
+                            v-model="form.amount" />
                           <small class="text-danger" v-if="errors.amount">{{
                             errors.amount[0]
                           }}</small>
@@ -149,13 +121,8 @@
                       <div class="col-sm-4">
                         <div class="form-group">
                           <label>Price </label>
-                          <input
-                            type="number"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Product Price"
-                            v-model="form.price"
-                          />
+                          <input type="number" class="form-control" id="" placeholder="Enter Product Price"
+                            v-model="form.price" />
                           <small class="text-danger" v-if="errors.price">{{
                             errors.price[0]
                           }}</small>
@@ -164,13 +131,8 @@
                       <div class="col-sm-4">
                         <div class="form-group">
                           <label>Code </label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            id=""
-                            placeholder="Enter Product Code"
-                            v-model="form.code"
-                          />
+                          <input type="text" class="form-control" id="" placeholder="Enter Product Code"
+                            v-model="form.code" />
                           <small class="text-danger" v-if="errors.code">{{
                             errors.code[0]
                           }}</small>
@@ -182,6 +144,7 @@
                       <button type="submit" class="btn btn-primary btn-block">
                         Submit
                       </button>
+                      <button type="button" @click="deleteRecord()" class="btn btn-danger btn-block">Delete</button>
                     </div>
                   </form>
                 </div>
@@ -292,6 +255,34 @@ export default {
         )
         .catch((error) => (this.errors = console.log(error.response.data.errors)));
     },
+        deleteRecord(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    api.get('/products-delete/' +  this.$route.params.id)
+                        .then(() => {
+                            this.employees = this.employees.filter(e => {
+                                return e.id != id
+                            })
+                        })
+                        .catch(() => {
+                            this.$router.push("/product_list").catch(() => { });
+                        })
+                    Swal.fire(
+                        'Deleted!',
+                        'Your file has been deleted.',
+                        'success'
+                    )
+                }
+            })
+        },
   },
 };
 </script>

@@ -3,7 +3,7 @@
     <input type="text" placeholder="what are you looking for?" v-model="form.searchVal" v-on:keyup="autoComplete"
       class="form-control">
     <div class="panel-footer" v-if="results.length">
-      <ul class="list-group">
+      <ul class="list-group list-group-company">
         <li class="list-group-item" v-for="result in results" @click="getCompany(result)">
           {{ result.name }}
         </li>
@@ -59,8 +59,8 @@ export default {
 }
 </script>
 
-<!-- <style>
-.list-group {
+<style>
+.list-group-company {
     position: absolute;
 }
-</style> -->
+</style>

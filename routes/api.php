@@ -71,7 +71,7 @@ Route::match(['get','post'],'company-add','CompanyController@store');
 Route::match(['get','post'],'company-update','CompanyController@update');
 Route::match(['get','post'],'company','CompanyController@index');
 Route::match(['get','post'],'company-detail/{id}','CompanyController@edit');
-Route::match(['get','post'],'company-delete/{id}','CompanyController@delete');
+Route::match(['get','post', 'delete'],'company-delete/{id}','CompanyController@delete');
 Route::match(['get','post'],'getCompanies','CompanyController@getCompanies');
 Route::match(['get','post'],'company-find','CompanyController@find');
 
@@ -93,6 +93,7 @@ Route::match(['get','post'],'rec_products','ReceivedProductController@index');
 Route::match(['get','post'],'rec_products-detail/{id}','ReceivedProductController@edit');
 Route::match(['get','post'],'rec_products-delete/{id}','ReceivedProductController@delete');
 Route::match(['get','post'],'rec_searchProduct','ReceivedProductController@searchProduct');
+Route::match(['get','post'],'rec_inventory','ReceivedProductController@inventory');
 Route::match(['get','post'],'getLastBalance','ReceivedProductController@getLastBalance');
 
 

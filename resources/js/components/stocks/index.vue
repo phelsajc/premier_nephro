@@ -33,7 +33,7 @@
                       <tr>
                         <th>Date</th>
                         <th>Particulars</th>
-                        <th>Beginning Balance</th>
+                        <!-- <th>Beginning Balance</th> -->
                         <th>Out</th>
                         <th>Balance</th>
                         <th>Cost/Vial</th>
@@ -44,25 +44,25 @@
                     <tbody>
                       <tr v-for="e in items">
                         <td>
-                          {{ e.codes }}
+                          {{ e.dop }}
                         </td>
                         <td>
-                          {{ e.products }}
+                          {{ e.particulars }}
                         </td>
                         <td>
-                          {{ e.units }}
+                          {{ e.sold }}
                         </td>
                         <td>
-                         <strong> {{ e.rec }}</strong>
+                         <strong> {{ e.balance }}</strong>
                         </td>
                         <td>
-                          <strong>  {{ e.sales }}</strong>
+                          <strong>  {{ e.cost }}</strong>
                         </td>
                         <td>
-                          <strong> {{ e.stock }}</strong>
+                          <strong> {{ e.amount }}</strong>
                         </td>
                         <td>
-                          {{ e.price }}
+                          {{ e.amount_balance }}
                         </td>
                         <!-- <td>
                           {{ e.total }}
@@ -121,26 +121,11 @@ created() {
       methods: {
           stockInventory(){
             this.isHidden =  false
-              //axios.get('/api/employee')
-              axios.get('/api/stockInventory')
+              api.get('/rec_inventory')
               .then(({data}) => (
-                this.items = data
+                this.items = data.data
              ))
               .catch()
-          },
-          me(){
-              axios.post('/api/auth/me','',{
-                  headers: {
-                    //"Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Bearer ".concat(this.token),
-                    Accept: "application/jsons",
-                  }
-                })
-                .then(res => {
-                  console.log(res)
-              })
-            .catch(error => this.errors = error.response.data.errors)
-
           },
           pdf(){
               /* axios.get('/pdf')
@@ -150,54 +135,9 @@ created() {
               .catch() */
               window.open("/api/pdf", '_blank');
           },
-        async  check_doctors_detail(id) {
-          return await axios.get( '/api/check_doctors_detail/'+id)
-            .then(response => {
-              setTimeout(function() {
-                return response.data;
-              }, 3000);
-
-            })
-           /*  .then((response) => {
-              return  Promise.resolve(response.data); }) */
-
-          },
-        /* async  check_doctors_detail(id) {
-           return await axios.get( '/api/check_doctors_detail/'+id)
-          }, */
           formatDate(date) {
               const options = { year: 'numeric', month: 'long', day: 'numeric' }
               return new Date(date).toLocaleDateString('en', options)
-          },
-          deleteRecord(id){
-              Swal.fire({
-                  title: 'Are you sure?',
-                  text: "You won't be able to revert this!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, delete it!'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      axios.delete('/api/employee/'+id)
-                      .then(() => {
-                          this.employees = this.employees.filter(e => {
-                              return e.id != id
-                          })
-                      })
-                      .catch(() =>{
-                          //this.$router.push({name: 'all_employee'})
-                          this.$router.push("/all_employee").catch(()=>{});
-                      })
-
-                      Swal.fire(
-                      'Deleted!',
-                      'Your file has been deleted.',
-                      'success'
-                      )
-                  }
-              })
           },
           filterEmployee(){
               this.employees = []
@@ -235,13 +175,6 @@ created() {
             .catch(error => this.errors = error.response.data.errors)
           },
       },
-      /* mounted () {
-        axios.get('/api/check_doctors_detail/'+id)
-            .then(response => (this.getdctr = response))
-      }, */
-      /* created(){
-          this.allEmployee();
-      } */
   }
 </script>
 

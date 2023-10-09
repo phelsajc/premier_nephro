@@ -48,14 +48,14 @@ class ReceivedProductController extends Controller
         foreach ($data as $key => $value) {
             $product = Products::where(['id'=>$value->pid])->first();
             $arr = array();
-            $arr['id'] =  $value->id;
-            $arr['pid'] =  $value->pid;
-            $arr['name'] =  $value->product;
-            $arr['desc'] =  $product['description'];
-            $arr['qty'] =  $value->quantity;
-            $arr['uom'] =  $product;
-            $arr['dor'] =  $value->date_receive;  
-            $arr['price'] =  $product['price'];  
+            $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+            $arr['reference'] =  $value->reference_no;
+            $arr['particulars'] =  $value->particulars; 
+            $arr['price'] =   $value->unit_price;
+            $arr['purchased'] =  $value->purchase;
+            $arr['payment'] =  $value->payment;
+            $arr['balance'] =  $value->balance;
+            $arr['remarks'] =  $value->remarks; 
             $data_array[] = $arr;
         }
         $page = sizeof($count)/$length;
@@ -76,53 +76,103 @@ class ReceivedProductController extends Controller
         return response()->json($datasets);
     }   
     
+    public function inventory(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $length = 10;
+        $start = $request->start?$request->start:0;
+        $val = $request->searchTerm2;
+        if($val!=''||$start>0){   
+            $data =  DB::connection('mysql')->select("select * from inventory where product like '%".$val."%' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select * from inventory where product like '%".$val."%' ");
+        }else{
+            $data =  DB::connection('mysql')->select("select * from inventory LIMIT $length");
+            $count =  DB::connection('mysql')->select("select * from inventory");
+        }
+        
+        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from inventory");
+
+        $data_array = array();
+
+        foreach ($data as $key => $value) {
+            $product = Products::where(['id'=>$value->pid])->first();
+            $arr = array();
+            $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+            $arr['particulars'] =  $value->particulars; 
+            $arr['sold'] =  $value->sold;
+            $arr['balance'] =  $value->total_qty;
+            $arr['cost'] =   $value->cost;
+            $arr['amount'] =  $value->amount;
+            $arr['amount_balance'] =  $value->amount_balance;
+            $data_array[] = $arr;
+        }
+        $page = sizeof($count)/$length;
+        $getDecimal =  explode(".",$page);
+        $page_count = round(sizeof($count)/$length);
+        if(sizeof($getDecimal)==2){            
+            if($getDecimal[1]<5){
+                $page_count = $getDecimal[0] + 1;
+            }
+        }
+        /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        return response()->json($datasets); */
+
+        $datasets["data"] = $data_array;
+        $datasets["count"] = $page_count;
+        $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
+        $datasets["patient"] = $data_array;
+        return response()->json($datasets);
+    } 
   
-    public function storex(Request $request)
+    public function store(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
         $product = Products::where(['id'=>$request->pid])->first();
+        $check_ledger = DB::connection('mysql')->select("select * from received_products where pid  = $request->pid order by id desc limit 1");
         $p = new ReceivedProducts;
         $p->product = $product->product;
         $p->quantity = $request->qty;
         $p->dop = date_create($request->dop);
-        $p->created_at = date("Y-m-d H:i");
-        $p->created_by = auth()->id(); 
+        $p->created_dt = date("Y-m-d H:i");
+        $p->created_by = Auth::user()->id; 
         $p->pid = $request->pid;
         $p->reference_no = $request->referenceNo;
         $p->particulars = $request->particulars;
         $p->unit_price = $request->price;
         $p->purchase = $request->purchase;
-        $p->balance = $request->balance;
+        $p->balance = $check_ledger?$check_ledger[0]->balance + $request->balance:$request->balance;
         $p->company_id = $request->company;
         $p->free = $request->free;
         $p->save();
 
-        $check_inventory = DB::connection('mysql')->select("select * from inventory order by id desc limit 1");
+        $check_inventory = DB::connection('mysql')->select("select * from inventory where pid  = $request->pid  order by id desc limit 1");
 
         //if($check_inventory!=null){
             $l = new Inventory();
             //$product = Inventory::where(['id'=>$request->pid])->first();
             $l->product = $product->product;
             $l->quantity = $request->qty+$request->free;
-            $l->total_qty += $request->qty+$request->free;
+            $l->total_qty = $check_inventory?$check_inventory[0]->total_qty + $request->qty+$request->free:$request->qty+$request->free;
             $l->created_dt = date("Y-m-d H:i");
-            $l->created_by = auth()->id(); 
+            $l->created_by = Auth::user()->id; 
             $l->pid = $request->pid;
             $l->particulars = $request->particulars;
             $l->cost = $request->purchase/($request->qty+$request->free);
             $l->sold = 0;
-            $l->balance = $check_inventory?$check_inventory[0]->balance + $request->purchase:$request->purchase;//$request->qty+$request->free;        
+            //$l->balance = $check_inventory?$check_inventory[0]->total_qty + $request->qty+$request->free:$request->qty+$request->free;//$request->qty+$request->free;        
             $l->amount = $request->purchase; // user input
+            $l->dop = date_create($request->dop);
+            $l->received_id = $p->id;
     
-            $l->amount_balance =  $check_inventory?$check_inventory[0]->amount_balance + $request->purchase:$request->purchase;
+            $l->amount_balance = $check_inventory?($check_inventory[0]->amount_balance + $request->purchase)-$check_inventory[0]->payment:$request->purchase;
             $l->company_id = $request->company;
             $l->transaction_dt = date("Y-m-d");
             $l->save();
         //}
-        return response()->json(auth()->user());
+        return response()->json(Auth::user()->id);
     }
     
-    public function store(Request $request)
+    public function storex(Request $request)
     {
         
         $user = Auth::user();

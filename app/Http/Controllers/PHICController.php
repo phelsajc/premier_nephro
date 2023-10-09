@@ -672,7 +672,12 @@ class PHICController extends Controller
 
     public function acpn_report_list(Request $request)
     {
-        $acpn_data = Phic::where(['acpn_no'=>$request->acpn,'status'=>'PAID','state'=>'ACTIVE'])->get();
+        //$acpn_data = Phic::where(['acpn_no'=>$request->acpn,'status'=>'PAID','state'=>'ACTIVE'])->get();
+
+        $acpn_data =  DB::connection('mysql')->select("
+            SELECT * from phic p left join patients a on p.patient_id = a.id where 
+            p.acpn_no = '$request->acpn' and p.status = 'PAID' and p.state = 'ACTIVE' order by a.name asc;
+            ");
 
         $data_array = array();
         foreach ($acpn_data as $key => $value) {

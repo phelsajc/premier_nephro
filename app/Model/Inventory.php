@@ -16,7 +16,7 @@ class Inventory extends Model
         'id',
         'product',
         'quantity',
-        'quantity',
+        'free',
         'created_by',
         'created_dt',
         'updated_by',

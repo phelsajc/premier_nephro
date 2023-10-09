@@ -79,7 +79,7 @@
                       <div class="col-sm-2">
                         <div class="form-group">
                           <label>Company</label>
-                          <companyComponent v-model="form.company"></companyComponent>
+                          <companyComponent v-model="form.company" @return-response="getReturnResponse"></companyComponent>
                         </div>
                       </div>
                     </div>
@@ -251,6 +251,9 @@ export default {
           this.form.code = data.code
         ))
         .catch(console.log('error'))
+    },
+    getReturnResponse: function (data) {
+      this.form.company = data.id.id
     }
   }
 }

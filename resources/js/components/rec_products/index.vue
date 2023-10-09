@@ -34,7 +34,7 @@
                     </div>
                   </div>
 
-                  <ul class="list-group">
+                  <!-- <ul class="list-group">
                     <input type="text" v-model="form.searchTerm2" @change="filterEmployee()" class="form-control to-right"
                       style="width: 100%" placeholder="Search user here" />
                     <router-link v-for="e in filtersearch" :key="e.id" :to="{ name: 'rproduct_add', params: { id: e.id } }">
@@ -52,7 +52,49 @@
                         </div>
                       </li>
                     </router-link>
-                  </ul>
+                  </ul> -->
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Reference</th>
+                        <th>Particulars</th>
+                        <th>Unit Price</th>
+                        <th>Purchased</th>
+                        <th>Payment</th>
+                        <th>Balance</th>
+                        <th>Check #</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="e in employees">
+                        <td>
+                          {{ e.dop }}
+                        </td>
+                        <td>
+                          {{ e.reference }}
+                        </td>
+                        <td>
+                          {{ e.particulars }}
+                        </td>
+                        <td>
+                         <strong> {{ e.price }}</strong>
+                        </td>
+                        <td>
+                          <strong>  {{ e.purchased }}</strong>
+                        </td>
+                        <td>
+                          <strong> {{ e.payment }}</strong>
+                        </td>
+                        <td>
+                          {{ e.balance }}
+                        </td>
+                        <td>
+                          {{ e.remarks }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                   <br />
                   <nav aria-label="Page navigation example" class="to-right">
                     <ul class="pagination">
@@ -92,7 +134,6 @@ export default {
       this.$router.push({ name: '/' })
     }
     this.allEmployee();
-    this.me();
   },
   data() {
 
@@ -136,25 +177,20 @@ export default {
       this.isHidden = false
       api.get('rec_products')
         .then(response => {
-          console.log(response.data)
+          console.log(response.data.data)
           this.employees = response.data.data,
             this.countRecords = response.data.count,
             this.showing = response.data.showing,
             this.isHidden = true
-        }).catch(error => console.log(error))
-    },
-    me() {
-      axios.post('/api/auth/me', '', {
-        headers: {
-          Authorization: "Bearer ".concat(this.token),
-          Accept: "application/jsons",
-        }
-      })
-        .then(res => {
-          console.log(res)
-        })
-        .catch(error => this.errors = error.response.data.errors)
-
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
     },
     async check_doctors_detail(id) {
       return await axios.get('/api/check_doctors_detail/' + id)

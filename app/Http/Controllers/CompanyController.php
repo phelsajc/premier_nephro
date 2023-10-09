@@ -9,7 +9,7 @@ use DB;
 
 class CompanyController extends Controller
 {  
-    public function index(Request $request)
+    public function index1(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
         $length = 10;
@@ -44,6 +44,53 @@ class CompanyController extends Controller
             }
         }
         $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        return response()->json($datasets);
+    } 
+
+    public function index(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $length = 10;
+        $start = $request->start?$request->start:0;
+        $val = $request->searchTerm2;
+        
+
+        if($val!=''||$start>0){   
+            $data =  DB::connection('mysql')->select("select * from company where company like '%".$val."%' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select * from company where company like '%".$val."%' ");
+        }else{
+            $data =  DB::connection('mysql')->select("select * from company where company like '%".$val."%' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select * from company where company like '%".$val."%' ");
+        }
+
+        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from company");
+        
+
+        $data_array = array();
+
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['company'] =  $value->company;
+            $arr['desc'] =  $value->description;
+            $arr['id'] =  $value->id;
+            $arr['address'] =  $value->address;
+            $data_array[] = $arr;
+        }
+        $page = sizeof($count)/$length;
+        $getDecimal =  explode(".",$page);
+        $page_count = round(sizeof($count)/$length);
+        if(sizeof($getDecimal)==2){            
+            if($getDecimal[1]<5){
+                $page_count = $getDecimal[0] + 1;
+            }
+        }
+        /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+        return response()->json($datasets); */
+
+        $datasets["data"] = $data_array;
+        $datasets["count"] = $page_count;
+        $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
+        $datasets["patient"] = $data_array;
         return response()->json($datasets);
     } 
 

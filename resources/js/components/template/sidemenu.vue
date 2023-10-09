@@ -14,9 +14,9 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'company_add'  || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Master Files
@@ -26,22 +26,36 @@
               <li class="nav-item">
                 <router-link to="/patients_list"> <a href="#" class="nav-link"
                     :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'patients_add' }">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="fas fa-user-injured"></i>
                     <p>Patients</p>
                   </a></router-link>
               </li>
               <li class="nav-item">
                 <router-link to="/doctors_list"> <a href="#" class="nav-link"
                     :class="{ 'active': this.$route.name == 'doctors_list' || this.$route.name == 'doctors_add' }">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="fas fa-user-md"></i>
                     Doctors
                   </a></router-link>
               </li>
               <li class="nav-item">
                 <router-link to="/batch_list"> <a href="#" class="nav-link"
                     :class="{ 'active': this.$route.name == 'batch_list' || this.$route.name == 'batch_add' }">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="fas fa-equals"></i>
                     Batches
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/company_list"> <a href="#" class="nav-link"
+                    :class="{ 'active': this.$route.name == 'company_list' || this.$route.name == 'company_add' }">
+                    <i class="fas fa-building"></i>
+                    Company
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/product_list"> <a href="#" class="nav-link"
+                    :class="{ 'active': this.$route.name == 'product_list' || this.$route.name == 'product_add' }">
+                    <i class="fas fa-list"></i>
+                    Products
                   </a></router-link>
               </li>
             </ul>
@@ -50,7 +64,7 @@
           <li class="nav-item">
             <router-link to="/manage_session" class="collapse-item"><a href="#" class="nav-link" id="revenuemenu"
                 :class="{ 'active': this.$route.name == 'manage_session' }">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-house-user"></i>
                 Sessions
               </a> </router-link>
           </li>
@@ -58,7 +72,7 @@
           <li class="nav-item">
             <router-link to="/userslist" class="collapse-item"><a href="#" class="nav-link" id="usermenu"
                 :class="{ 'active': this.$route.name == 'userslist' || this.$route.name == 'usersadd' }">
-                <i class="far fa-circle nav-icon"></i>
+                <i class="fas fa-users"></i>
                 Users
               </a> </router-link>
           </li>
@@ -67,7 +81,7 @@
             :class="{ 'menu-open': this.$route.name == 'census_doctor' || this.$route.name == 'census_patient' }">
             <a href="#" class="nav-link"
               :class="{ 'active': this.$route.name == 'census_doctor' || this.$route.name == 'census_patient' }">
-              <i class="nav-icon fas fa-file-invoice"></i>
+              <i class="fas fa-poll-h"></i>
               <p>
                 Census
                 <i class="right fas fa-angle-left"></i>
@@ -77,14 +91,14 @@
               <li class="nav-item">
                 <router-link to="/census_doctor" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
                     :class="{ 'active': this.$route.name == 'census_doctor' }">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="fas fa-user-md"></i>
                     Doctor
                   </a></router-link>
               </li>
               <li class="nav-item">
                 <router-link to="/census_patient" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
                     :class="{ 'active': this.$route.name == 'census_patient' }">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="fas fa-user-injured"></i> 
                     Patient
                   </a></router-link>
               </li>
@@ -153,9 +167,9 @@
 
           
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'transaction_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'transaction_list' || this.$route.name == 'stocks' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'doctors_list' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'stocks' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Inventory

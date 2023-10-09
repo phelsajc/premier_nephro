@@ -199,8 +199,9 @@ class ScheduleController extends Controller
             $ph->doctor = $p->doctor;
             $ph->patient_id = $p->patient_id;
             $ph->save();
-            $user = Auth::user()->id;
-            return response()->json($user);
+           /*  $user = Auth::user()->id;
+            return response()->json($user); */
+            return response()->json(false);
         }else{
             return response()->json(true);
         } 
