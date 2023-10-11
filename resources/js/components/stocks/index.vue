@@ -23,7 +23,7 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
-                 
+                  <products class="col-md-3"></products>
                 </div>
 
                 <div class="card-body">
@@ -53,16 +53,16 @@
                           {{ e.sold }}
                         </td>
                         <td>
-                         <strong> {{ e.balance }}</strong>
+                          <strong> {{ e.balance }}</strong>
                         </td>
                         <td>
-                          <strong>  {{ e.cost }}</strong>
+                          <strong> {{ e.cost }}</strong>
                         </td>
                         <td>
-                          <strong> {{ e.amount }}</strong>
+                          <strong> {{ e.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
                         </td>
                         <td>
-                          {{ e.amount_balance }}
+                          {{ e.amount_balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
                         </td>
                         <!-- <td>
                           {{ e.total }}
@@ -70,11 +70,11 @@
                       </tr>
                     </tbody>
                   </table>
-                  
-             
+
+
 
                   <nav aria-label="Page navigation example" class="">
-                    {{showing}}
+                    {{ showing }}
                   </nav>
                 </div>
                 <!-- /.card-body -->
@@ -96,86 +96,93 @@
 
 <script type="text/javascript">
 
-  export default {
-created() {
-          if(!User.loggedIn()){
-              this.$router.push({name: '/'})
-          }
+export default {
+  created() {
+    if (!User.loggedIn()) {
+      this.$router.push({ name: '/' })
+    }
 
-          this.stockInventory()
-      },
-      data(){
+    this.stockInventory()
+  },
+  data() {
 
-          return {
-              items:[]
-          }
-      },
-      computed:{
-          filtersearch(){
-              return this.employees.filter(e => {
-                return e.name.match(this.searchTerm)
-              })
-          },
+    return {
+      items: []
+    }
+  },
+  computed: {
+    filtersearch() {
+      return this.employees.filter(e => {
+        return e.name.match(this.searchTerm)
+      })
+    },
 
-      },
-      methods: {
-          stockInventory(){
-            this.isHidden =  false
-              api.get('/rec_inventory')
-              .then(({data}) => (
-                this.items = data.data
-             ))
-              .catch()
-          },
-          pdf(){
-              /* axios.get('/pdf')
-              .then(({data}) => (
-                  console.log(data)
-              ))
-              .catch() */
-              window.open("/api/pdf", '_blank');
-          },
-          formatDate(date) {
-              const options = { year: 'numeric', month: 'long', day: 'numeric' }
-              return new Date(date).toLocaleDateString('en', options)
-          },
-          filterEmployee(){
-              this.employees = []
-              this.countRecords = null
-            this.form.start = 0
-            this.isHidden =  false
-              //axios.post('/api/filterEmployee',this.form)
-              axios.post('/api/products',this.form)
-
-              .then(res => {
-                this.employees = res.data[0].data
-                this.countRecords =res.data[0].count
-                console.log(res.data.data)
-                this.isHidden =  true
-              })
-              .catch(error => this.errors = error.response.data.errors)
-          },
-          getPageNo(id){
-            this.form.start = (id-1) * 10
-            this.isHidden =  false
-            //alert(a)
-            /* this.employees = []
-            this.countRecords = null */
-            //axios.post('/api/filterEmployee',this.form)
-            console.log(this.isHidden)
-            axios.post('/api/products',this.form)
-              .then(res => {
-                this.employees = res.data[0].data
-                this.countRecords =res.data[0].count
-                this.showing = res.data[0].showing,
-                console.log(res.data[0])
-                this.isHidden =  true
-            console.log(this.isHidden)
+  },
+  methods: {
+    stockInventory() {
+      this.isHidden = false
+      api.get('/rec_inventory')
+        .then(({ data }) => (
+          this.items = data.data
+        )).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
             })
-            .catch(error => this.errors = error.response.data.errors)
-          },
-      },
-  }
+          }
+        });
+    },
+    pdf() {
+      /* axios.get('/pdf')
+      .then(({data}) => (
+          console.log(data)
+      ))
+      .catch() */
+      window.open("/api/pdf", '_blank');
+    },
+    formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' }
+      return new Date(date).toLocaleDateString('en', options)
+    },
+    filterEmployee() {
+      this.employees = []
+      this.countRecords = null
+      this.form.start = 0
+      this.isHidden = false
+      //axios.post('/api/filterEmployee',this.form)
+      axios.post('/api/products', this.form)
+
+        .then(res => {
+          this.employees = res.data[0].data
+          this.countRecords = res.data[0].count
+          console.log(res.data.data)
+          this.isHidden = true
+        })
+        .catch(error => this.errors = error.response.data.errors)
+    },
+    getPageNo(id) {
+      this.form.start = (id - 1) * 10
+      this.isHidden = false
+      //alert(a)
+      /* this.employees = []
+      this.countRecords = null */
+      //axios.post('/api/filterEmployee',this.form)
+      console.log(this.isHidden)
+      axios.post('/api/products', this.form)
+        .then(res => {
+          this.employees = res.data[0].data
+          this.countRecords = res.data[0].count
+          this.showing = res.data[0].showing,
+            console.log(res.data[0])
+          this.isHidden = true
+          console.log(this.isHidden)
+        })
+        .catch(error => this.errors = error.response.data.errors)
+    },
+  },
+}
 </script>
 
 <style>

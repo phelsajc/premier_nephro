@@ -27,54 +27,100 @@ class ReceivedProductController extends Controller
        //$this->middleware('auth:api');
        $this->middleware('JWT');
    }
-    public function index(Request $request)
-    {
-        date_default_timezone_set('Asia/Manila');
-        $length = 10;
-        $start = $request->start?$request->start:0;
-        $val = $request->searchTerm2;
-        if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select * from received_products where product like '%".$val."%' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select * from received_products where product like '%".$val."%' ");
-        }else{
-            $data =  DB::connection('mysql')->select("select * from received_products LIMIT $length");
-            $count =  DB::connection('mysql')->select("select * from received_products");
-        }
-        
-        $count_all_record =  DB::connection('mysql')->select("select count(*) as count from received_products");
+   public function index(Request $request)
+   {
+       date_default_timezone_set('Asia/Manila');
+       $length = 10;
+       $start = $request->start?$request->start:0;
+       $val = $request->searchTerm2;
+       if($val!=''||$start>0){   
+           $data =  DB::connection('mysql')->select("select * from received_products where product like '%".$val."%' LIMIT $length offset $start");
+           $count =  DB::connection('mysql')->select("select * from received_products where product like '%".$val."%' ");
+       }else{
+           $data =  DB::connection('mysql')->select("select * from received_products LIMIT $length");
+           $count =  DB::connection('mysql')->select("select * from received_products");
+       }
+       
+       $count_all_record =  DB::connection('mysql')->select("select count(*) as count from received_products");
 
-        $data_array = array();
+       $data_array = array();
 
-        foreach ($data as $key => $value) {
-            $product = Products::where(['id'=>$value->pid])->first();
-            $arr = array();
-            $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
-            $arr['reference'] =  $value->reference_no;
-            $arr['particulars'] =  $value->particulars; 
-            $arr['price'] =   $value->unit_price;
-            $arr['purchased'] =  $value->purchase;
-            $arr['payment'] =  $value->payment;
-            $arr['balance'] =  $value->balance;
-            $arr['remarks'] =  $value->remarks; 
-            $data_array[] = $arr;
-        }
-        $page = sizeof($count)/$length;
-        $getDecimal =  explode(".",$page);
-        $page_count = round(sizeof($count)/$length);
-        if(sizeof($getDecimal)==2){            
-            if($getDecimal[1]<5){
-                $page_count = $getDecimal[0] + 1;
-            }
-        }
-        /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
-        return response()->json($datasets); */
+       foreach ($data as $key => $value) {
+           $product = Products::where(['id'=>$value->pid])->first();
+           $arr = array();
+           $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+           $arr['reference'] =  $value->reference_no;
+           $arr['particulars'] =  $value->particulars; 
+           $arr['price'] =   $value->unit_price;
+           $arr['purchased'] =  $value->purchase;
+           $arr['payment'] =  $value->payment;
+           $arr['balance'] =  $value->balance;
+           $arr['remarks'] =  $value->remarks; 
+           $data_array[] = $arr;
+       }
+       $page = sizeof($count)/$length;
+       $getDecimal =  explode(".",$page);
+       $page_count = round(sizeof($count)/$length);
+       if(sizeof($getDecimal)==2){            
+           if($getDecimal[1]<5){
+               $page_count = $getDecimal[0] + 1;
+           }
+       }
+       /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+       return response()->json($datasets); */
 
-        $datasets["data"] = $data_array;
-        $datasets["count"] = $page_count;
-        $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
-        $datasets["patient"] = $data_array;
-        return response()->json($datasets);
-    }   
+       $datasets["data"] = $data_array;
+       $datasets["count"] = $page_count;
+       $datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count;
+       $datasets["patient"] = $data_array;
+       return response()->json($datasets);
+   }   
+
+   
+   public function ledger($cid)
+   {
+       date_default_timezone_set('Asia/Manila');
+       $length = 10;
+       $company = $cid;
+       
+       $data =  DB::connection('mysql')->select("select * from received_products where company_id = $company ");
+       $count =  DB::connection('mysql')->select("select * from received_products where company_id = $company ");
+
+       //$count_all_record =  DB::connection('mysql')->select("select count(*) as count from received_products");
+
+       $data_array = array();
+
+       foreach ($data as $key => $value) {
+           $product = Products::where(['id'=>$value->pid])->first();
+           $arr = array();
+           $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+           $arr['reference'] =  $value->reference_no;
+           $arr['particulars'] =  $value->particulars; 
+           $arr['price'] =   $value->unit_price;
+           $arr['purchased'] =  $value->purchase;
+           $arr['payment'] =  $value->payment;
+           $arr['balance'] =  $value->balance;
+           $arr['remarks'] =  $value->remarks; 
+           $arr['sold'] =  $value->sold; 
+           $data_array[] = $arr;
+       }
+       $page = sizeof($data)/$length;
+       $getDecimal =  explode(".",$page);
+       $page_count = round(sizeof($data)/$length);
+       if(sizeof($getDecimal)==2){            
+           if($getDecimal[1]<5){
+               $page_count = $getDecimal[0] + 1;
+           }
+       }
+       /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+       return response()->json($datasets); */
+
+       $datasets["data"] = $data_array;
+       $datasets["count"] = $page_count;
+       //$datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$data[0]->count?$data[0]->count:$start+10)." of ".$data[0]->count;
+       $datasets["patient"] = $data_array;
+       return response()->json($datasets);
+   }   
     
     public function inventory(Request $request)
     {
@@ -140,7 +186,9 @@ class ReceivedProductController extends Controller
         $p->particulars = $request->particulars;
         $p->unit_price = $request->price;
         $p->purchase = $request->purchase;
-        $p->balance = $check_ledger?$check_ledger[0]->balance + $request->balance:$request->balance;
+        //$p->balance = $check_ledger?$check_ledger[0]->balance + $request->balance:$request->balance;
+        $p->balance = $check_ledger?$check_ledger[0]->balance + $request->purchase:$request->balance;
+        //$p->balance = $check_ledger?($check_ledger[0]->balance + $request->balance):$request->balance;
         $p->company_id = $request->company;
         $p->free = $request->free;
         $p->save();

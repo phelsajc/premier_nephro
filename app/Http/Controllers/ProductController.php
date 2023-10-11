@@ -102,16 +102,17 @@ class ProductController extends Controller
     }
 
     public function searchProduct(Request $request){
-        $query = DB::connection('mysql')->select("select * from products where product like '%$request->val%' or description like '%$request->val%'");
+        //$query = DB::connection('mysql')->select("select * from products where product like '%$request->val%' or description like '%$request->val%'");
+        $query = DB::connection('mysql')->select("select p.id,p.product,p.description,i.cost,i.total_qty from inventory i left join products p on i.pid = p.id where p.product like '%$request->val%' or p.description like '%$request->val%' order by i.id desc limit 1");
         $data = array();
         foreach ($query as $key => $value ) {
             $arr = array();
             $arr['id'] = $value->id;
             $arr['product'] = $value->product;
             $arr['description'] = $value->description;
-            $arr['price'] =  $value->price;
-            $arr['code'] = $value->code;
-            $total_received = 0;
+            $arr['price'] =  $value->cost;
+            $arr['qty'] = $value->total_qty;
+            /* $total_received = 0;
             $total_sales = 0;
             $total_qty_purchase = 0;
             $rec_prod = ReceivedProducts::where('pid',$value->id)->get();
@@ -125,7 +126,7 @@ class ProductController extends Controller
             foreach ($sales as $key => $qvalue) {
                 $total_qty_purchase += $qvalue->qty;
             }
-            $arr['qty'] = $total_received-$total_qty_purchase;
+            $arr['qty'] = $total_received-$total_qty_purchase; */
             $data[] = $arr;
         }
         return response()->json($data);

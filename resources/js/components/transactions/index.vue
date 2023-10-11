@@ -145,7 +145,7 @@ created() {
           allEmployee(){
             this.isHidden =  false
               //axios.get('/api/employee')
-              axios.get('/api/transactions')
+              api.get('transactions')
               .then(({data}) => (
                 this.employees = data[0].data ,
                 this.countRecords =data[0].count,
@@ -153,20 +153,6 @@ created() {
             this.isHidden =  true
              ))
               .catch()
-          },
-          me(){
-              axios.post('/api/auth/me','',{
-                  headers: {
-                    //"Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Bearer ".concat(this.token),
-                    Accept: "application/jsons",
-                  }
-                })
-                .then(res => {
-                  console.log(res)
-              })
-            .catch(error => this.errors = error.response.data.errors)
-
           },
           pdf(){
               /* axios.get('/pdf')
@@ -177,7 +163,7 @@ created() {
               window.open("/api/pdf", '_blank');
           },
         async  check_doctors_detail(id) {
-          return await axios.get( '/api/check_doctors_detail/'+id)
+          return await api.get( 'check_doctors_detail/'+id)
             .then(response => {
               setTimeout(function() {
                 return response.data;

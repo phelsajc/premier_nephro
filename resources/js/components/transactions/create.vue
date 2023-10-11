@@ -60,20 +60,20 @@
                                                 <div class="form-group">
                                                     <label>Particulars:</label>
                                                     <input type="text" class="form-control"
-                                                        v-model="transactionDetail.invoiceno">
-                                                    <small class="text-danger" v-if="errors.invoiceno">{{
-                                                        errors.invoiceno[0] }}</small>
+                                                        v-model="transactionDetail.particulars">
+                                                    <small class="text-danger" v-if="errors.particulars">{{
+                                                        errors.particulars[0] }}</small>
                                                 </div>
                                             </div>
-                                            <!-- <div class="col-sm-2">
+                                            <div class="col-sm-2">
                                                 <div class="form-group">
-                                                    <label>Terms:</label>
+                                                    <label>Reference No:</label>
                                                     <input type="text" class="form-control"
-                                                        v-model="transactionDetail.terms">
-                                                    <small class="text-danger" v-if="errors.terms">{{ errors.terms[0]
+                                                        v-model="transactionDetail.referenceNo">
+                                                    <small class="text-danger" v-if="errors.referenceNo">{{ errors.referenceNo[0]
                                                     }}</small>
                                                 </div>
-                                            </div> -->
+                                            </div>
                                         </div>
 
 
@@ -129,8 +129,8 @@
                                                         class="btn btn-success">
                                                         Add
                                                     </button>
-                                                    <button :class="[(checkform ? '' : 'd-none')]" type="button" @click="save()"
-                                                        class="btn btn-info">
+                                                    <button :class="[(checkform ? '' : 'd-none')]" type="button"
+                                                        @click="save()" class="btn btn-info">
                                                         Save
                                                     </button>
                                                 </div>
@@ -161,11 +161,12 @@
                                                     {{ e.price }}
                                                 </td>
                                                 <td>
-                                                    {{ e.total }}
+                                                    {{ numberWithCommas(e.total) }}
                                                 </td>
                                                 <td>
                                                     <button type="button" @click="removeItem(index)"
-                                                        class="btn btn-danger btn-sm" :class="[(checkform ? '' : 'd-none')]">
+                                                        class="btn btn-danger btn-sm"
+                                                        :class="[(checkform ? '' : 'd-none')]">
                                                         Remove </button>
                                                 </td>
                                             </tr>
@@ -180,7 +181,7 @@
 
                                                 </td>
                                                 <td>
-                                                    <strong>TOTAL: {{ total }}</strong>
+                                                    <strong>TOTAL: {{ numberWithCommas(total) }}</strong>
                                                 </td>
                                                 <td>
                                                 </td>
@@ -232,7 +233,8 @@ export default {
             selectdD: [],
             transactionDetail: {
                 terms: 0,
-                invoiceno: '',
+                particulars: '',
+                referenceNo: '',
                 dot: '',
                 companyid: 0
             },
@@ -267,7 +269,7 @@ export default {
         },
         checkform() {
             if (this.isNew) {
-                return this.transactionDetail.dot != '' && this.transactionDetail.invoiceno != '' && this.transactionDetail.companyid != '' ? true : false
+                return this.transactionDetail.dot != '' && this.transactionDetail.particulars != '' && this.transactionDetail.companyid != '' ? true : false
             } else {
                 return false;
             }
@@ -275,7 +277,7 @@ export default {
     },
     methods: {
         getCompany() {
-            axios.get('/api/getCompanies')
+            api.get('/getCompanies')
                 .then(({ data }) => (
                     this.companies = data,
                     console.log(this.companies)
@@ -300,9 +302,12 @@ export default {
                 });
             }
         },
+        numberWithCommas(x) {
+            return (Math.round(100 * x) / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        },
         save() {
             if (this.isNew) {
-                axios.post('/api/saveTransaction', {
+                api.post('saveTransaction', {
                     items: this.$refs.productVal.results3,
                     head: this.transactionDetail,
                     user: User.user_id(),
@@ -318,7 +323,7 @@ export default {
                     })
                     .catch(error => console.log(error))
             } else {
-                axios.post('/api/updateTransaction', {
+                api.post('updateTransaction', {
                     data: this.transactionDetail,
                     id: this.getId
                 })
@@ -339,11 +344,11 @@ export default {
         },
         calculateTotal() {
             if (this.productList.qty <= this.stocks) {
-                this.productList.total = this.productList.price * this.productList.qty;
+                this.productList.total = (this.productList.price * this.productList.qty).toFixed(2);
             }
         },
         getAddedItems() {
-            axios.get('/api/getTransaction/' + this.getId)
+            api.get('/getTransaction/' + this.getId)
                 .then(({ data }) => (
                     this.itemList2 = data,
                     this.itemList2.forEach(e => {
@@ -357,9 +362,9 @@ export default {
         },
         editForm() {
             let id = this.$route.params.id
-            axios.get('/api/getTransactionHeader/' + id)
+            api.get('/getTransactionHeader/' + id)
                 .then(({ data }) => (
-                    this.transactionDetail.invoiceno = !Object.keys(data).length === 0 ? this.form.invoiceno : data.invoiceno,
+                    this.transactionDetail.particulars = !Object.keys(data).length === 0 ? this.form.particulars : data.particulars,
                     this.transactionDetail.dot = !Object.keys(data).length === 0 ? this.form.transactiondate : data.transactiondate,
                     this.transactionDetail.companyid = !Object.keys(data).length === 0 ? this.form.companyid : data.companyid
                 ))
@@ -370,6 +375,7 @@ export default {
 
 </script>
 
-<style>.pull-right {
+<style>
+.pull-right {
     float: right !important;
 }</style>

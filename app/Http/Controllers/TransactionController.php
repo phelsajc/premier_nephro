@@ -5,12 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Model\Transaction;
+use App\Model\Products;
 use App\Model\Transaction_details;
+use App\Model\Inventory;
+use Illuminate\Support\Facades\Auth;
+use App\Model\ReceivedProducts;
 use App\Model\Company;
 use DB;
 
 class TransactionController extends Controller
 {  
+    public function __construct()
+    {
+        //$this->middleware('auth:api');
+        $this->middleware('JWT');
+    }
+
     public function index(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
@@ -55,7 +65,7 @@ class TransactionController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $p = new Transaction;
-        $p->invoiceno = $request->head['invoiceno'];
+        $p->invoiceno = $request->head['particulars'];
         $p->companyid = $request->head['companyid']; 
         $p->created_by = $request->user;
         $p->created_dt = date('Y-m-d');
@@ -76,11 +86,53 @@ class TransactionController extends Controller
             $d->price = $val['price'];
             $getTotal += $val['total'];
             $d->save();         
+
+            
+            $l = new Inventory();
+            $product = Products::where(['id'=>$val['id']])->first();
+            $reques_pid = $val['id'];
+            $check_inventory = DB::connection('mysql')->select("select * from inventory where pid  =  $reques_pid order by id desc limit 1");
+            $total_purchased =  $val['qty'] * $val['price'];
+
+            $l->sold = $val['qty'];
+            $l->total_qty = $check_inventory[0]->total_qty - $val['qty'];
+            $l->amount = $total_purchased;
+            $l->amount_balance = $check_inventory[0]->amount_balance - $total_purchased;
+            $l->product = $product->product;
+            $l->created_dt = date("Y-m-d H:i");
+            $l->created_by = Auth::user()->id; 
+            $l->pid = $val['id'];
+            $l->cost = $val['price'];
+            $l->particulars = $request->head['particulars'];
+            $l->dop = date_create($request->head['dot']);
+            $l->company_id = $request->head['companyid'];
+            $l->transaction_dt = date("Y-m-d");
+            $l->save();
+
+            //Ledger of buying company
+            $comp = $request->head['companyid'];
+            $check_ledger = DB::connection('mysql')->select("select * from received_products where company_id = $comp order by id desc limit 1");
+            $p = new ReceivedProducts;
+            $p->dop = date_create($request->dop);
+            $p->reference_no = $request->head['referenceNo'];
+            $p->particulars = $request->head['particulars'];
+            $p->sold = $val['qty'];
+            $p->unit_price = $val['price'];
+            $p->balance = $check_ledger?$check_ledger[0]->balance + $total_purchased:213;
+            $p->product = $product->product;
+            $p->created_dt = date("Y-m-d H:i");
+            $p->created_by = Auth::user()->id; 
+            $p->pid = $val['id'];
+            $p->company_id = $request->head['companyid'];
+            $p->save();
+
         }
         Transaction::where(['id'=>$p->id])->update([
             'referenceno'=> "TR".sprintf("%04d", $p->id),
             'total'=> $getTotal,
         ]);
+
+        
         return response()->json($p->id);
     }
 

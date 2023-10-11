@@ -90,6 +90,7 @@ Route::match(['get','post'],'YearlyReport','TransactionController@yearly_report'
 Route::match(['get','post'],'rec_products-add','ReceivedProductController@store');
 Route::match(['get','post'],'rec_products-update','ReceivedProductController@update');
 Route::match(['get','post'],'rec_products','ReceivedProductController@index');
+Route::match(['get','post'],'rec_ledgers/{id}','ReceivedProductController@ledger');
 Route::match(['get','post'],'rec_products-detail/{id}','ReceivedProductController@edit');
 Route::match(['get','post'],'rec_products-delete/{id}','ReceivedProductController@delete');
 Route::match(['get','post'],'rec_searchProduct','ReceivedProductController@searchProduct');

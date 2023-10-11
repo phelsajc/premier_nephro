@@ -86,6 +86,9 @@ let census_patient = require('./components/census/census_patient.vue').default
 
 //logs
 let logs = require('./components/logs/index.vue').default
+
+//ledger
+let ledger = require('./components/ledger/index.vue').default
 /*
     path, component & name should be the same inorder to work
 */
@@ -178,6 +181,9 @@ export const routes = [
 
     //Logs
     { path: '/logs', component: logs, name: 'logs' },
+
+    //Ledger
+    { path: '/ledger', component: ledger, name: 'ledger' },
 
     
     { path: '/transaction/:id', component: transaction, name: 'transaction' },

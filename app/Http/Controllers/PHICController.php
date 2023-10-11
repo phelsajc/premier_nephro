@@ -335,10 +335,15 @@ class PHICController extends Controller
 
 
             if ($doctors != 'All') {
+                /* $get_dates  = DB::connection('mysql')->select("
+                SELECT * from phic
+                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                    and remarks like '%$request->batch%' and acpn_no = '$value->acpn_no' and doctor = $doctors
+                "); */   
                 $get_dates  = DB::connection('mysql')->select("
                 SELECT * from phic
-                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and 
-                    status = 'PAID' and remarks like '%$request->batch%' and acpn_no = '$value->acpn_no' and doctor = $doctors
+                    where date_session between '$fdate' and '$tdate'  and patient_id = '$value->patient_id' and state <> 'INACTIVE' and status = 'PAID' 
+                    and remarks like '%$request->batch%' and acpn_no = '$value->acpn_no' and doctor = $doctors
                 ");         
             }else{
                 $get_dates  = DB::connection('mysql')->select("
@@ -466,6 +471,7 @@ class PHICController extends Controller
         $datasets["export"] = $data_array_export;
         $datasets["Doctors"] = $getDoctor;
         $datasets['totalPaidSessions'] =  $total_paid_session;
+        $datasets['data2'] =  $data;
         $datasets["getPaidClaims"] = count($getPaidClaims);        
 
         return response()->json($datasets);
@@ -807,8 +813,9 @@ class PHICController extends Controller
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'),p.attending_doctor, count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id,s.doctor
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
+                left join phic c on p.id = c.patient_id
                 where s.schedule between '$fdate' and '$tdate' and
-                s.doctor = $value->id and s.status = 'ACTIVE'
+                s.doctor = $value->id and s.status = 'ACTIVE' and c.remarks = 'BATCH-13'
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
 

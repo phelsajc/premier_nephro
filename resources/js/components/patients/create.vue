@@ -217,8 +217,15 @@ export default {
                             icon: 'success',
                             title: 'Saved successfully'
                         })
-                    })
-                    .catch(error => console.log(error))
+                    }).catch(error => {
+                        if (error.response.data.message == 'Token has expired') {
+                            this.$router.push({ name: '/' });
+                            Toast.fire({
+                                icon: 'error',
+                                title: 'Token has expired'
+                            })
+                        }
+                    });
             } else {
                 api.post('patients-update', this.form)
                     .then(response => {
@@ -226,8 +233,15 @@ export default {
                             icon: 'success',
                             title: 'Updated successfully'
                         })
-                    })
-                    .catch(error => console.log(error))
+                    }).catch(error => {
+                        if (error.response.data.message == 'Token has expired') {
+                            this.$router.push({ name: '/' });
+                            Toast.fire({
+                                icon: 'error',
+                                title: 'Token has expired'
+                            })
+                        }
+                    });
             }
         },
         editForm() {
