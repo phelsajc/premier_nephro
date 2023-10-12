@@ -22,43 +22,52 @@
       </section>
       <section class="content">
         <div class="container-fluid">
-
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Dcotors Census</h3>
-
             </div>
 
             <div class="card-body">
-
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>From</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.fdate"
-                        :bootstrap-styling=true></datepicker>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.fdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
                     </div>
                   </div>
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>To</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.tdate"
-                        :bootstrap-styling=true></datepicker>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.tdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
                     </div>
                   </div>
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>Doctor</label>
                       <select class="form-control" v-model="filter.doctors">
                         <option value="All">All for the month</option>
-                        <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
+                        <option v-for="e in doctors_list" :value="e.id">
+                          {{ e.name }}
+                        </option>
                       </select>
                     </div>
                   </div>
                   <div class="col-sm-2">
                     <div class="form-group">
-                      <label>&nbsp;</label> <br>
+                      <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
@@ -75,7 +84,13 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
-                  <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
+                  <dd class="col-sm-8">
+                    {{
+                      filter.doctors != null && filter.doctors != "All"
+                        ? getDoctor.name
+                        : ""
+                    }}
+                  </dd>
                 </dl>
                 <table class="table">
                   <thead>
@@ -90,7 +105,11 @@
                         {{ e.name }}
                       </td>
                       <td>
-                        <button type="button" class="btn btn-xs btn-success" style="margin-right:5px;">
+                        <button
+                          type="button"
+                          class="btn btn-xs btn-success"
+                          style="margin-right: 5px"
+                        >
                           {{ e.dates }}
                         </button>
                       </td>
@@ -102,7 +121,11 @@
             <!-- /.card-body -->
           </div>
         </div>
-        <phicModal v-if="showModal" @close="showModal = false" :sessionid="getsessionid.toString()"></phicModal>
+        <phicModal
+          v-if="showModal"
+          @close="showModal = false"
+          :sessionid="getsessionid.toString()"
+        ></phicModal>
       </section>
     </div>
     <footerComponent></footerComponent>
@@ -110,16 +133,14 @@
 </template>
 
 <script type="text/javascript">
-import Datepicker from 'vuejs-datepicker'
-import moment from 'moment';
-import { ExportToCsv } from 'export-to-csv';
+import Datepicker from "vuejs-datepicker";
+import moment from "moment";
+import { ExportToCsv } from "export-to-csv";
 export default {
   created() {
     if (!User.loggedIn()) {
-      this.$router.push({ name: '/' })
+      this.$router.push({ name: "/" });
     }
-
-    this.checkToken()
     this.getDoctors();
   },
   components: {
@@ -130,112 +151,117 @@ export default {
       export: [],
       showModal: false,
       filter: {
-        fdate: '',
-        tdate: '',
+        fdate: "",
+        tdate: "",
         doctors: null,
-        type: 'BOTH'
+        type: "BOTH",
       },
       results: [],
-      getsessionid: '',
+      getsessionid: "",
       month: null,
       doctors_list: [],
-      token: localStorage.getItem('token'),
-    }
+      token: localStorage.getItem("token"),
+    };
   },
   computed: {
     total_sessions() {
       return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
     },
     getDoctor() {
-      return this.doctors_list.find(e => e.id == this.filter.doctors);
+      return this.doctors_list.find((e) => e.id == this.filter.doctors);
     },
     totalAmount() {
-      return (this.total_sessions * 150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-    }
+      return (this.total_sessions * 150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
   },
   methods: {
     getCompany() {
-      axios.get('/api/getCompanies')
-        .then(({ data }) => (
-          this.companies = data,
-          console.log(this.companies)
-        ))
-        .catch(console.log('error'))
+      api
+        .get("/getCompanies")
+        .then(({ data }) => ((this.companies = data), console.log(this.companies)))
+        .catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
     getPatientInformation() {
-      axios.get('/api/getPxInfo/' + this.$route.params.id)
+      api
+        .get("/getPxInfo/" + this.$route.params.id)
         .then(({ data }) => (this.user_info = data))
-        .catch()
+        .catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
     calculateTotal() {
       this.productList.total = this.productList.price * this.productList.qty;
     },
-    showReport() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      }
-      axios.post('/api/census-report', {
-        data: this.filter,
-      }, {
-        headers: headers
-      }
-      )
-        .then(res => {
-          this.results = res.data.data;
-          this.export = res.data.export;
-          /* this.results.forEach(e => {
-              this.total_sessions += parseFloat(e.sessions);
-          }) */
-          this.month = moment(this.filter.date).format('MMMM YYYY')
+    showReport() {      
+      api.post('census-report', this.filter)
+        .then(response => {          
+          this.results = response.data.data;
+          this.export = response.data.export;
+          this.month = moment(this.filter.date).format("MMMM YYYY");
           Toast.fire({
             icon: 'success',
-            title: 'Saved successfully'
+            title: 'Reports Generated'
           });
-        })
-        .catch(error => console.log(error))
-    },
-    checkToken() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      }
-      axios.get('/api/validate', {
-        headers: headers
-      }
-      )
-        .then(res => {
-
-        })
-        .catch(error => console.log(error))
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
     },
     getDoctors() {
-      axios.get('/api/getDoctors')
-        .then(({ data }) => (this.doctors_list = data))
-        .catch()
+      api
+        .get("/getDoctors")
+        .then(({ data }) => (this.doctors_list = data)).catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
 
     getId(id) {
-      this.getsessionid = id
+      this.getsessionid = id;
     },
     exportCsv() {
       const options = {
-        fieldSeparator: ',',
+        fieldSeparator: ",",
         quoteStrings: '"',
-        decimalSeparator: '.',
+        decimalSeparator: ".",
         showLabels: true,
         showTitle: true,
-        title: 'Patient of '+this.getDoctor.name+' for the month of '+this.month,
+        title: "Patient of " + this.getDoctor.name + " for the month of " + this.month,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,
-        filename: 'copay_'+this.getDoctor.name+"_"+this.month,
+        filename: "copay_" + this.getDoctor.name + "_" + this.month,
         // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
       };
       const csvExporter = new ExportToCsv(options);
       csvExporter.generateCsv(this.export);
-    }
-  }
-}
-
+    },
+  },
+};
 </script>
 
 <style>
@@ -245,4 +271,5 @@ export default {
 
 .dpicker {
   background-color: white !important;
-}</style>
+}
+</style>

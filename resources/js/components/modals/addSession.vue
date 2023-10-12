@@ -96,9 +96,14 @@ export default {
           console.log("response.data.name")
           console.log(response.data.name)
           return this.patientName = response.data.name
-        })
-        .catch(error => {
-          console.log(error);
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
         });
   },
   data() {
@@ -123,9 +128,14 @@ export default {
       api.get('getDoctors')
         .then(response => {
           this.doctors = response.data
-        })
-        .catch(error => {
-          console.log(error);
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
         });
     },
     autoComplete() {
@@ -134,8 +144,15 @@ export default {
         api.post('patients-find', this.form)
           .then(response => {
             this.results = response.data
-          })
-          .catch(error => console.log(error))
+          }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
       } else {
         this.form.patientid = 0
       }

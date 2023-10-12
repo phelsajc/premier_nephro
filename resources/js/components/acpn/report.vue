@@ -22,14 +22,11 @@
       </section>
       <section class="content">
         <div class="container-fluid">
-
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">ACPN Report</h3>
             </div>
-
             <div class="card-body">
-
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
                   <div class="col-sm-2">
@@ -44,9 +41,6 @@
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
-                      <!-- <button type="button" @click="exportCsv()" class="btn btn-primary">
-                        Export
-                      </button> -->
                     </div>
                   </div>
                 </div>
@@ -132,21 +126,6 @@ export default {
   ///05292023-06022023 //05152023-05192023
   methods: {
     showReport() {
-      /* api.get('acpn-report-list/'+this.filter.acpn)
-        .then(response => {
-          this.results = response.data.acpn
-          this.total_number_session = response.data.total
-          this.total_sessions = response.data.total_amount 
-        }).catch(error => {
-         if(error.response.data.message == 'Token has expired'){
-          this.$router.push({ name: '/' });
-          Toast.fire({
-            icon: 'error',
-            title: 'Token has expired'
-          })
-         }
-      }); */
-
       api.post('acpn-report-list', this.filter)
         .then(response => {
           this.results = response.data.acpn
@@ -185,7 +164,15 @@ export default {
       axios.get('api/get-batches')
         .then(response => {
           this.batches = response.data
-        }).catch(error => console.log(error))
+        }).catch(error => {
+         if(error.response.data.message == 'Token has expired'){
+          this.$router.push({ name: '/' });
+          Toast.fire({
+            icon: 'error',
+            title: 'Token has expired'
+          })
+         }
+      });
     },
   }
 }

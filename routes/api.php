@@ -19,7 +19,6 @@ Route::group([
 });
 Route::get('validate', 'AuthController@checkToken');
 
-Route::get('pdf','PDFController@pdf');
 Route::apiResource('/employee','Api\EmployeeController');
 
 
@@ -95,6 +94,7 @@ Route::match(['get','post'],'rec_products-detail/{id}','ReceivedProductControlle
 Route::match(['get','post'],'rec_products-delete/{id}','ReceivedProductController@delete');
 Route::match(['get','post'],'rec_searchProduct','ReceivedProductController@searchProduct');
 Route::match(['get','post'],'rec_inventory','ReceivedProductController@inventory');
+Route::match(['get','post'],'rec_payment','ReceivedProductController@payment');
 Route::match(['get','post'],'getLastBalance','ReceivedProductController@getLastBalance');
 
 
@@ -144,6 +144,7 @@ Route::match(['get','post'],'schedule-delete/{id}','ScheduleController@delete');
 
 #Copay
 Route::match(['get','post'],'copay-report','CopayController@report');
+Route::match(['get','post'],'pdf','CopayController@Exportreport');
 
 #PHIC
 Route::match(['get','post'],'phic-report','PHICController@report');

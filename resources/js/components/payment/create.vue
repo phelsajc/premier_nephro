@@ -12,7 +12,7 @@
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active">Received Products</li>
+                <li class="breadcrumb-item active">Payment</li>
               </ol>
             </div>
           </div>
@@ -25,7 +25,7 @@
             <div class="col-12">
               <div class="card card-primary">
                 <div class="card-header">
-                  <h3 class="card-title">Receive Product</h3>
+                  <h3 class="card-title">Payment</h3>
                   <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                       <i class="fas fa-minus"></i>
@@ -36,28 +36,11 @@
                   <form class="user" @submit.prevent="addProduct" enctype="multipart/form-data">
                     <div class="row">
                       <div class="col-sm-2">
-                        <div class="form-group">
-                          <label>Product</label>
-                          <select class="form-control" v-model="form.pid" @change="selectProduct($event)">
-                            <option v-for="e in products" :key="e.id" :value="e.id">
-                              {{ e.product }}
-                            </option>
-                          </select>
-                          <small class="text-danger" v-if="errors.name">{{ errors.name[0] }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-1">
-                        <div class="form-group">
-                          <label>Quantity</label>
-                          <input type="text" class="form-control" id="" placeholder="Quantity" v-model="form.qty" />
-                          <small class="text-danger" v-if="errors.qty">{{ errors.qty[0] }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-1">
-                        <div class="form-group">
-                          <label>Free</label>
-                          <input type="text" class="form-control" id="" placeholder="Quantity" v-model="form.free" />
-                          <small class="text-danger" v-if="errors.qty">{{ errors.qty[0] }}</small>
+                        <div class="form-group date-bg">
+                          <label>Date</label>
+                          <datepicker name="dop" class="date-bg" v-model="form.dop" :bootstrap-styling="true">
+                          </datepicker>
+                          <small class="text-danger" v-if="errors.dop">{{ errors.dop[0] }}</small>
                         </div>
                       </div>
                       <div class="col-sm-2">
@@ -82,45 +65,18 @@
                           <companyComponent v-model="form.company" @return-response="getReturnResponse"></companyComponent>
                         </div>
                       </div>
-                    </div>
-                    <div class="row">
                       <div class="col-sm-2">
                         <div class="form-group">
-                          <label>Purchase </label>
-                          <input type="number" @change="calculatePrice()" class="form-control" id=""
-                            placeholder="Purchase" v-model="form.purchase" />
-                          <small class="text-danger" v-if="errors.purchase">{{ errors.purchase[0] }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-2">
-                        <div class="form-group date-bg">
-                          <label>Date Purchase</label>
-                          <datepicker name="dop" class="date-bg" v-model="form.dop" :bootstrap-styling="true">
-                          </datepicker>
-                          <small class="text-danger" v-if="errors.dop">{{ errors.dop[0] }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-2">
-                        <div class="form-group">
-                          <label>Unit Price </label>
-                          <input type="text" class="form-control" id="" placeholder="Product Price"
-                            v-model="form.price" />
-                          <small class="text-danger" v-if="errors.price">{{ errors.price[0] }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-2">
-                        <div class="form-group">
-                          <label>Current Balance </label>
-                          <input type="text" class="form-control" readonly id="" placeholder="Balance"
-                            v-model="form.balance" />
-                          <small class="text-danger" v-if="errors.code">{{ errors.code[0] }}</small>
+                          <label>Amount</label>
+                          <input type="text" class="form-control" id="" placeholder="Amount"
+                            v-model="form.amount" />
+                          <small class="text-danger" v-if="errors.amount">{{ errors.amount[0] }}</small>
                         </div>
                       </div>
                     </div>
-
                     <div class="form-group">
                       <button type="submit" class="btn btn-primary btn-block">
-                        Save
+                        Pay
                       </button>
                     </div>
                   </form>
@@ -159,15 +115,9 @@ export default {
   data() {
     return {
       form: {
-        pid: '',
         particulars: '',
-        qty: 0,
-        free: 0,
-        purchase: '',
-        payment: 0,
+        amount: 0,
         dop: '',
-        balance: 0,
-        price: 0,
         referenceNo: '',
         company: '',
       },
@@ -192,7 +142,7 @@ export default {
   },
   methods: {
     addProduct() {
-      api.post('rec_products-add', this.form)
+      api.post('rec_payment', this.form)
         .then(response => {
           this.$router.push({ name: 'ledger' });
           Toast.fire({

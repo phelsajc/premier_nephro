@@ -146,13 +146,54 @@ class CensusController extends Controller
         return response()->json($p);
     }
 
-    public function report(Request $request)
+    public function report2(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
         $fdate = date_format(date_create($request->data['fdate']), 'Y-m-d');
         $tdate = date_format(date_create($request->data['tdate']), 'Y-m-d');
         $doctors = $request->data['doctors'];
         $doctors = $request->data['doctors'];
+        if ($doctors != 'All') {
+            $data =  DB::connection('mysql')->select("
+                select p.name,s.schedule from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and
+                s.doctor = $doctors and s.status = 'ACTIVE'
+                order by s.schedule ASC;
+            ");
+        } else {
+            $data =  DB::connection('mysql')->select("
+            select p.name,s.schedule from schedule s 
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
+                order by s.schedule ASC;
+            ");
+        }
+        $data_array = array();
+        $data_array2 = array();
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr2 = array();
+            $arr['name'] =  $value->name;
+            $arr['dates'] =  date_format(date_create($value->schedule), 'm/d/Y');
+            $arr2['Patient'] =  $value->name;
+            $arr2['Date'] =  date_format(date_create($value->schedule), 'm/d/Y');
+            $data_array[] = $arr;
+            $data_array2[] = $arr2;
+        }
+       // return response()->json($data_array);
+        $datasets["data"] = $data_array;
+        $datasets["export"] = $data_array2;
+        return response()->json($datasets);
+    }
+    
+    public function report(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $doctors = $request->doctors;
+        $doctors = $request->doctors;
         if ($doctors != 'All') {
             $data =  DB::connection('mysql')->select("
                 select p.name,s.schedule from schedule s 

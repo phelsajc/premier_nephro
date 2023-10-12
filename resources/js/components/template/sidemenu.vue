@@ -14,9 +14,9 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Master Files
@@ -178,7 +178,7 @@
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <router-link to="/transaction_list"> <a href="#" class="nav-link"
-                    :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'patients_add' }">
+                    :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'transaction_list' }">
                     <i class="fas fa-cash-register"></i>
                     Transactions
                   </a></router-link>
@@ -212,7 +212,14 @@
                     Ledger
                   </a></router-link>
               </li>
-              <li class="nav-item"
+              <li class="nav-item">
+                <router-link to="/payment" class="collapse-item"> <a href="#" class="nav-link" id="payment"
+                    :class="{ 'active': this.$route.name == 'payment' }">
+                    <i class="fas fa-balance-scale"></i>
+                    Payment
+                  </a></router-link>
+              </li>
+              <!-- <li class="nav-item"
                 :class="{ 'menu-open': this.$route.name == 'reports' || this.$route.name == 'yearly_report' || this.$route.name == 'transaction_report' }">
                 <a href="#" class="nav-link">
                   <i class="fas fa-table"></i>
@@ -243,7 +250,7 @@
                       </a></router-link>
                   </li>
                 </ul>
-              </li>
+              </li> -->
             </ul>
           </li>
 

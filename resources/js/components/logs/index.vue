@@ -31,31 +31,32 @@
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>From</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.fdate"
-                        :bootstrap-styling=true></datepicker>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.fdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
                     </div>
                   </div>
-                  <div class="col-sm-2">
-                    <div class="form-group ">
-                      <label>To</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.tdate"
-                        :bootstrap-styling=true></datepicker>
-                    </div>
-                  </div>
-                  <!-- <div class="col-sm-2">
-                    <div class="form-group ">
-                      <label>Type</label>
-                      <select class="form-control" v-model="filter.type">
-                        <option value="Patients">Patients</option>
-                        <option value="Sessions">Sessions</option>
-                      </select>
-                    </div>
-                  </div> -->
                   <div class="col-sm-2">
                     <div class="form-group">
-                      <label>&nbsp;</label> <br>
+                      <label>To</label>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.tdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
+                    </div>
+                  </div>
+                  <div class="col-sm-2">
+                    <div class="form-group">
+                      <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
@@ -77,12 +78,6 @@
                       <td>
                         {{ e.date }}
                       </td>
-                      <!-- <td>
-                        <button type="button" class="btn btn-success btn-xs" style=" margin-right: 5px;"
-                          v-for="d in e.datesArr">
-                          {{ d }}
-                        </button>
-                      </td> -->
                     </tr>
                   </tbody>
                 </table>
@@ -97,13 +92,13 @@
 </template>
 
 <script type="text/javascript">
-import Datepicker from 'vuejs-datepicker'
-import moment from 'moment';
-import api from '../../Helpers/api';
+import Datepicker from "vuejs-datepicker";
+import moment from "moment";
+import api from "../../Helpers/api";
 export default {
   created() {
     if (!User.loggedIn()) {
-      this.$router.push({ name: '/' })
+      this.$router.push({ name: "/" });
     }
   },
   components: {
@@ -112,34 +107,41 @@ export default {
   data() {
     return {
       filter: {
-        fdate: '',
-        tdate: '',
+        fdate: "",
+        tdate: "",
         doctors: null,
-        type: 'BOTH'
+        type: "BOTH",
       },
       results: [],
       month: null,
       doctors_list: [],
-      token: localStorage.getItem('token'),
-    }
+      token: localStorage.getItem("token"),
+    };
   },
   methods: {
     showReport() {
-      api.post('log-report', this.filter)
-        .then(response => {
-          this.results = response.data.data
-          console.log(this.results)
-          //this.month = moment(this.filter.date).format('MMMM YYYY')
+      api
+        .post("log-report", this.filter)
+        .then((response) => {
+          this.results = response.data.data;
+          console.log(this.results);
           Toast.fire({
-            icon: 'success',
-            title: 'Saved successfully'
+            icon: "success",
+            title: "Saved successfully",
           });
         })
-        .catch(error => console.log(error))
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
     },
-  }
-}
-
+  },
+};
 </script>
 
 <style>
@@ -149,4 +151,5 @@ export default {
 
 .dpicker {
   background-color: white !important;
-}</style>
+}
+</style>

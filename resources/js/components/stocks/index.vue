@@ -11,11 +11,7 @@
             </div>
           </div>
         </div>
-        <!-- /.container-fluid -->
       </section>
-
-      <!-- Main content -->
-
       <section class="content">
         <div class="container-fluid">
           <div class="row">
@@ -23,7 +19,7 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
-                  <products class="col-md-3"></products>
+                  <!-- <products class="col-md-3"></products> -->
                 </div>
 
                 <div class="card-body">
@@ -135,11 +131,6 @@ export default {
         });
     },
     pdf() {
-      /* axios.get('/pdf')
-      .then(({data}) => (
-          console.log(data)
-      ))
-      .catch() */
       window.open("/api/pdf", '_blank');
     },
     formatDate(date) {

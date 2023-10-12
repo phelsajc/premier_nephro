@@ -31,36 +31,51 @@
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>From</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.fdate"
-                        :bootstrap-styling=true></datepicker>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.fdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
                     </div>
                   </div>
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>To</label>
-                      <datepicker name="date" required input-class="dpicker" v-model="filter.tdate"
-                        :bootstrap-styling=true></datepicker>
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
+                        v-model="filter.tdate"
+                        :bootstrap-styling="true"
+                      ></datepicker>
                     </div>
                   </div>
                   <div class="col-sm-2">
-                    <div class="form-group ">
+                    <div class="form-group">
                       <label>Doctor</label>
                       <select class="form-control" v-model="filter.doctors">
                         <option value="All">All for the month</option>
-                        <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
+                        <option v-for="e in doctors_list" :value="e.id">
+                          {{ e.name }}
+                        </option>
                       </select>
                     </div>
                   </div>
                   <div class="col-sm-2">
                     <div class="form-group">
-                      <label>&nbsp;</label> <br>
+                      <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
                       <button type="button" @click="exportCsv()" class="btn btn-primary">
                         Export
+                      </button>
+                      <button type="button" @click="exportPDF()" class="btn btn-danger">
+                        PDF
                       </button>
                     </div>
                   </div>
@@ -80,9 +95,16 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
-                  <dd class="col-sm-8">{{ filter.doctors != null && filter.doctors != 'All' ? getDoctor.name : '' }}</dd>
+                  <dd class="col-sm-8">
+                    {{
+                      filter.doctors != null && filter.doctors != "All"
+                        ? getDoctor.name
+                        : ""
+                    }}
+                  </dd>
                 </dl>
-                <table v-if="filter.doctors!='All'" class="table">
+                <progressBar :getStatus="showProgress"></progressBar>
+                <table v-if="filter.doctors != 'All'" class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
@@ -107,7 +129,7 @@
                     </tr>
                   </tbody>
                 </table>
-                
+
                 <table v-else class="table">
                   <thead>
                     <tr>
@@ -127,9 +149,7 @@
                       <td>
                         {{ e.session }}
                       </td>
-                      <td>
-                        150
-                      </td>
+                      <td>150</td>
                       <td>
                         {{ e.total_amount }}
                       </td>
@@ -145,8 +165,6 @@
               </form>
             </div>
           </div>
-
-
         </div>
       </section>
     </div>
@@ -155,14 +173,14 @@
 </template>
 
 <script type="text/javascript">
-import Datepicker from 'vuejs-datepicker'
-import moment from 'moment';
-import api from '../../Helpers/api';
-import { ExportToCsv } from 'export-to-csv';
+import Datepicker from "vuejs-datepicker";
+import moment from "moment";
+import api from "../../Helpers/api";
+import { ExportToCsv } from "export-to-csv";
 export default {
   created() {
     if (!User.loggedIn()) {
-      this.$router.push({ name: '/' })
+      this.$router.push({ name: "/" });
     }
     //this.checkToken()
     this.getDoctors();
@@ -173,100 +191,139 @@ export default {
   data() {
     return {
       filter: {
-        fdate: '',
-        tdate: '',
+        fdate: "",
+        tdate: "",
         doctors: null,
-        type: 'BOTH'
+        type: "BOTH",
       },
+      progressStatus: true,
       results: [],
-      getTotalSession: 0 ,
+      getTotalSession: 0,
       export: [],
       month: null,
       doctors_list: [],
-      token: localStorage.getItem('token'),
-      getMonthTitle: '',
-    }
+      token: localStorage.getItem("token"),
+      getMonthTitle: "",
+    };
   },
   computed: {
     total_sessions() {
-      
-      if(this.filter.doctors !='All') {
+      if (this.filter.doctors != "All") {
         return this.getTotalSession;
-      }else{
+      } else {
         return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
       }
     },
     getDoctor() {
-      return this.doctors_list.find(e => e.id == this.filter.doctors);
+      return this.doctors_list.find((e) => e.id == this.filter.doctors);
     },
     totalAmount() {
-      return (this.total_sessions * 150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-    }
+      return (this.total_sessions * 150).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+    showProgress() {
+      return this.progressStatus;
+    },
   },
   methods: {
     getCompany() {
-      api.get('getCompanies')
-        .then(response => {
-          this.companies = response.data
-        }).catch(error => console.log(error))
+      api
+        .get("getCompanies")
+        .then((response) => {
+          this.companies = response.data;
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
     },
     showReport() {
-      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset('+08:00').format();
-      this.filter.tdate = moment.utc(this.filter.tdate).utcOffset('+08:00').format();
-      api.post('copay-report', this.filter)
-        .then(response => {
+      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset("+08:00").format();
+      this.filter.tdate = moment.utc(this.filter.tdate).utcOffset("+08:00").format();
+      this.progressStatus = false;
+      api
+        .post("copay-report", this.filter)
+        .then((response) => {
           this.getTotalSession = response.data.sessions;
-          this.results = response.data.data
-          this.export = response.data.export
-          this.getMonthTitle = response.data.month
-          this.month = moment(this.filter.date).format('MMMM YYYY')
+          this.results = response.data.data;
+          this.export = response.data.export;
+          this.getMonthTitle = response.data.month;
+          this.month = moment(this.filter.date).format("MMMM YYYY");
           //this.month = moment.utc(this.filter.date).utcOffset('+08:00').format(); // '+08:00' represents the UTC offset for Asia/Manila
           Toast.fire({
-            icon: 'success',
-            title: 'Saved successfully'
+            icon: "success",
+            title: "Saved successfully",
           });
+          this.progressStatus = true;
         })
-        .catch(error => console.log(error))
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
     },
-    /* checkToken() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      }
-      axios.get('/api/validate', {
-        headers: headers
-      }
-      )
-        .then(res => {
-
-        })
-        .catch(error => console.log(error))
-    }, */
     getDoctors() {
-      api.get('getDoctors')
-        .then(response => {
-          this.doctors_list = response.data
-        }).catch(error => console.log(error))
+      api
+        .get("getDoctors")
+        .then((response) => {
+          this.doctors_list = response.data;
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
+    },
+    exportPDF() {
+      api.post('/pdf', { responseType: 'blob' }).then((response) => {
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a link element to trigger the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document.pdf';
+        a.style.display = 'none';
+
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+});
+
+    
+        
     },
     exportCsv() {
       const options = {
-        fieldSeparator: ',',
+        fieldSeparator: ",",
         quoteStrings: '"',
-        decimalSeparator: '.',
+        decimalSeparator: ".",
         showLabels: true,
         showTitle: true,
-        title: 'Summary of Nephros(Co - Pay) \n for the month of '+this.getMonthTitle,
+        title: "Summary of Nephros(Co - Pay) \n for the month of " + this.getMonthTitle,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,
-        filename: 'copay_'+this.getMonthTitle
+        filename: "copay_" + this.getMonthTitle,
         // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
       };
       const csvExporter = new ExportToCsv(options);
       csvExporter.generateCsv(this.export);
-    }
-  }
-}
-
+    },
+  },
+};
 </script>
 
 <style>
@@ -276,4 +333,5 @@ export default {
 
 .dpicker {
   background-color: white !important;
-}</style>
+}
+</style>

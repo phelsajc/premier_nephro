@@ -105,11 +105,26 @@ export default {
         .catch((error) => console.log(error));
     },
     getSessionData() {
-      const headers = {
+      api.get('phic-edit/'+this.form.id)
+        .then(response => {
+          this.form.status = res.data.status == "PAID" ? true : false;
+          this.form.remarks = res.data.remarks;
+          this.form.acpn = res.data.acpn_no;
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
+
+      /* const headers = {
         Authorization: "Bearer ".concat(this.token),
       };
-      axios
-        .get("/api/phic-edit/" + this.form.id, {
+      api
+        .get("/phic-edit/" + this.form.id, {
           headers: headers,
         })
         .then((res) => {
@@ -117,14 +132,29 @@ export default {
           this.form.status = res.data.status == "PAID" ? true : false;
           this.form.remarks = res.data.remarks;
           this.form.acpn = res.data.acpn_no;
-        })
-        .catch((error) => console.log(error));
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        }); */
     },
     getBatches() {
-      axios.get('api/get-batches')
+      api.get('/get-batches')
         .then(response => {
           this.batches = response.data
-        }).catch(error => console.log(error))
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
     },
   },
 };

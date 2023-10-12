@@ -219,12 +219,22 @@ class ReceivedProductController extends Controller
         //}
         return response()->json(Auth::user()->id);
     }
-    
-    public function storex(Request $request)
+
+    public function payment(Request $request)
     {
-        
-        $user = Auth::user();
-        return response()->json($user);
+        date_default_timezone_set('Asia/Manila');
+        $check_ledger = DB::connection('mysql')->select("select * from received_products where company_id  = $request->company order by id desc limit 1");
+        $p = new ReceivedProducts;
+        $p->dop = date_create($request->dop);
+        $p->created_dt = date("Y-m-d H:i");
+        $p->created_by = Auth::user()->id; 
+        $p->reference_no = $request->referenceNo;
+        $p->particulars = $request->particulars;
+        $p->payment = $request->amount;
+        $p->balance = $check_ledger?$check_ledger[0]->balance - $request->amount:$request->amount;
+        $p->company_id = $request->company;
+        $p->save();
+        return response()->json(Auth::user()->id);
     }
 
     public function edit($id)
