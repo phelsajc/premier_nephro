@@ -174,6 +174,8 @@
 
 <script type="text/javascript">
 import Datepicker from "vuejs-datepicker";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import moment from "moment";
 import api from "../../Helpers/api";
 import { ExportToCsv } from "export-to-csv";
@@ -186,6 +188,7 @@ export default {
     this.getDoctors();
   },
   components: {
+    jsPDF,
     Datepicker,
   },
   data() {
@@ -196,6 +199,12 @@ export default {
         doctors: null,
         type: "BOTH",
       },
+      
+      users: [
+        { id: 1, name: "John Doe", email: "john@example.com" },
+        { id: 2, name: "Jane Smith", email: "jane@example.com" },
+        { id: 3, name: "Bob Johnson", email: "bob@example.com" },
+      ],
       progressStatus: true,
       results: [],
       getTotalSession: 0,
@@ -288,10 +297,9 @@ export default {
     },
     exportPDF() {
       api.post('/pdf', { responseType: 'blob' }).then((response) => {
-        const blob = new Blob([response.data], { type: 'application/pdf' });
+        /* const blob = new Blob([response.data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
 
-        // Create a link element to trigger the download
         const a = document.createElement('a');
         a.href = url;
         a.download = 'document.pdf';
@@ -299,7 +307,22 @@ export default {
 
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(url); */
+
+        const doc = new jsPDF();
+        /* doc.autoTable({
+        head: [["ID", "Name", "Email"]],
+        body: this.users.map((user) => [user.id, user.name, user.email]),
+      }); */
+      // Save or open the PDF
+doc.text("Summary of Nephros(Co-Pay)", 20, 12);
+doc.text("for the month of "+this.month, 20, 20);
+      doc.autoTable({
+        head: [["Nephrologist", "No. of Sessions", "Amount", "Total Amount", "Less with Tax", "Net"]],
+        margin: { top: 30 },
+        body: this.results.map((user) => [user.name, user.session, "150",user.total_amount,user.less_wtx,user.net]),
+      });
+      doc.save("generated.pdf");
 });
 
     
