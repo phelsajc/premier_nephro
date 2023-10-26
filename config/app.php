@@ -63,6 +63,9 @@ return [
     'url' => env('APP_URL', 'http://premier.census.net'),
 
     'asset_url' => env('ASSET_URL', 'http://premier.census.net/public'),
+/* 
+        'url' => env('APP_URL', 'http://DESKTOP-HKDISKR/'),
+    'asset_url' => env('ASSET_URL', 'http://DESKTOP-HKDISKR/'), */
 
     //'asset_url' => env('ASSET_URL', null),
 

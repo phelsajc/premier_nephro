@@ -530,7 +530,6 @@ class CopayController extends Controller
                 $arr_export['Total Amount'] =  $total_Amt;
                 $arr_export['Less WTX'] =  $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
                 $tnet = $value->id == 6 ? $total_Amt * 0.95 : $total_Amt * 0.9;
-                $arr_export['net'] = $tnet;
                 $data_array_export[] = $arr_export;
                 $totalNet += $tnet;
             }

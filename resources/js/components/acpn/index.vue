@@ -72,6 +72,9 @@
                       <button type="button" @click="exportCsv()" class="btn btn-primary">
                         Export
                       </button>
+                      <button type="button" @click="exportPDF()" class="btn btn-danger">
+                        PDF
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -148,6 +151,8 @@ import Datepicker from 'vuejs-datepicker'
 import moment from 'moment';
 import { ExportToCsv } from 'export-to-csv';
 import api from '../../Helpers/api';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default {
   created() {
@@ -160,10 +165,13 @@ export default {
   },
   components: {
     Datepicker,
+    jsPDF,
+    Datepicker,
   },
   data() {
     return {
       batches:[],
+      pdf:[],
       progressStatus: true,
       showModal: false,
       filter: {
@@ -221,6 +229,7 @@ export default {
       api.post('acpn-report', this.filter)
         .then(response => {
           this.getTotalPaidClaims = response.data.getPaidClaims
+          this.pdf = response.data.pdf
           this.getPaidClaims = response.data.getPaidClaims
           this.results = response.data.data
           this.export = response.data.export
@@ -276,6 +285,35 @@ export default {
         .then(response => {
           this.batches = response.data
         }).catch(error => console.log(error))
+    },
+    exportPDF() {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        doc.text("Summary of Nephros(PHIC-350)", 20, 12);
+        doc.text("ACPN-" + this.filter.batch, 20, 20);
+        doc.autoTable({
+          head: [
+            [
+              "Nephrologist",
+              "No. of Sessions",
+              "Amount",
+              "Total Amount",
+              "Less with Tax",
+              "Net",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.pdf.map((user) => [
+            user.nephro,
+            user.sess,
+            "350",
+            user.total,
+            user.tx,
+            user.net,
+          ]),
+        });
+        doc.save("generated.pdf");
+      });
     },
   }
 }

@@ -314,6 +314,38 @@ class PHICController extends Controller
             c.acpn_no is not null
             group by s.patient_id, c.acpn_no order by p.name;
             ");
+            $getDoctor = Doctors::all();
+
+            $getDoctor_arr = array();
+            $total_sess= 0;
+            $total_amnt_per_sess= 0;
+            $total_amnt_per_w_tx= 0;
+            $total_amnt_net= 0;
+            foreach ($getDoctor as $key => $value) {
+                $getDoctor_sessions =  DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%'  and doctor = $value->id ");
+                $arr=array();
+                $total_amt =  $getDoctor_sessions[0]->count * 350;
+                $total_amt_tx =  $value->id==6?$total_amt * .05:$total_amt * .1;
+                $total_amt_net = $value->id==6?$total_amt * .95:$total_amt * .9;
+                $arr['nephro'] =  $value->name;
+                $arr['sess'] =  $getDoctor_sessions[0]->count;
+                $arr['amount'] = "350";
+                $arr['total'] =  number_format($total_amt, 2);
+                $arr['tx'] =  number_format($total_amt_tx, 2);
+                $arr['net'] =  number_format($total_amt_net, 2);
+                $getDoctor_arr[] = $arr;
+                $total_sess+=$getDoctor_sessions[0]->count;
+                $total_amnt_per_sess+=$total_amt;
+                $total_amnt_per_w_tx+=$total_amt_tx;
+                $total_amnt_net+=$total_amt_net;
+            }
+            $getDoctor_arr_footer['nephro'] = 'Total';
+            $getDoctor_arr_footer['sess'] =  $total_sess;
+            $getDoctor_arr_footer['amount'] = "";
+            $getDoctor_arr_footer['total'] =  number_format($total_amnt_per_sess, 2);
+            $getDoctor_arr_footer['tx'] =  number_format($total_amnt_per_w_tx, 2);
+            $getDoctor_arr_footer['net'] =    number_format($total_amnt_net, 2);
+            $getDoctor_arr[] = $getDoctor_arr_footer;
         }
 
 
@@ -472,8 +504,9 @@ class PHICController extends Controller
         $datasets["Doctors"] = $getDoctor;
         $datasets['totalPaidSessions'] =  $total_paid_session;
         $datasets['data2'] =  $data;
-        $datasets["getPaidClaims"] = count($getPaidClaims);        
-
+        $datasets["getPaidClaims"] = count($getPaidClaims);   
+        $datasets['pdf'] = $getDoctor_arr;     
+        
         return response()->json($datasets);
     }
 

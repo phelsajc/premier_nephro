@@ -199,7 +199,7 @@ export default {
         doctors: null,
         type: "BOTH",
       },
-      
+
       users: [
         { id: 1, name: "John Doe", email: "john@example.com" },
         { id: 2, name: "Jane Smith", email: "jane@example.com" },
@@ -296,7 +296,7 @@ export default {
         });
     },
     exportPDF() {
-      api.post('/pdf', { responseType: 'blob' }).then((response) => {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
         /* const blob = new Blob([response.data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
 
@@ -314,19 +314,32 @@ export default {
         head: [["ID", "Name", "Email"]],
         body: this.users.map((user) => [user.id, user.name, user.email]),
       }); */
-      // Save or open the PDF
-doc.text("Summary of Nephros(Co-Pay)", 20, 12);
-doc.text("for the month of "+this.month, 20, 20);
-      doc.autoTable({
-        head: [["Nephrologist", "No. of Sessions", "Amount", "Total Amount", "Less with Tax", "Net"]],
-        margin: { top: 30 },
-        body: this.results.map((user) => [user.name, user.session, "150",user.total_amount,user.less_wtx,user.net]),
+        // Save or open the PDF
+        doc.text("Summary of Nephros(Co-Pay)", 20, 12);
+        doc.text("for the month of " + this.month, 20, 20);
+        doc.autoTable({
+          head: [
+            [
+              "Nephrologist",
+              "No. of Sessions",
+              "Amount",
+              "Total Amount",
+              "Less with Tax",
+              "Net",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.results.map((user) => [
+            user.name,
+            user.session,
+            "150",
+            user.total_amount,
+            user.less_wtx,
+            user.net,
+          ]),
+        });
+        doc.save("generated.pdf");
       });
-      doc.save("generated.pdf");
-});
-
-    
-        
     },
     exportCsv() {
       const options = {
