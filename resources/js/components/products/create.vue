@@ -58,6 +58,29 @@
 
                       <div class="col-sm-3">
                         <div class="form-group">
+                          <label>UOM</label>
+                          <select class="form-control" v-model="form.uom">
+                            <option value="PFS">PFS</option>
+                            <option value="BXS">BXS</option>
+                            <option value="BOT">BOT</option>
+                          </select>
+                          <small class="text-danger" v-if="errors.uom">{{
+                            errors.uom[0]
+                          }}</small>
+                        </div>
+                      </div>
+                      <div class="col-sm-3">
+                        <div class="form-group">
+                          <label>Code </label>
+                          <input type="text" class="form-control" id="" placeholder="Enter Product Code"
+                            v-model="form.code" />
+                          <small class="text-danger" v-if="errors.code">{{
+                            errors.code[0]
+                          }}</small>
+                        </div>
+                      </div>
+                      <!-- <div class="col-sm-3">
+                        <div class="form-group">
                           <label>Beginning Inventory</label>
                           <input type="text" class="form-control" id="" placeholder="Enter Balance"
                             v-model="form.balance" />
@@ -65,8 +88,8 @@
                             errors.balance[0]
                           }}</small>
                         </div>
-                      </div>
-                      <div class="col-sm-3">
+                      </div> -->
+                      <!-- <div class="col-sm-3">
                         <div class="form-group">
                           <label>Amount</label>
                           <input type="text" class="form-control" id="" placeholder="Enter Amount"
@@ -75,7 +98,7 @@
                             errors.amount[0]
                           }}</small>
                         </div>
-                      </div>
+                      </div> -->
                     </div>
                     <div class="row">
                       <!-- <div class="col-sm-6">
@@ -105,20 +128,7 @@
                                         <small class="text-danger" v-if="errors.dop">{{ errors.dop[0] }}</small>
                                     </div>
                                 </div> -->
-                      <div class="col-sm-4">
-                        <div class="form-group">
-                          <label>UOM</label>
-                          <select class="form-control" v-model="form.uom">
-                            <option value="PFS">PFS</option>
-                            <option value="BXS">BXS</option>
-                            <option value="BOT">BOT</option>
-                          </select>
-                          <small class="text-danger" v-if="errors.uom">{{
-                            errors.uom[0]
-                          }}</small>
-                        </div>
-                      </div>
-                      <div class="col-sm-4">
+                      <!-- <div class="col-sm-4">
                         <div class="form-group">
                           <label>Price </label>
                           <input type="number" class="form-control" id="" placeholder="Enter Product Price"
@@ -127,17 +137,7 @@
                             errors.price[0]
                           }}</small>
                         </div>
-                      </div>
-                      <div class="col-sm-4">
-                        <div class="form-group">
-                          <label>Code </label>
-                          <input type="text" class="form-control" id="" placeholder="Enter Product Code"
-                            v-model="form.code" />
-                          <small class="text-danger" v-if="errors.code">{{
-                            errors.code[0]
-                          }}</small>
-                        </div>
-                      </div>
+                      </div> -->
                     </div>
 
                     <div class="form-group">
@@ -201,8 +201,7 @@ export default {
       if (
         this.form.name == null ||
         this.form.desc == null ||
-        this.form.uom == null ||
-        this.form.price == null
+        this.form.uom == null 
       ) {
         Toast.fire({
           icon: "error",

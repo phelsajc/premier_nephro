@@ -100,6 +100,7 @@ class ReceivedProductController extends Controller
            $arr['purchased'] =  $value->purchase;
            $arr['payment'] =  $value->payment;
            $arr['balance'] =  $value->balance;
+           $arr['total_purchase'] =  $value->total_purchase;
            $arr['remarks'] =  $value->remarks; 
            $arr['sold'] =  $value->sold; 
            $data_array[] = $arr;

@@ -64,7 +64,7 @@ class ProductController extends Controller
         $p->code = $request->code;
         $p->price = $request->price;
         $p->beg_bal = $request->balance;
-        $p->amount = $request->amount;
+       // $p->amount = $request->amount;
         $p->created_dt = date("Y-m-d H:i");
         $p->created_by = auth()->id();   
         $p->save();
@@ -83,7 +83,7 @@ class ProductController extends Controller
             'product'=> $request->data['name'],
             'description'=> $request->data['desc'],
             'beg_bal'=> $request->data['balance'],
-            'amount'=> $request->data['amount'],
+            //'amount'=> $request->data['amount'],
             //'quantity'=> $request->data['qty'],
             'uom'=>  $request->data['uom'],
             //'dop'=> $request->data['dop'],

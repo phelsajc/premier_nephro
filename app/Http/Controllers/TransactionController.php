@@ -120,6 +120,7 @@ class TransactionController extends Controller
             $p->unit_price = $val['price'];
             $p->balance = $check_ledger?$check_ledger[0]->balance + $total_purchased:$total_purchased;
             $p->product = $product->product;
+            $p->total_purchase = $val['total'];
             $p->created_dt = date("Y-m-d H:i");
             $p->created_by = Auth::user()->id; 
             $p->pid = $val['id'];
