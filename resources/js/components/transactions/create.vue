@@ -122,7 +122,15 @@
                                                     }}</small>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-2">
+                                            <div class="col-sm-1">
+                                                <label>&nbsp;</label>
+                                                <div class="custom-control custom-checkbox">
+                                                    <input class="custom-control-input" type="checkbox" id="customCheckbox2" v-model="productList.isFree"
+                                                      :checked="productList.isFree">
+                                                    <label for="customCheckbox2" class="custom-control-label">Free</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
                                                 <div class="form-group">
                                                     <label>&nbsp;</label> <br>
                                                     <button :class="[(checkform ? '' : 'd-none')]" type="submit"
@@ -241,6 +249,7 @@ export default {
             productList: {
                 product: '',
                 description: '',
+                isFree: false,
                 qty: 0,
                 code: '',
                 price: 0,
@@ -260,12 +269,13 @@ export default {
     },
     computed: {
         total() {
-            return this.itemList2.reduce((sum, item) => sum + parseFloat(item.total), 0);
-            /* if(this.isNew){
-                return this.itemList2.reduce((sum, item) => sum + item.total, 0);                    
+            //return this.itemList2.reduce((sum, item) => sum + parseFloat(item.total), 0);
+            if(this.isNew){
+                //return this.itemList2.reduce((sum, item) => sum + item.total, 0);     
+                return this.itemList2.reduce((sum, item) => item.isfree==false?sum + parseFloat(item.total):sum +0, 0);                           
             }else{
                 return this.newTotal
-            } */
+            }
         },
         checkform() {
             if (this.isNew) {
@@ -289,11 +299,13 @@ export default {
                 this.getSelectdeProduct.price = Number(this.productList.price);
                 this.getSelectdeProduct.total = this.productList.price * this.productList.qty;
                 this.getSelectdeProduct.qty = Number(this.productList.qty);
+                this.getSelectdeProduct.isFree = this.productList.isFree;
                 this.$emit('update', this.getSelectdeProduct)
                 this.itemList2 = this.$refs.productVal.results3
                 this.productList.qty = 0;
                 this.productList.price = 0;
                 this.productList.total = 0;
+                this.productList.isFree = false;
                 this.$refs.productVal.form.val = '';
             } else {
                 Toast.fire({

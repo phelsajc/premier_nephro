@@ -31,6 +31,7 @@ Vue.component('phicModal', require('./components/modals/phicPayment.vue').defaul
 Vue.component('addSessionModal', require('./components/modals/addSession.vue').default);
 Vue.component('patientComponent', require('./components/Autocomplete.vue').default);
 Vue.component('companyComponent', require('./components/Company.vue').default);
+Vue.component('productComponent', require('./components/ProductComponent.vue').default);
 
 Vue.component('diagnostic', require('./components/AutocompleteD.vue').default);
 Vue.component('user-info', require('./components/User.vue').default);

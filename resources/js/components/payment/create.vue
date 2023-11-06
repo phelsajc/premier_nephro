@@ -73,6 +73,14 @@
                           <small class="text-danger" v-if="errors.amount">{{ errors.amount[0] }}</small>
                         </div>
                       </div>
+                      <div class="col-sm-2">
+                        <div class="form-group">
+                          <label>Check No.</label>
+                          <input type="text" class="form-control" id="" placeholder="Check Number"
+                            v-model="form.checkno" />
+                          <small class="text-danger" v-if="errors.checkno">{{ errors.checkno[0] }}</small>
+                        </div>
+                      </div>
                     </div>
                     <div class="form-group">
                       <button type="submit" class="btn btn-primary btn-block">
@@ -120,6 +128,7 @@ export default {
         dop: '',
         referenceNo: '',
         company: '',
+        checkno:''
       },
       user_info: {
         patientname: '',

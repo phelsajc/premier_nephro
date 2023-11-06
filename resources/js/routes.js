@@ -92,6 +92,9 @@ let ledger = require('./components/ledger/index.vue').default
 
 //payment
 let payment = require('./components/payment/create.vue').default
+
+//sales
+let sales = require('./components/sales/index.vue').default
 /*
     path, component & name should be the same inorder to work
 */
@@ -187,6 +190,9 @@ export const routes = [
 
     //Ledger
     { path: '/ledger', component: ledger, name: 'ledger' },
+
+    //sales
+    { path: '/sales', component: sales, name: 'sales' },
 
     //Payment
     { path: '/payment', component: payment, name: 'payment' },

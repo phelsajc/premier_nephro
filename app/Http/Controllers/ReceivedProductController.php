@@ -102,6 +102,62 @@ class ReceivedProductController extends Controller
            $arr['balance'] =  $value->balance;
            $arr['total_purchase'] =  $value->total_purchase;
            $arr['remarks'] =  $value->remarks; 
+           $arr['check'] =  $value->checkno; 
+           $arr['sold'] =  $value->sold; 
+           $data_array[] = $arr;
+       }
+       $page = sizeof($data)/$length;
+       $getDecimal =  explode(".",$page);
+       $page_count = round(sizeof($data)/$length);
+       if(sizeof($getDecimal)==2){            
+           if($getDecimal[1]<5){
+               $page_count = $getDecimal[0] + 1;
+           }
+       }
+       /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
+       return response()->json($datasets); */
+
+       $datasets["data"] = $data_array;
+       $datasets["count"] = $page_count;
+       //$datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$data[0]->count?$data[0]->count:$start+10)." of ".$data[0]->count;
+       $datasets["patient"] = $data_array;
+       return response()->json($datasets);
+   }  
+   
+   
+   public function sales(Request $request)
+   {
+       date_default_timezone_set('Asia/Manila');
+       
+       $data =  DB::connection('mysql')->select("select * from company");
+
+       $data_array = array();
+        $date = (explode("-",$request->fdate));
+       foreach ($data as $key => $value) {
+           $getAllCompany = DB::connection('mysql')->select("select * from inventory i where month(dop) = '$date[0]' and year(dop) = '$date[1]' and sold>0 and company_id=$value->id");
+           $arr = array();
+            
+           $totalPurchase = 0;
+           $totalQtyPurchase = 0;
+           foreach ($getAllCompany as $akey => $avalue) {
+            $totalPurchase += $avalue->amount;
+            $totalPurchase += $avalue->sold;
+           }
+           $arr['totalPurchase'] =  $totalPurchase;
+           $arr['totalQtyPurchase'] =  $totalQtyPurchase;
+           $arr['company'] =  $value->company;
+
+
+           $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+           $arr['reference'] =  $value->reference_no;
+           $arr['particulars'] =  $value->particulars; 
+           $arr['price'] =   $value->unit_price;
+           $arr['purchased'] =  $value->purchase;
+           $arr['payment'] =  $value->payment;
+           $arr['balance'] =  $value->balance;
+           $arr['total_purchase'] =  $value->total_purchase;
+           $arr['remarks'] =  $value->remarks; 
+           $arr['check'] =  $value->checkno; 
            $arr['sold'] =  $value->sold; 
            $data_array[] = $arr;
        }
@@ -128,10 +184,10 @@ class ReceivedProductController extends Controller
         date_default_timezone_set('Asia/Manila');
         $length = 10;
         $start = $request->start?$request->start:0;
-        $val = $request->searchTerm2;
+        $val = $request->product;
         if($val!=''||$start>0){   
-            $data =  DB::connection('mysql')->select("select * from inventory where product like '%".$val."%' LIMIT $length offset $start");
-            $count =  DB::connection('mysql')->select("select * from inventory where product like '%".$val."%' ");
+            $data =  DB::connection('mysql')->select("select * from inventory where pid like '%".$val."%' LIMIT $length offset $start");
+            $count =  DB::connection('mysql')->select("select * from inventory where pid like '%".$val."%' ");
         }else{
             $data =  DB::connection('mysql')->select("select * from inventory LIMIT $length");
             $count =  DB::connection('mysql')->select("select * from inventory");
@@ -175,7 +231,8 @@ class ReceivedProductController extends Controller
     {
         date_default_timezone_set('Asia/Manila');
         $product = Products::where(['id'=>$request->pid])->first();
-        $check_ledger = DB::connection('mysql')->select("select * from received_products where pid  = $request->pid order by id desc limit 1");
+        //$check_ledger = DB::connection('mysql')->select("select * from received_products where pid  = $request->pid order by id desc limit 1");
+        $check_ledger = DB::connection('mysql')->select("select * from received_products where company_id = $request->company order by id desc limit 1");
         $p = new ReceivedProducts;
         $p->product = $product->product;
         $p->quantity = $request->qty;
@@ -232,6 +289,7 @@ class ReceivedProductController extends Controller
         $p->reference_no = $request->referenceNo;
         $p->particulars = $request->particulars;
         $p->payment = $request->amount;
+        $p->checkno = $request->checkno;
         $p->balance = $check_ledger?$check_ledger[0]->balance - $request->amount:$request->amount;
         $p->company_id = $request->company;
         $p->save();

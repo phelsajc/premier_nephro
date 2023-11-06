@@ -169,4 +169,17 @@ class ProductController extends Controller
         }
         return response()->json($data);
     }
+
+    public function find(Request $request)
+    {
+        $data =  DB::connection('mysql')->select("select * from products where product like '%".$request->searchVal."%' ");
+        $data_array = array();
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['id'] =  $value->id;
+            $arr['name'] =  $value->product;
+            $data_array[] = $arr;
+        }
+        return response()->json($data_array);
+    }
 }

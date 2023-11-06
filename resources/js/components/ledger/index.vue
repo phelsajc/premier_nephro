@@ -59,7 +59,8 @@
                           <strong> {{ e.price }}</strong>
                         </td>
                         <td>
-                          <strong> {{ e.purchased }}</strong>
+                          <!-- <strong> {{ e.purchased }}</strong> -->
+                          <strong> {{ e.total_purchase }}</strong>
                         </td>
                         <td>
                           <strong> {{ e.payment }}</strong>
@@ -82,7 +83,7 @@
                         </td> -->
 
                         <td>
-                          {{ e.remarks }}
+                          {{ e.check }}
                         </td>
                       </tr>
                     </tbody>

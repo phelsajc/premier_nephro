@@ -14,7 +14,7 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add'  || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
               :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
@@ -167,9 +167,9 @@
 
 
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'transaction_list' || this.$route.name == 'stocks' || this.$route.name == 'ledger' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'transaction_list' || this.$route.name == 'stocks' || this.$route.name == 'payment'  || this.$route.name == 'transaction' || this.$route.name == 'sales' || this.$route.name == 'ledger' || this.$route.name == 'product_add' || this.$route.name == 'rproduct_add' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' }">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'stocks'  || this.$route.name == 'ledger' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'stocks'  || this.$route.name == 'payment'  || this.$route.name == 'transaction' || this.$route.name == 'sales'  || this.$route.name == 'ledger' || this.$route.name == 'rproduct_list' || this.$route.name == 'product_list' || this.$route.name == 'rproduct_add'}">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Inventory
@@ -178,7 +178,7 @@
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <router-link to="/transaction_list"> <a href="#" class="nav-link"
-                    :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'transaction_list' }">
+                    :class="{ 'active': this.$route.name == 'transaction_list' || this.$route.name == 'transaction' }">
                     <i class="fas fa-cash-register"></i>
                     Transactions
                   </a></router-link>
@@ -217,6 +217,13 @@
                     :class="{ 'active': this.$route.name == 'payment' }">
                     <i class="fas fa-balance-scale"></i>
                     Payment
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/sales" class="collapse-item"> <a href="#" class="nav-link" id="sales"
+                    :class="{ 'active': this.$route.name == 'sales' }">
+                    <i class="fas fa-balance-scale"></i>
+                    Sales
                   </a></router-link>
               </li>
               <!-- <li class="nav-item"

@@ -20,8 +20,16 @@
                 <div class="card-header">
                   <h3 class="card-title">&nbsp;</h3>
                   <!-- <products class="col-md-3"></products> -->
+                <form class="form-inline">
+                    <div class="form-group mx-sm-3 mb-2">
+                      <productComponent v-model="form.product" @return-response="getReturnResponse"></productComponent>
+                    </div>
+                    <button type="button" class="btn btn-primary mb-2" @click="stockInventory()">View</button>
+                  </form>
+                  
                 </div>
 
+                
                 <div class="card-body">
 
                   <table class="table">
@@ -52,13 +60,15 @@
                           <strong> {{ e.balance }}</strong>
                         </td>
                         <td>
-                          <strong> {{ e.cost }}</strong>
+                          <strong  v-if="e.sold==0"> {{ e.cost }}</strong>
                         </td>
                         <td>
-                          <strong> {{ e.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong>
+                          <!-- <strong> {{ e.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</strong> -->
+                          <strong> {{ e.amount }}</strong>
                         </td>
                         <td>
-                          {{ e.amount_balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
+                          <!-- {{ e.amount_balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} -->
+                          {{ e.amount_balance }}
                         </td>
                         <!-- <td>
                           {{ e.total }}
@@ -98,12 +108,25 @@ export default {
       this.$router.push({ name: '/' })
     }
 
-    this.stockInventory()
+    //this.stockInventory()
   },
   data() {
 
     return {
-      items: []
+      form:{
+        
+        product: null,
+      },
+      items: [],
+      
+      productList: {
+                product: '',
+                description: '',
+                qty: 0,
+                code: '',
+                price: 0,
+                total: 0,
+            },
     }
   },
   computed: {
@@ -117,7 +140,7 @@ export default {
   methods: {
     stockInventory() {
       this.isHidden = false
-      api.get('/rec_inventory')
+      /* api.get('/rec_inventory/'+this.form.product)
         .then(({ data }) => (
           this.items = data.data
         )).catch(error => {
@@ -128,7 +151,27 @@ export default {
               title: 'Token has expired'
             })
           }
-        });
+        }); */
+
+        
+        api
+          .post("rec_inventory", this.form)
+          .then((response) => {
+          this.items = response.data.data
+            Toast.fire({
+              icon: "success",
+              title: "Saved successfully",
+            });
+          })
+          .catch((error) => {
+            if (error.response.data.message == "Token has expired") {
+              this.$router.push({ name: "/" });
+              Toast.fire({
+                icon: "error",
+                title: "Token has expired.",
+              });
+            }
+          });
     },
     pdf() {
       window.open("/api/pdf", '_blank');
@@ -172,6 +215,10 @@ export default {
         })
         .catch(error => this.errors = error.response.data.errors)
     },
+    
+    getReturnResponse: function (data) {
+      this.form.product = data.id.id
+    }
   },
 }
 </script>

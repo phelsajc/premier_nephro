@@ -62,6 +62,7 @@
                     'product': value.product,
                     'description': value.description,
                     'total': value.total,
+                    'isfree': value.isFree,
                     'price': value.price,
                     'qty': value.qty,
                     'id': value.id,

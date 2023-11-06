@@ -81,6 +81,7 @@ class TransactionController extends Controller
             $d->product = $val['product'];
             $d->qty = $val['qty'];
             $d->companyid = $request->head['companyid']; 
+            $d->free = $val['isfree']?1:0;
             $d->transactiondate = date_create($request->head['dot']);
             $d->total = $val['total'];
             $d->price = $val['price'];
