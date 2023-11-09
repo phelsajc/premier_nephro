@@ -11,6 +11,7 @@ use App\Model\Products;
 use App\Model\Ledger;
 use App\Model\MyLedger;
 use App\Model\Inventory;
+use App\Model\Cost;
 use App\Model\ReceivedProducts;
 use DB;
 
@@ -133,49 +134,81 @@ class ReceivedProductController extends Controller
 
        $data_array = array();
         $date = (explode("-",$request->fdate));
-       foreach ($data as $key => $value) {
-           $getAllCompany = DB::connection('mysql')->select("select * from inventory i where month(dop) = '$date[0]' and year(dop) = '$date[1]' and sold>0 and company_id=$value->id");
-           $arr = array();
-            
-           $totalPurchase = 0;
-           $totalQtyPurchase = 0;
-           foreach ($getAllCompany as $akey => $avalue) {
-            $totalPurchase += $avalue->amount;
-            $totalPurchase += $avalue->sold;
-           }
-           $arr['totalPurchase'] =  $totalPurchase;
-           $arr['totalQtyPurchase'] =  $totalQtyPurchase;
-           $arr['company'] =  $value->company;
+        $GrandtotalPurchase = 0;
+        $GrandtotalQtyPurchase = 0;
+        $GrandtotalCos = 0;
+        foreach ($data as $key => $value) {
+            $getAllCompany = DB::connection('mysql')->select("select * from inventory i where month(dop) = '$date[1]' and year(dop) = '$date[0]' and sold>0 and company_id=$value->id");
+            $arr = array();
+                
+            $totalPurchase = 0;
+            $totalQtyPurchase = 0;
+            $data_array2 = array();
+            $data_array3 = array();
+            $costOfSales = 0;
+            foreach ($getAllCompany as $akey => $avalue) {
+                $arr2 = array();
+                $arr2['price'] =  $avalue->cost;
+                $arr2['qty'] =  $avalue->sold;
+                $data_array2[] = $arr2;
+                $arr3 = array();
+                $arr3['price'] = $avalue->originalcost;
+                if(str_contains($value->company, 'rtsi')){
+                    $cos_qty = $avalue->sold+$avalue->free;
+                    $cos = ($avalue->sold+$avalue->free)*$avalue->originalcost;
+                }else{
+                    $cos_qty = $avalue->sold;
+                    $cos = $avalue->sold*$avalue->originalcost;
+                }
+                $arr3['qty'] = $cos_qty;
+                $arr3['total_cost'] = $cos;
+                $data_array3[] = $arr3;
+                //$getTotal = $avalue->
+                //$totalPurchase += $avalue->amount;
+                $totalPurchase += $avalue->amount;
+                $totalQtyPurchase += $avalue->sold;
+
+                $costOfSales+=$cos;
+            }
+            $GrandtotalQtyPurchase += $totalQtyPurchase;
+            $GrandtotalPurchase += $totalPurchase;
+            $GrandtotalCos += $costOfSales;
+            $arr['totalPurchase'] =  $totalPurchase;
+            $arr['totalQtyPurchase'] =  $totalQtyPurchase;
+            $arr['company'] =  $value->company;
+            $arr['cost_of_sales'] =  number_format((float)$costOfSales, 2, '.', ',');
+            $arr['details'] =  $data_array2;
+            $arr['details3'] =  $data_array3;
 
 
-           $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
-           $arr['reference'] =  $value->reference_no;
-           $arr['particulars'] =  $value->particulars; 
-           $arr['price'] =   $value->unit_price;
-           $arr['purchased'] =  $value->purchase;
-           $arr['payment'] =  $value->payment;
-           $arr['balance'] =  $value->balance;
-           $arr['total_purchase'] =  $value->total_purchase;
-           $arr['remarks'] =  $value->remarks; 
-           $arr['check'] =  $value->checkno; 
-           $arr['sold'] =  $value->sold; 
-           $data_array[] = $arr;
-       }
-       $page = sizeof($data)/$length;
-       $getDecimal =  explode(".",$page);
-       $page_count = round(sizeof($data)/$length);
-       if(sizeof($getDecimal)==2){            
-           if($getDecimal[1]<5){
-               $page_count = $getDecimal[0] + 1;
-           }
-       }
-       /* $datasets = array(["data"=>$data_array,"count"=>$page_count,"showing"=>"Showing ".(($start+10)-9)." to ".($start+10>$count_all_record[0]->count?$count_all_record[0]->count:$start+10)." of ".$count_all_record[0]->count, "patient"=>$data_array]);
-       return response()->json($datasets); */
+            /* $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
+            $arr['reference'] =  $value->reference_no;
+            $arr['particulars'] =  $value->particulars; 
+            $arr['price'] =   $value->unit_price;
+            $arr['purchased'] =  $value->purchase;
+            $arr['payment'] =  $value->payment;
+            $arr['balance'] =  $value->balance;
+            $arr['total_purchase'] =  $value->total_purchase;
+            $arr['remarks'] =  $value->remarks; 
+            $arr['check'] =  $value->checkno; 
+            $arr['sold'] =  $value->sold;  */
+            if($totalQtyPurchase>0){
+                $data_array[] = $arr;
+            }
+        }
+        /* $page = sizeof($data)/$length;
+        $getDecimal =  explode(".",$page);
+        $page_count = round(sizeof($data)/$length);
+        if(sizeof($getDecimal)==2){            
+            if($getDecimal[1]<5){
+                $page_count = $getDecimal[0] + 1;
+            }
+        } */
 
        $datasets["data"] = $data_array;
-       $datasets["count"] = $page_count;
-       //$datasets["showing"] = "Showing ".(($start+10)-9)." to ".($start+10>$data[0]->count?$data[0]->count:$start+10)." of ".$data[0]->count;
-       $datasets["patient"] = $data_array;
+       $datasets['GrandtotalQtyPurchase'] = $GrandtotalQtyPurchase;
+       $datasets['GrandtotalPurchase'] = $GrandtotalPurchase;
+       $datasets['GrandtotalCos'] = $GrandtotalCos;
        return response()->json($datasets);
    }   
     
@@ -202,7 +235,7 @@ class ReceivedProductController extends Controller
             $arr = array();
             $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
             $arr['particulars'] =  $value->particulars; 
-            $arr['sold'] =  $value->sold;
+            $arr['sold'] =  $value->sold+$value->free;
             $arr['balance'] =  $value->total_qty;
             $arr['cost'] =   $value->cost;
             $arr['amount'] =  $value->amount;
@@ -274,6 +307,14 @@ class ReceivedProductController extends Controller
             $l->company_id = $request->company;
             $l->transaction_dt = date("Y-m-d");
             $l->save();
+
+            
+            $c = new Cost();
+            $c->product = $product->product;
+            $c->pid = $request->pid;
+            $c->created_dt = date("Y-m-d H:i");
+            $c->cost = $request->purchase/($request->qty+$request->free);
+            $c->save();
         //}
         return response()->json(Auth::user()->id);
     }
@@ -326,6 +367,7 @@ class ReceivedProductController extends Controller
 
     public function searchProduct(Request $request){
         $query = DB::connection('mysql')->select("select * from received_products where product like '%$request->val%' or description like '%$request->val%'");
+        $getLastPrice = DB::connection('mysql')->select("select * from origibal_cost order by id desc limit 1");
         $data = array();
         foreach ($query as $key => $value ) {
             $arr = array();

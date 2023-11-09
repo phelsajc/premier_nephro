@@ -105,12 +105,13 @@ class ProductController extends Controller
         //$query = DB::connection('mysql')->select("select * from products where product like '%$request->val%' or description like '%$request->val%'");
         $query = DB::connection('mysql')->select("select p.id,p.product,p.description,i.cost,i.total_qty from inventory i left join products p on i.pid = p.id where p.product like '%$request->val%' or p.description like '%$request->val%' order by i.id desc limit 1");
         $data = array();
+        $getLastPrice = DB::connection('mysql')->select("select * from original_cost order by id desc limit 1");
         foreach ($query as $key => $value ) {
             $arr = array();
             $arr['id'] = $value->id;
             $arr['product'] = $value->product;
             $arr['description'] = $value->description;
-            $arr['price'] =  $value->cost;
+            $arr['price'] =  $getLastPrice[0]->cost;//value->cost;
             $arr['qty'] = $value->total_qty;
             /* $total_received = 0;
             $total_sales = 0;

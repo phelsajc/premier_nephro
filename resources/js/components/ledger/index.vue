@@ -50,7 +50,7 @@
                           {{ e.reference }}
                         </td>
                         <td>
-                          {{ e.particulars }}
+                          {{ e.remarks }} | {{ e.particulars }}
                         </td>
                         <td>
                           {{ e.sold }}

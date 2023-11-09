@@ -14,9 +14,9 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item"
-            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'product_add'  || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+            :class="{ 'menu-open': this.$route.name == 'company_add' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'patients_list' || this.$route.name == 'doctors_list' || this.$route.name == 'rproduct_list' || this.$route.name == 'company_list'}">
             <a href="#" class="nav-link"
-              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' || this.$route.name == 'product_list' }">
+              :class="{ 'active': this.$route.name == 'patients_list' || this.$route.name == 'patients_add'  || this.$route.name == 'company_add' || this.$route.name == 'batch_list' || this.$route.name == 'batch_add' || this.$route.name == 'doctors_list' || this.$route.name == 'company_list' }">
               <i class="nav-icon fas fa-folder-plus"></i>
               <p>
                 Master Files
@@ -51,13 +51,13 @@
                     Company
                   </a></router-link>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <router-link to="/product_list"> <a href="#" class="nav-link"
                     :class="{ 'active': this.$route.name == 'product_list' || this.$route.name == 'product_add' }">
                     <i class="fas fa-list"></i>
                     Products
                   </a></router-link>
-              </li>
+              </li> -->
             </ul>
           </li>
 

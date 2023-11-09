@@ -11,6 +11,7 @@ use App\Model\Inventory;
 use Illuminate\Support\Facades\Auth;
 use App\Model\ReceivedProducts;
 use App\Model\Company;
+use App\Model\Cost;
 use DB;
 
 class TransactionController extends Controller
@@ -91,19 +92,27 @@ class TransactionController extends Controller
             
             $l = new Inventory();
             $product = Products::where(['id'=>$val['id']])->first();
+            $getLastPrice = DB::connection('mysql')->select("select * from original_cost order by id desc limit 1");
             $reques_pid = $val['id'];
             $check_inventory = DB::connection('mysql')->select("select * from inventory where pid  =  $reques_pid order by id desc limit 1");
-            $total_purchased =  $val['qty'] * $val['price'];
+            if($val['isfree']){
+                $total_purchased =  0;
+            }else{
+                $total_purchased =  $val['qty'] * $val['price'];
+            }
 
             $l->sold = $val['qty'];
-            $l->total_qty = $check_inventory[0]->total_qty - $val['qty'];
+            $l->total_qty = $check_inventory[0]->total_qty - ($val['qty'] + $val['free']);
+            //$l->total_qty =  $val['isfree']?$check_inventory[0]->total_qty:$check_inventory[0]->total_qty - $val['qty'];
             $l->amount = $total_purchased;
             $l->amount_balance = $check_inventory[0]->amount_balance - $total_purchased;
             $l->product = $product->product;
             $l->created_dt = date("Y-m-d H:i");
             $l->created_by = Auth::user()->id; 
             $l->pid = $val['id'];
-            $l->cost = $val['price'];
+            $l->cost = $val['price'];  
+            $l->originalcost = $getLastPrice[0]->cost;            
+            $l->free = $val['free'];
             $l->particulars = $request->head['particulars'];
             $l->dop = date_create($request->head['dot']);
             $l->company_id = $request->head['companyid'];
@@ -118,7 +127,9 @@ class TransactionController extends Controller
             $p->reference_no = $request->head['referenceNo'];
             $p->particulars = $request->head['particulars'];
             $p->sold = $val['qty'];
-            $p->unit_price = $val['price'];
+            $p->free = $val['free'];
+            $p->remarks = $val['remarks'];
+            $p->unit_price =  $val['price'];
             $p->balance = $check_ledger?$check_ledger[0]->balance + $total_purchased:$total_purchased;
             $p->product = $product->product;
             $p->total_purchase = $val['total'];

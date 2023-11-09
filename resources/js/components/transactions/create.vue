@@ -87,6 +87,13 @@
                                             </div>
                                             <div class="col-sm-2">
                                                 <div class="form-group">
+                                                    <label>Remarks</label>
+                                                    <input type="text" class="form-control" id="" placeholder="Remarks"
+                                                        v-model="productList.remarks">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
                                                     <label>Price</label>
                                                     <input type="text" class="form-control" id="" placeholder="Enter Price"
                                                         v-model="productList.price">
@@ -94,7 +101,7 @@
                                                     }}</small>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-2">
+                                            <div class="col-sm-1">
                                                 <div class="form-group">
                                                     <label>Stocks</label>
                                                     <input type="text" class="form-control" id=""
@@ -103,33 +110,42 @@
                                                     }}</small>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-2">
+                                            <div class="col-sm-1">
                                                 <div class="form-group">
                                                     <label>Quantity</label>
                                                     <input type="number" class="form-control" id=""
                                                         placeholder="Enter Quantity" @change="calculateTotal"
                                                         v-model="productList.qty">
-                                                    <small class="text-danger" v-if="errors.desc">{{ errors.desc[0]
-                                                    }}</small>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-2">
-                                                <div class="form-group">
-                                                    <label>Amount</label>
-                                                    <input type="text" class="form-control" id="" placeholder="Total"
-                                                        v-model="productList.total">
-                                                    <small class="text-danger" v-if="errors.desc">{{ errors.desc[0]
+                                                    <small class="text-danger" v-if="errors.qty">{{ errors.qty[0]
                                                     }}</small>
                                                 </div>
                                             </div>
                                             <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Amount</label>
+                                                    <input type="text" class="form-control" id="" placeholder="Total"
+                                                        v-model="productList.total">
+                                                    <small class="text-danger" v-if="errors.total">{{ errors.total[0]
+                                                    }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="form-group">
+                                                    <label>Free</label>
+                                                    <input type="text" class="form-control" id="" placeholder="Free"
+                                                        v-model="productList.free">
+                                                    <small class="text-danger" v-if="errors.free">{{ errors.free[0]
+                                                    }}</small>
+                                                </div>
+                                            </div>
+                                            <!-- <div class="col-sm-1">
                                                 <label>&nbsp;</label>
                                                 <div class="custom-control custom-checkbox">
                                                     <input class="custom-control-input" type="checkbox" id="customCheckbox2" v-model="productList.isFree"
                                                       :checked="productList.isFree">
                                                     <label for="customCheckbox2" class="custom-control-label">Free</label>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <div class="col-sm-1">
                                                 <div class="form-group">
                                                     <label>&nbsp;</label> <br>
@@ -248,8 +264,10 @@ export default {
             },
             productList: {
                 product: '',
+                remarks: '',
                 description: '',
                 isFree: false,
+                free: 0,
                 qty: 0,
                 code: '',
                 price: 0,
@@ -300,6 +318,8 @@ export default {
                 this.getSelectdeProduct.total = this.productList.price * this.productList.qty;
                 this.getSelectdeProduct.qty = Number(this.productList.qty);
                 this.getSelectdeProduct.isFree = this.productList.isFree;
+                this.getSelectdeProduct.remarks = this.productList.remarks;
+                this.getSelectdeProduct.free = Number(this.productList.free);
                 this.$emit('update', this.getSelectdeProduct)
                 this.itemList2 = this.$refs.productVal.results3
                 this.productList.qty = 0;
@@ -348,6 +368,7 @@ export default {
         clickedShowDetailModal: function (value) {
             this.getSelectdeProduct = value;
             this.productList.product = this.getSelectdeProduct.product
+            this.productList.remarks = this.getSelectdeProduct.remarks
             this.productList.description = this.getSelectdeProduct.description
             this.productList.price = this.getSelectdeProduct.price
             this.productList.id = this.getSelectdeProduct.id
