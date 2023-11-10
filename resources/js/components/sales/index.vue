@@ -45,6 +45,15 @@
                       </div>
                       <div class="col-sm-2">
                         <div class="form-group">
+                          <label>Select Product</label>
+                          <productComponent
+                            v-model="filter.product"
+                            @return-response="getReturnResponse"
+                          ></productComponent>
+                        </div>
+                      </div>
+                      <div class="col-sm-2">
+                        <div class="form-group">
                           <label>&nbsp;</label> <br />
                           <button
                             type="button"
@@ -56,27 +65,38 @@
                         </div>
                       </div>
                     </div>
-
                   </form>
 
                   <table class="table">
                     <thead>
                       <tr>
-                        <th>Cost of Sale</th>
-                        <th></th>
-                        <th></th>
+                        <th>Sales of {{ getProduct }}</th>
+                        <th>{{ getTotalUnits }} unit/s</th>
+                        <th>{{ getTotalSales }}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="e in employees">
+                      <tr>
+                        <td>Cost of Sale</td>
+                        <td></td>
                         <td>
-                          {{ e.dop }}
+                          {{ grandTotalCos }}
+                        </td>
+                      </tr>
+                      <tr v-for="e in items">
+                        <td>{{ e.company }} {{ e.totalQtyPurchase }} * {{ e.price }}</td>
+                        <td>
+                          <!-- {{ e.cost_of_sales }} -->
                         </td>
                         <td>
-                          {{ e.reference }}
+                          <!-- {{ e.cost_of_sales }} -->
                         </td>
+                      </tr>
+                      <tr>
+                        <td>Income from sale of {{ getProduct }}</td>
+                        <td></td>
                         <td>
-                          {{ e.particulars }}
+                          {{ income }}
                         </td>
                       </tr>
                     </tbody>
@@ -94,7 +114,7 @@
 
 <script type="text/javascript">
 import moment from "moment";
-import Datepicker from 'vuejs-datepicker'
+import Datepicker from "vuejs-datepicker";
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -113,11 +133,18 @@ export default {
         company: null,
         fdate: null,
         tdate: null,
+        product: null,
       },
       employees: [],
       searchTerm: "",
       countRecords: 0,
       token: localStorage.getItem("token"),
+      getTotalUnits: 0,
+      getTotalSales: 0,
+      grandTotalCos: 0,
+      income: 0,
+      items: [],
+      getProduct: null,
     };
   },
   computed: {
@@ -142,25 +169,33 @@ export default {
     showReport() {
       this.isHidden = false;
 
-      this.filter.fdate = moment.utc(this.filter.fdate).utcOffset("+08:00").format('YYYY-MM');
-        api
-          .post("checksales", this.filter)
-          .then((response) => {
-          this.items = response.data.data
-            Toast.fire({
-              icon: "success",
-              title: "Saved successfully",
-            });
-          })
-          .catch((error) => {
-            if (error.response.data.message == "Token has expired") {
-              this.$router.push({ name: "/" });
-              Toast.fire({
-                icon: "error",
-                title: "Token has expired.",
-              });
-            }
+      this.filter.fdate = moment
+        .utc(this.filter.fdate)
+        .utcOffset("+08:00")
+        .format("YYYY-MM");
+      api
+        .post("checksales", this.filter)
+        .then((response) => {
+          this.items = response.data.data;
+          this.getTotalUnits = response.data.GrandtotalQtyPurchase;
+          this.getTotalSales = response.data.GrandtotalPurchase;
+          this.grandTotalCos = response.data.GrandtotalCos;
+          this.getProduct = response.data.product;
+          this.income = response.data.income;
+          Toast.fire({
+            icon: "success",
+            title: "Saved successfully",
           });
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired.",
+            });
+          }
+        });
     },
     viewLedger() {
       alert(this.form.company);
@@ -177,7 +212,7 @@ export default {
       return new Date(date).toLocaleDateString("en", options);
     },
     getReturnResponse: function (data) {
-      this.form.company = data.id.id;
+      this.filter.product = data.id.id;
     },
   },
 };

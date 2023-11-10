@@ -293,6 +293,7 @@ class PHICController extends Controller
             group by c.acpn_no order by p.name;
         "); */
 
+        $getDoctor_arr = array();
         if ($doctors != 'All') {
             $data =  DB::connection('mysql')->select("
             SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
@@ -316,7 +317,7 @@ class PHICController extends Controller
             ");
             $getDoctor = Doctors::all();
 
-            $getDoctor_arr = array();
+            //$getDoctor_arr = array();
             $total_sess= 0;
             $total_amnt_per_sess= 0;
             $total_amnt_per_w_tx= 0;

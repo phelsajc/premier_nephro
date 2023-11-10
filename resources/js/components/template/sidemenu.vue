@@ -215,14 +215,14 @@
               <li class="nav-item">
                 <router-link to="/payment" class="collapse-item"> <a href="#" class="nav-link" id="payment"
                     :class="{ 'active': this.$route.name == 'payment' }">
-                    <i class="fas fa-balance-scale"></i>
+                    <i class="fas fa-shopping-cart"></i>
                     Payment
                   </a></router-link>
               </li>
               <li class="nav-item">
                 <router-link to="/sales" class="collapse-item"> <a href="#" class="nav-link" id="sales"
                     :class="{ 'active': this.$route.name == 'sales' }">
-                    <i class="fas fa-balance-scale"></i>
+                    <i class="fas fa-money-bill-alt"></i>
                     Sales
                   </a></router-link>
               </li>

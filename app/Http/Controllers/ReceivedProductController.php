@@ -137,15 +137,18 @@ class ReceivedProductController extends Controller
         $GrandtotalPurchase = 0;
         $GrandtotalQtyPurchase = 0;
         $GrandtotalCos = 0;
+        $getProduct = null;
         foreach ($data as $key => $value) {
-            $getAllCompany = DB::connection('mysql')->select("select * from inventory i where month(dop) = '$date[1]' and year(dop) = '$date[0]' and sold>0 and company_id=$value->id");
+            $getAllCompany = DB::connection('mysql')->select("select * from inventory where month(dop) = '$date[1]' and year(dop) = '$date[0]' and sold>0 and company_id=$value->id and pid=$request->product");
             $arr = array();
-                
+            $checkProduct = Products::where(['id'=>$request->product])->first();
+            $getProduct =    $checkProduct->product; 
             $totalPurchase = 0;
             $totalQtyPurchase = 0;
             $data_array2 = array();
             $data_array3 = array();
             $costOfSales = 0;
+            $getOriginalCost = 0;
             foreach ($getAllCompany as $akey => $avalue) {
                 $arr2 = array();
                 $arr2['price'] =  $avalue->cost;
@@ -160,6 +163,7 @@ class ReceivedProductController extends Controller
                     $cos_qty = $avalue->sold;
                     $cos = $avalue->sold*$avalue->originalcost;
                 }
+                $getOriginalCost = $avalue->originalcost;
                 $arr3['qty'] = $cos_qty;
                 $arr3['total_cost'] = $cos;
                 $data_array3[] = $arr3;
@@ -174,6 +178,7 @@ class ReceivedProductController extends Controller
             $GrandtotalPurchase += $totalPurchase;
             $GrandtotalCos += $costOfSales;
             $arr['totalPurchase'] =  $totalPurchase;
+            $arr['price'] =  $getOriginalCost;
             $arr['totalQtyPurchase'] =  $totalQtyPurchase;
             $arr['company'] =  $value->company;
             $arr['cost_of_sales'] =  number_format((float)$costOfSales, 2, '.', ',');
@@ -204,11 +209,14 @@ class ReceivedProductController extends Controller
                 $page_count = $getDecimal[0] + 1;
             }
         } */
-
-       $datasets["data"] = $data_array;
+        
+        $datasets["data"] = $data_array;
+        $datasets["product"] = $getProduct;
        $datasets['GrandtotalQtyPurchase'] = $GrandtotalQtyPurchase;
-       $datasets['GrandtotalPurchase'] = $GrandtotalPurchase;
-       $datasets['GrandtotalCos'] = $GrandtotalCos;
+       $datasets['GrandtotalPurchase'] = number_format((float)$GrandtotalPurchase, 2, '.', ',');
+       $datasets['GrandtotalCos'] = number_format((float)$GrandtotalCos, 2, '.', ',');
+       $totalIncome = $GrandtotalPurchase - $GrandtotalCos;
+       $datasets['income'] =number_format((float)$totalIncome, 2, '.', ',');
        return response()->json($datasets);
    }   
     
