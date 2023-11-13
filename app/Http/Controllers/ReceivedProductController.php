@@ -156,7 +156,7 @@ class ReceivedProductController extends Controller
                 $data_array2[] = $arr2;
                 $arr3 = array();
                 $arr3['price'] = $avalue->originalcost;
-                if(str_contains($value->company, 'rtsi')){
+                if(str_contains($value->company, 'RTSI')){
                     $cos_qty = $avalue->sold+$avalue->free;
                     $cos = ($avalue->sold+$avalue->free)*$avalue->originalcost;
                 }else{
@@ -170,7 +170,7 @@ class ReceivedProductController extends Controller
                 //$getTotal = $avalue->
                 //$totalPurchase += $avalue->amount;
                 $totalPurchase += $avalue->amount;
-                $totalQtyPurchase += $avalue->sold;
+                $totalQtyPurchase += ($avalue->sold+$avalue->free);
 
                 $costOfSales+=$cos;
             }

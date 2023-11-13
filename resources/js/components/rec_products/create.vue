@@ -63,7 +63,7 @@
                       <div class="col-sm-2">
                         <div class="form-group">
                           <label>Particulars</label>
-                          <input type="text" class="form-control" id="" placeholder="Reference"
+                          <input type="text" class="form-control" id="" placeholder="Particulars"
                             v-model="form.particulars" />
                           <small class="text-danger" v-if="errors.particulars">{{ errors.particulars[0] }}</small>
                         </div>
@@ -86,9 +86,9 @@
                     <div class="row">
                       <div class="col-sm-2">
                         <div class="form-group">
-                          <label>Purchase </label>
+                          <label>Amount Purchase </label>
                           <input type="number" @change="calculatePrice()" class="form-control" id=""
-                            placeholder="Purchase" v-model="form.purchase" />
+                            placeholder="Amount Purchase" v-model="form.purchase" />
                           <small class="text-danger" v-if="errors.purchase">{{ errors.purchase[0] }}</small>
                         </div>
                       </div>
