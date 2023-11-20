@@ -151,13 +151,25 @@
                           }}</small>
                         </div>
                       </div>
-                      <div class="col-sm-4">
+                      <div class="col-sm-2">
                         <div class="form-group">
                           <label>Type</label>
                           <input
                             type="text"
                             class="form-control"
                             id=""
+                            v-model="form.ptype"
+                          />
+                          <small class="text-danger" v-if="errors.ptype">{{
+                            errors.ptype[0]
+                          }}</small>
+                        </div>
+                      </div>
+                      <div class="col-sm-2">
+                        <div class="form-group">
+                          <label>Active</label>
+                          <input
+                            type="checkbox"
                             v-model="form.ptype"
                           />
                           <small class="text-danger" v-if="errors.ptype">{{

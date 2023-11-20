@@ -383,6 +383,9 @@ class CensusController extends Controller
         $monthArr = array();
         $netArr = array();
         $netAmtArr = array();
+        $totalNet = 0;
+        $totalPaid = 0;
+        $totalBalance = 0;
         foreach ($data as $key => $value) {
             $arr = array();
             $mon_arr = array();
@@ -428,12 +431,18 @@ class CensusController extends Controller
             //$monthArr[] = $mon_arr;
             $netArr[] = $session;
             $netAmtArr[] = $netArr;
+            $totalNet+=$net;
+            $totalPaid+=$pnet;
+            $totalBalance+=$balance;
         }
         //$datasets = array(["data"=>$data_array,'month'=>$month,'net'=>$netArr]);
         $datasets = array();
         $datasets["data"] = $data_array;
         $datasets["month"] = $monthArr;
         $datasets["net"] = array(["name" => 'Net', 'data' => $netArr]); //$netArr;
+        $datasets["totalNet"] = $totalNet;
+        $datasets["totalPaid"] = $totalPaid;
+        $datasets["totalBalance"] = $totalBalance;
         //return response()->json($data_array);
         return response()->json($datasets);
     }

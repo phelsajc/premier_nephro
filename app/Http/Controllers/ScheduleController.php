@@ -241,7 +241,7 @@ class ScheduleController extends Controller
             'updated_by' =>  auth()->id(),
             'updated_dt' =>  date('Y-m-d'),
         ]);
-        return true;
+        return $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor;
     }
 
     public function Delete($id)

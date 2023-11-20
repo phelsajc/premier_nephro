@@ -107,9 +107,10 @@ export default {
     getSessionData() {
       api.get('phic-edit/'+this.form.id)
         .then(response => {
-          this.form.status = res.data.status == "PAID" ? true : false;
-          this.form.remarks = res.data.remarks;
-          this.form.acpn = res.data.acpn_no;
+          console.log(response)
+          this.form.status = response.data.status == "PAID" ? true : false;
+          this.form.remarks = response.data.remarks;
+          this.form.acpn = response.data.acpn_no;
         }).catch(error => {
           if (error.response.data.message == 'Token has expired') {
             this.$router.push({ name: '/' });

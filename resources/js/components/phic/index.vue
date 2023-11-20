@@ -162,6 +162,7 @@
                             showModal = true;
                             getId(d.id);
                           "
+                          data-toggle="tooltip" data-placement="top" :title="d.updatedBy"
                           :class="[
                             'btn',
                             'btn-xs',

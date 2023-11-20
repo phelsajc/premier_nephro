@@ -518,14 +518,16 @@ class CopayController extends Controller
                 $arr['sessions'] =  $getCnt; //sizeof($get_sessions);
                 $arr['session'] =  $getCnt; //sizeof($get_sessions);
                 $total_Amt = $getCnt * 150;
-                $arr['total_amount'] =  $total_Amt;
-                $arr['less_wtx'] =  $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
-                $arr['net'] =  $value->id == 6 ? $total_Amt * 0.95 : $total_Amt * 0.9;
+                $arr['total_amount'] = number_format($total_Amt, 2) ;
+                $lwt = $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
+                $arr['less_wtx'] =   number_format($lwt, 2) ;
+                $net = $value->id == 6 ? $total_Amt * 0.95 : $total_Amt * 0.9;
+                $arr['net'] =   number_format($net, 2) ;  
                 $data_array[] = $arr;
 
 
                 $arr_export['Nephologist'] =  $value->name;
-                $arr_export['# of session'] =  $getCnt; //sizeof($get_sessions);
+                $arr_export['# of session'] =  number_format($getCnt, 2); //sizeof($get_sessions);
                 $arr_export['Amount per'] =  150.00;
                 $arr_export['Total Amount'] =  $total_Amt;
                 $arr_export['Less WTX'] =  $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
@@ -582,7 +584,7 @@ class CopayController extends Controller
             # code...
             $arr = array();
             $arr_export = array();
-            
+
             $get_sessions =  DB::connection('mysql')->select("
                 SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'),p.attending_doctor, count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id,s.doctor
                     FROM `schedule` s
@@ -634,15 +636,11 @@ class CopayController extends Controller
 
 
         $datasets["export"] = $data_array_export;
-     //   $myPdf = new HomeInstructionCovidPdf($data_array_export);
-      //  $myPdf->Output("HomeInstructionPdf.pdf", 'I');
-   /*     $myPdf->Output('report.pdf','S' );
-            exit;   */
 
-            
+
         $myPdf = new HomeInstructionCovidPdf();
         $myPdf->Output('I', "ChartRecordPdf.pdf", true);
-        exit;   
+        exit;
 
         /* $reportTitle = date_format(date_create($request->fdate), 'F Y');
         $datasets["month"] = $reportTitle;
