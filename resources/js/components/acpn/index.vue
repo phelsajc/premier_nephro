@@ -104,6 +104,7 @@
                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
                           <a class="dropdown-item" href="#" @click="exportPDF()">PHIC 350</a>
                           <a class="dropdown-item" href="#" @click="exportSharingPDF()">PHIC 2250</a>
+                          <a class="dropdown-item" href="#" @click="exportByDctor()">By Doctor</a>
                         </div>
                       </div>
                     </div>
@@ -218,6 +219,7 @@ export default {
   },
   data() {
     return {
+      totaslNet: 0,
       batches: [],
       pdf: [],
       pdfSharing: [],
@@ -283,6 +285,7 @@ export default {
           this.getTotalPaidClaims = response.data.getPaidClaims;
           this.pdf = response.data.pdf;
           this.pdfSharing = response.data.sharing;
+          this.totaslNet = response.data.total_sharing;
           this.getPaidClaims = response.data.getPaidClaims;
           this.results = response.data.data;
           this.export = response.data.export;
@@ -345,19 +348,22 @@ export default {
         .catch((error) => console.log(error));
     },
     exportPDF() {
-      console.log(this.pdf)
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
-        doc.text("Summary of Nephros(PHIC-350)", 20, 12);
+        doc.text("Summary of Sharing(PHIC-350)", 20, 12);
         doc.text("ACPN-" + this.filter.batch, 20, 20);
+        doc.setFontSize(9);
+        doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
         doc.autoTable({
+          headStyles :{
+            fillColor : [65, 105, 225]
+          }, 
           head: [
             [
               "Nephrologist",
               "No. of Sessions",
-              "Philhealth Sharing",
+              "Amount",
               "Total Amount",
-              "PNCSI 25%(Sharing)",
               "Less with Tax",
               "Net",
             ],
@@ -380,13 +386,19 @@ export default {
         const doc = new jsPDF();
         doc.text("Summary of Sharing(PHIC-2250)", 20, 12);
         doc.text("ACPN-" + this.filter.batch, 20, 20);
+        doc.setFontSize(9);
+        doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
         doc.autoTable({
+          headStyles :{
+            fillColor : [65, 105, 225]
+          }, 
           head: [
             [
               "Nephrologist",
               "No. of Sessions",
-              "Amount",
+              "Philhealth Sharing",
               "Total Amount",
+              "PNCSI 25%(Sharing)",
               "Less with Tax",
               "Net",
             ],
@@ -395,10 +407,45 @@ export default {
           body: this.pdfSharing.map((user) => [
             user.nephro,
             user.sess,
-            "2250",
+            user.amount_sharing,
             user.total,
+            user.sharing,
             user.tx,
             user.net,
+          ]),
+        });
+        doc.save("generated.pdf");
+      });
+    },
+    exportByDctor() {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF('landscape');
+        doc.text("ACPN REPORT", 20, 12);
+        doc.text(this.filter.batch, 20, 20);
+        doc.text(this.getDoctor.name, 20, 26);
+        doc.setFontSize(9);
+        doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 29);
+        doc.autoTable({
+          headStyles :{
+            fillColor : [65, 105, 225]
+          }, 
+          styles: { halign: 'center' },
+          head: [
+            [
+              "Name",
+              "No. of Sessions",
+              "Dates",
+              "PHIC NEPHRO 350",
+              "ACPN No.",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.export.map((user) => [
+            user.Name,
+            user.nos,
+            user.Dates,
+            user.phic,
+            user.acpns,
           ]),
         });
         doc.save("generated.pdf");
