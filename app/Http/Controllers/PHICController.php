@@ -185,12 +185,20 @@ class PHICController extends Controller
                 select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID' and doctor = $doctors
             ");
         } else {
-            $data =  DB::connection('mysql')->select("
+           /*  $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
                 left join patients p on s.patient_id = p.id
                 where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
                 group by s.patient_id;
+            "); */
+            $data =  DB::connection('mysql')->select("
+            SELECT distinct p.name, s.patient_id
+                FROM `schedule` s
+                left join patients p on s.patient_id = p.id
+                where s.schedule between '$fdate' and '$tdate' and
+                s.status = 'ACTIVE'
+                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
             $getPaidClaims =  DB::connection('mysql')->select("
                 select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
@@ -220,7 +228,7 @@ class PHICController extends Controller
                 ");
             } else {
                 $get_dates = DB::connection('mysql')->select("
-                SELECT schedule, patient_id from schedule
+                SELECT schedule, patient_id,doctor from schedule
                     where schedule between '$fdate' and '$tdate' and patient_id = $value->patient_id and status = 'ACTIVE'  order by schedule asc
                 ");
             }
@@ -229,7 +237,7 @@ class PHICController extends Controller
             $date_of_sessionsArr = array();
             $paid_session = 0;
             $count_doctor_per_sessions = 0;
-            if($doctors!='All') {
+            //if($doctors!='All') {
                 foreach ($get_dates as $gkey => $gvalue) {
                     $date_of_sessionsArr_set = array();
                     $s_date = date_format(date_create($gvalue->schedule), 'F d');
@@ -249,10 +257,17 @@ class PHICController extends Controller
                     SELECT * from phic
                         where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE'
                     "); */
-                    $data_sessions  = DB::connection('mysql')->select("
-                    SELECT * from phic
-                        where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and doctor = $doctors
-                    ");
+                    if($doctors!='All') {
+                        $data_sessions  = DB::connection('mysql')->select("
+                        SELECT * from phic
+                            where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and doctor = $doctors
+                        ");
+                    }else{
+                        $data_sessions  = DB::connection('mysql')->select("
+                        SELECT * from phic
+                            where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and doctor = $gvalue->doctor
+                        ");
+                    }
                     if ($data_sessions) {
                         $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
                     }
@@ -265,7 +280,7 @@ class PHICController extends Controller
                     $date_of_sessionsArr[] = $date_of_sessionsArr_set;
                 }
                 $count_doctor_per_sessions += count($get_dates);
-            }
+            //}
             $arr['name'] =  $value->name;
             //$arr['sessions'] = $value->cnt;
             $arr['sessions'] = $count_doctor_per_sessions;//count($get_dates);

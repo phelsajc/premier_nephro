@@ -517,6 +517,7 @@ class CopayController extends Controller
                 $arr['name'] =  $value->name;
                 $arr['sessions'] =  $getCnt; //sizeof($get_sessions);
                 $arr['session'] =  $getCnt; //sizeof($get_sessions);
+                $arr['copay_amount'] = 150;// $getCnt; //sizeof($get_sessions);
                 $total_Amt = $getCnt * 150;
                 $arr['total_amount'] = number_format($total_Amt, 2) ;
                 $lwt = $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
@@ -537,6 +538,8 @@ class CopayController extends Controller
             }
 
             $datasets = array();
+
+
             $datasets["data"] = $data_array;
 
             $arr_export = array();
@@ -546,6 +549,8 @@ class CopayController extends Controller
             $arr_export['Total Amount'] = '';
             $arr_export['Less WTX'] = '';
             $arr_export['net'] = $totalNet;
+
+
             $data_array_export[] = $arr_export;
 
 

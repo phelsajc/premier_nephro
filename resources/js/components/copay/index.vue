@@ -142,8 +142,9 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="e in results">
+                    <tr v-for="(e, index) in results">
                       <td>
+                        <!-- {{index}} -->
                         {{ e.name }}
                       </td>
                       <td>
@@ -261,7 +262,7 @@ export default {
           this.results = response.data.data;
           this.export = response.data.export;
           this.getMonthTitle = response.data.month;
-          this.month = moment(this.filter.date).format("MMMM YYYY");
+          this.month = moment(this.filter.fdate).format("MMMM YYYY");
           //this.month = moment.utc(this.filter.date).utcOffset('+08:00').format(); // '+08:00' represents the UTC offset for Asia/Manila
           Toast.fire({
             icon: "success",
@@ -296,6 +297,16 @@ export default {
         });
     },
     exportPDF() {
+          const employee = {
+            less_wtx:"",
+              name :"Total",
+              net :"",
+              session:this.total_sessions,
+              sessions :0,
+              total_amount :"",
+  };
+
+          this.results.push(employee);
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         /* const blob = new Blob([response.data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
@@ -332,13 +343,13 @@ export default {
           body: this.results.map((user) => [
             user.name,
             user.session,
-            "150",
+            user.copay_amount,
             user.total_amount,
             user.less_wtx,
             user.net,
           ]),
         });
-        doc.save("generated.pdf");
+        doc.save("copay_report_"+this.getMonthTitle+".pdf");
       });
     },
     exportCsv() {
