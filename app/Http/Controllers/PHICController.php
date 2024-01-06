@@ -201,7 +201,7 @@ class PHICController extends Controller
                 group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
             ");
             $getPaidClaims =  DB::connection('mysql')->select("
-                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID'
+                select * from phic where date_session between '$fdate' and '$tdate' and status = 'PAID' and state = 'ACTIVE'
             ");
         }
 
@@ -362,7 +362,7 @@ class PHICController extends Controller
             $total_sharing_session = 0;
             $total_sharing_tax = 0;
             foreach ($getDoctor as $key => $value) {
-                $getDoctor_sessions =  DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%'  and doctor = $value->id ");
+                $getDoctor_sessions =  DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%' and status='PAID'  and doctor = $value->id ");
                 $arr=array();
                 $arr_sharing=array();
                 

@@ -79,6 +79,9 @@
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
+                      <button type="button" @click="exportPDF()" class="btn btn-danger">
+                        PDF
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -185,6 +188,8 @@
 <script type="text/javascript">
 import Datepicker from "vuejs-datepicker";
 import moment from "moment";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -192,6 +197,7 @@ export default {
     }
   },
   components: {
+    jsPDF,
     Datepicker,
   },
   data() {
@@ -331,6 +337,30 @@ export default {
             });
           Swal.fire("Deleted!", "Your file has been deleted.", "success");
         }
+      });
+    },
+    exportPDF() {
+          this.month = moment(this.filter.fdate).format("MMMM YYYY");
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        // Save or open the PDF
+        doc.text("Patient for the month of " + this.month, 20, 12);
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 20);
+        doc.autoTable({
+          head: [
+            [
+              "Patients",
+              "Date",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.results.map((user) => [
+            user.name,
+            user.datesArr2,
+          ]),
+        });
+        doc.save("report_" + this.getMonthTitle + ".pdf");
       });
     },
   },

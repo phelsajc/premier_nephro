@@ -74,7 +74,7 @@
                       <button type="button" @click="exportCsv()" class="btn btn-primary">
                         Export
                       </button>
-                      <button type="button" @click="exportPDF()" class="btn btn-danger">
+                      <button type="button" @click="exportData()" class="btn btn-danger">
                         PDF
                       </button>
                     </div>
@@ -200,12 +200,6 @@ export default {
         doctors: null,
         type: "BOTH",
       },
-
-      users: [
-        { id: 1, name: "John Doe", email: "john@example.com" },
-        { id: 2, name: "Jane Smith", email: "jane@example.com" },
-        { id: 3, name: "Bob Johnson", email: "bob@example.com" },
-      ],
       progressStatus: true,
       results: [],
       getTotalSession: 0,
@@ -297,37 +291,22 @@ export default {
         });
     },
     exportPDF() {
-          const employee = {
-            less_wtx:"",
-              name :"Total",
-              net :"",
-              session:this.total_sessions,
-              sessions :0,
-              total_amount :"",
-  };
+      const employee = {
+        less_wtx: "",
+        name: "Total",
+        net: "",
+        session: this.total_sessions,
+        sessions: 0,
+        total_amount: "",
+      };
 
-          this.results.push(employee);
+      this.results.push(employee);
       api.post("/pdf", { responseType: "blob" }).then((response) => {
-        /* const blob = new Blob([response.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'document.pdf';
-        a.style.display = 'none';
-
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url); */
-
         const doc = new jsPDF();
-        /* doc.autoTable({
-        head: [["ID", "Name", "Email"]],
-        body: this.users.map((user) => [user.id, user.name, user.email]),
-      }); */
         // Save or open the PDF
         doc.text("Summary of Nephros(Co-Pay)", 20, 12);
         doc.text("for the month of " + this.month, 20, 20);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
         doc.autoTable({
           head: [
             [
@@ -349,7 +328,56 @@ export default {
             user.net,
           ]),
         });
-        doc.save("copay_report_"+this.getMonthTitle+".pdf");
+        doc.save("copay_report_" + this.getMonthTitle + ".pdf");
+      });
+    },
+    exportData(){
+      if (this.filter.doctors != "All") {
+        this.exportDr();
+      } else {
+        this.exportPDF();
+      }
+    },
+    exportDr(){
+      const employee = {
+        less_wtx: "",
+        name: "Total",
+        net: "",
+        session: this.total_sessions,
+        sessions: 0,
+        total_amount: "",
+      };
+      let d = this.getDoctor;
+      this.results.push(employee);
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        // Save or open the PDF
+        doc.text("Summary for "+d.name, 20, 12);
+        doc.text("for the month of " + this.month, 20, 20);
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
+        doc.autoTable({
+          head: [
+            [
+              "Date",
+              "Name",
+              "Nephrologist",
+              "PF",
+              "T/C",
+              "",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.export.map((user) => [
+            user.Date,
+            user.Name,
+            user.NEPHROLOGIST,
+            user.PF,
+            user.tc,
+            user.cnt,
+          ]),
+        });
+        doc.save("copay_report_" + this.getMonthTitle + ".pdf");
       });
     },
     exportCsv() {

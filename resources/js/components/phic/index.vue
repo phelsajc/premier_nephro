@@ -144,7 +144,7 @@
                     <tr>
                       <th>Patient</th>
                       <th>Sessions</th>
-                      <th>Date</th>
+                     <!--  <th>Date</th> -->
                     </tr>
                   </thead>
                   <tbody>

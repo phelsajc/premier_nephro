@@ -44,7 +44,11 @@
                       ></datepicker>
                     </div>
                   </div>
-                  <div class="col-sm-2">
+
+                  
+                  
+
+                    <div class="col-sm-2">
                     <div class="form-group">
                       <label>To Date</label>
                       <datepicker
@@ -58,6 +62,18 @@
                       ></datepicker>
                     </div>
                   </div>
+
+                  
+                  <div class="col-sm-2">
+                    <div class="form-group">
+                      <label>Doctor</label>
+                      <select class="form-control" v-model="filter.doctor">
+                      <option selected value="0">All</option>
+                      <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
+                    </select>
+                    </div>
+                  </div>
+
                   <div class="col-sm-2">
                     <div class="form-group">
                       <label>&nbsp;</label> <br />
@@ -77,6 +93,9 @@
                       <th>TAX</th>
                       <th rowspan="2" style="text-align: center">NET</th>
                       <th rowspan="2" style="text-align: center">Total Paid</th>
+                      <th rowspan="2" style="text-align: center">Total Unpaid</th>
+                      <th rowspan="2" style="text-align: center">Total Paid Session</th>
+                      <th rowspan="2" style="text-align: center">Total Unpaid Session</th>
                       <th rowspan="2" style="text-align: center">Balance</th>
                     </tr>
                     <tr>
@@ -92,6 +111,12 @@
                       <th>GROSS INCOM</th>
                       <th>SHARE(25%)</th>
                       <th>5%</th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -140,6 +165,24 @@
                             .toFixed(2)
                             .toString()
                             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }}
+                      </td>
+                      <td>
+                        {{
+                          e.total_unpaid
+                            .toFixed(2)
+                            .toString()
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }}
+                      </td>
+                      <td>
+                        {{
+                          e.session_paid
+                        }}
+                      </td>
+                      <td>
+                        {{
+                          e.session_unpaid
                         }}
                       </td>
                       <td>
@@ -241,6 +284,7 @@ export default {
       filter: {
         fdate: "",
         tdate: "",
+        doctor: 0,
       },
       series: [],
       chartOptions: {
@@ -313,6 +357,20 @@ export default {
     },
   },
   methods: {
+    /* getDoctors() {
+      api.get('getDoctors')
+        .then(response => {
+          this.doctors = response.data
+        }).catch(error => {
+          if (error.response.data.message == 'Token has expired') {
+            this.$router.push({ name: '/' });
+            Toast.fire({
+              icon: 'error',
+              title: 'Token has expired'
+            })
+          }
+        });
+    }, */
     getPatientInformation() {
       axios
         .get("/api/getPxInfo/" + this.$route.params.id)

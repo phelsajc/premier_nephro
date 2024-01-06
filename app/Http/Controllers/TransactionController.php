@@ -111,7 +111,7 @@ class TransactionController extends Controller
             $l->created_by = Auth::user()->id; 
             $l->pid = $val['id'];
             $l->cost = $val['price'];  
-            $l->originalcost = $getLastPrice[0]->cost;            
+            $l->originalcost = $getLastPrice?$getLastPrice[0]->cost:$val['price'];            
             $l->free = $val['free'];
             $l->particulars = $request->head['particulars'];
             $l->dop = date_create($request->head['dot']);

@@ -419,12 +419,15 @@ export default {
     },
     exportByDctor() {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
+        console.log(this.getDoctor)
         const doc = new jsPDF('landscape');
         doc.text("ACPN REPORT", 20, 12);
         doc.text(this.filter.batch, 20, 20);
         doc.text(this.getDoctor.name, 20, 26);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 29);
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 32);
         doc.autoTable({
           headStyles :{
             fillColor : [65, 105, 225]
@@ -439,7 +442,7 @@ export default {
               "ACPN No.",
             ],
           ],
-          margin: { top: 30 },
+          margin: { top: 35 },
           body: this.export.map((user) => [
             user.Name,
             user.nos,

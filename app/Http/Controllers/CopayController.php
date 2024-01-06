@@ -195,7 +195,9 @@ class CopayController extends Controller
                 $arr_export['NEPHROLOGIST'] =  $checkAttndgDr ? $checkAttndgDr->name : '';
                 $arr_export['PF'] = 150;
                 $arr_export['T/C'] = $value->doctor != $value->attending_doctor ? 'To Cover by ' . $checkDr->name : '';
+                $arr_export['tc'] = $value->doctor != $value->attending_doctor ? 'To Cover by ' . $checkDr->name : '';
                 $arr_export[''] =  $value->cnt;
+                $arr_export['cnt'] =  $value->cnt;
                 $arr_export['Dates'] = $date_of_sessions;
                 $total_copay = count($get_dates) * 150;
                 $net = $total_copay * 0.9;
@@ -210,11 +212,12 @@ class CopayController extends Controller
             $arr_export = array();
             $arr_export['Date'] = '';
             $arr_export['Name'] =  '';
-            $arr_export['NEPHROLOGIST'] = 'Total';
+            $arr_export['NEPHROLOGIST'] = 'Totalx';
             $tOTALSessionAMount = $totalSesh * 150;
             $arr_export['PF'] = $tOTALSessionAMount;
             $arr_export['T/C'] = '';
             $arr_export[''] =  $totalSesh;
+            $arr_export['cnt'] =  $totalSesh;
             $arr_export['Dates'] = '';
             $data_array_export[] = $arr_export;
 
@@ -421,6 +424,7 @@ class CopayController extends Controller
             $arr_export['PF'] = $tOTALSessionAMount;
             $arr_export['T/C'] = '';
             $arr_export[''] =  sizeof($data); //$totalSesh;
+            $arr_export['cnt'] =  sizeof($data); //$totalSesh;
             $arr_export['Dates'] = '';
             $data_array_export[] = $arr_export;
 
@@ -433,6 +437,7 @@ class CopayController extends Controller
                 $arr_export['T/C'] = '';
                 $arr_export[''] =  '';
                 $arr_export['Dates'] = '';
+                $arr_export['cnt'] =  '';
                 $data_array_export[] = $arr_export;
             } else {
                 $tOTALSessionAMountNet = $tOTALSessionAMount * 0.9;
@@ -442,6 +447,7 @@ class CopayController extends Controller
                 $arr_export['PF'] = $tOTALSessionAMount * 0.1;
                 $arr_export['T/C'] = '';
                 $arr_export[''] =  '';
+                $arr_export['cnt'] =  '';
                 $arr_export['Dates'] = '';
                 $data_array_export[] = $arr_export;
             }
@@ -450,6 +456,7 @@ class CopayController extends Controller
             $arr_export['Date'] = '';
             $arr_export['Name'] =  '';
             $arr_export['NEPHROLOGIST'] = 'NET';
+            $arr_export['cnt'] =  '';
             $arr_export['PF'] = $tOTALSessionAMountNet;
             $arr_export['T/C'] = '';
             $arr_export[''] =  '';

@@ -74,6 +74,9 @@
                       <button type="button" @click="exportCsv()" class="btn btn-primary">
                         Export
                       </button>
+                      <button type="button" @click="exportPDF()" class="btn btn-danger">
+                        PDF
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -136,6 +139,8 @@
 import Datepicker from "vuejs-datepicker";
 import moment from "moment";
 import { ExportToCsv } from "export-to-csv";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -144,6 +149,7 @@ export default {
     this.getDoctors();
   },
   components: {
+    jsPDF,
     Datepicker,
   },
   data() {
@@ -244,21 +250,47 @@ export default {
       this.getsessionid = id;
     },
     exportCsv() {
+      let title = this.filter.doctors != null && this.filter.doctors != "All"?'of '+this.getDoctor.name: ''
       const options = {
         fieldSeparator: ",",
         quoteStrings: '"',
         decimalSeparator: ".",
         showLabels: true,
         showTitle: true,
-        title: "Patient of " + this.getDoctor.name + " for the month of " + this.month,
+        title: "Patient " + title + " for the month of " + this.month,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,
-        filename: "copay_" + this.getDoctor.name + "_" + this.month,
+        filename: "copay_" + title + "_" + this.month,
         // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
       };
       const csvExporter = new ExportToCsv(options);
       csvExporter.generateCsv(this.export);
+    },
+    exportPDF() {
+      let title = this.filter.doctors != null && this.filter.doctors != "All"?'of '+this.getDoctor.name: ''
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        // Save or open the PDF
+        doc.text("Patient " + title , 20, 12);
+        doc.text(" for the month of " + this.month, 20, 20);
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
+        doc.autoTable({
+          head: [
+            [
+              "Patients",
+              "Date",
+            ],
+          ],
+          margin: { top: 30 },
+          body: this.export.map((user) => [
+            user.Patient,
+            user.Date,
+          ]),
+        });
+        doc.save("copay_report_" + this.getMonthTitle + ".pdf");
+      });
     },
   },
 };

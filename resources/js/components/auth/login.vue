@@ -72,7 +72,7 @@ export default {
     },
     methods: {
         login() {
-            /*  axios.post('/api/auth/login', this.form)
+             axios.post('/api/auth/login', this.form)
                 .then(res => {
                     this.errors = true;
                     User.responseAfterLogin(res)
@@ -83,8 +83,8 @@ export default {
                     //this.$router.push({ name: 'manage_session' })
                     location = '/manage_session'
                 })
-            */
-            api.post('auth/login', this.form)
+           
+            /* api.post('auth/login', this.form)
                 .then(response => {
                     this.errors = true;
                     User.responseAfterLogin(response)
@@ -102,7 +102,7 @@ export default {
                         title: 'User Not Found!'
                     }),
                     console.log(this.errors)
-                )
+                ) */
         }
     },
 }

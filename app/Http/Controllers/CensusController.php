@@ -306,6 +306,7 @@ class CensusController extends Controller
                     ");
                 $date_of_sessions = '';
                 $date_of_sessionsArr = array();
+                $date_of_sessions = '';
                 foreach ($get_dates as $gkey => $gvalue) {
                     $date_of_sessionsArr_set = array();
                     $s_date = date_format(date_create($gvalue->schedule), 'F d');
@@ -317,8 +318,10 @@ class CensusController extends Controller
                     $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
                     $date_of_sessions .= date_format(date_create($gvalue->schedule), 'F d') . ', ';
                     $date_of_sessionsArr[] = $date_of_sessionsArr_set;
+                    $date_of_sessions .= date_format(date_create($gvalue->schedule), 'F d Y')."\n";
                 }
                 $arr['datesArr'] =  $date_of_sessionsArr;
+                $arr['datesArr2'] =  $date_of_sessions;
                 $arr['dates'] =  date_format(date_create($value->schedule), 'm/d/Y');
                 /* }else{            
                     $data_array = array();
@@ -372,12 +375,21 @@ class CensusController extends Controller
         date_default_timezone_set('Asia/Manila');
         $fdate = date_format(date_create($request->data['fdate']), 'Y-m');
         $tdate = date_format(date_create($request->data['tdate']), 'Y-m');
-
-        $data =  DB::connection('mysql')->select("
-            SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.schedule, '%Y-%m') as schedule FROM `schedule` s where s.status = 'ACTIVE' 
-            and DATE_FORMAT(s.schedule, '%Y-%m') between '$fdate' and '$tdate' 
-            group by DATE_FORMAT(s.schedule, '%Y-%m');
-        ");
+        $doctor = $request->data['doctor'];
+        
+        if($request->data['doctor']==0){
+            $data =  DB::connection('mysql')->select("
+                SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.schedule, '%Y-%m') as schedule FROM `schedule` s where s.status = 'ACTIVE' 
+                and DATE_FORMAT(s.schedule, '%Y-%m') between '$fdate' and '$tdate' 
+                group by DATE_FORMAT(s.schedule, '%Y-%m');
+            ");
+        }else{
+            $data =  DB::connection('mysql')->select("
+                SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.schedule, '%Y-%m') as schedule FROM `schedule` s where s.status = 'ACTIVE' 
+                and DATE_FORMAT(s.schedule, '%Y-%m') between '$fdate' and '$tdate'  and doctor=$doctor
+                group by DATE_FORMAT(s.schedule, '%Y-%m');
+            ");
+        }
 
         $data_array = array();
         $monthArr = array();
@@ -393,11 +405,42 @@ class CensusController extends Controller
             $net_arr2 = array();
 
             $month = date_format(date_create($value->schedule), 'Y-m');
-            $getPaidData =  DB::connection('mysql')->select("
-                SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID' 
-                and DATE_FORMAT(s.date_session, '%Y-%m') = '$month'
-                group by DATE_FORMAT(s.date_session, '%Y-%m');
-            ");
+            if($request->data['doctor']==0){
+                $getPaidData =  DB::connection('mysql')->select("
+                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and state = 'ACTIVE' 
+                    and DATE_FORMAT(s.date_session, '%Y-%m') = '$month'
+                    group by DATE_FORMAT(s.date_session, '%Y-%m');
+                ");
+
+            }else{
+                $getPaidData =  DB::connection('mysql')->select("
+                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and state = 'ACTIVE' 
+                    and DATE_FORMAT(s.date_session, '%Y-%m') = '$month' and doctor=$doctor
+                    group by DATE_FORMAT(s.date_session, '%Y-%m');
+                ");
+            }
+
+            
+                
+            $paid_patientsList =  DB::connection('mysql')->select("select c.name,count(p.date_session) as cnt, GROUP_CONCAT(p.date_session SEPARATOR ',') as dates
+            from phic p
+            left join patients c on p.patient_id = c.id 
+            where p.status = 'PAID' and state = 'ACTIVE' and  DATE_FORMAT(p.date_session, '%Y-%m') = '$month'
+        group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
+
+        $un_patientsList =  DB::connection('mysql')->select("select c.name,count(p.date_session) as cnt, GROUP_CONCAT(p.date_session SEPARATOR ',') as dates
+                    from phic p
+                    left join patients c on p.patient_id = c.id 
+                    where p.status = 'UNPAID'  and state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m') = '$month' 
+                group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
+
+
+            $pdata = array();
+            foreach ($un_patientsList as $pkey => $pvalue) {
+                $subarray_p = array();
+                $subarray_p['month'] = $pvalue->dates;
+                $pdata[] = $subarray_p;
+            }
 
             $arr['month'] =  date_format(date_create($value->schedule), 'F Y');
             $monthArr[] =  date_format(date_create($value->schedule), 'F Y');
@@ -417,6 +460,17 @@ class CensusController extends Controller
                 $balance = $net - $pnet;
             }
 
+
+            $unpaid_pnet = 0;
+            $unpaid_balance = 0;
+            if ($getPaidData) {
+                $unpaid_pgross = 2250 * ($session-$getPaidData[0]->cnt);
+                $unpaid_pshare = $unpaid_pgross * 0.25;
+                $unpaid_ptax = $unpaid_pshare * 0.05;
+                $unpaid_pnet = $unpaid_pshare * 0.95;
+                $unpaid_balance = $net - $unpaid_pnet;
+            }
+
             $arr['gross'] =  $gross;
             $arr['share'] = $share;
             $arr['tax'] = $tax;
@@ -424,9 +478,13 @@ class CensusController extends Controller
             $net_arr2[] = $net;
             $net_arr['data'] = $net; //$net_arr2;
             $net_arr['name'] = "Net";
+            $arr['session_paid'] = $getPaidData?$getPaidData[0]->cnt:0;
+            $arr['session_unpaid'] = $getPaidData?$session-$getPaidData[0]->cnt:0;
             $arr['total'] = $pnet;
+            $arr['total_unpaid'] = $unpaid_pnet;
             $arr['balance'] = $balance;
             $arr['getPaidData'] = $getPaidData;
+            $arr['patients'] = $pdata;
             $data_array[] = $arr;
             //$monthArr[] = $mon_arr;
             $netArr[] = $session;
@@ -443,6 +501,9 @@ class CensusController extends Controller
         $datasets["totalNet"] = $totalNet;
         $datasets["totalPaid"] = $totalPaid;
         $datasets["totalBalance"] = $totalBalance;
+        $datasets["sql"] = "SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID' 
+        and DATE_FORMAT(s.date_session, '%Y-%m') = '$month' and doctor=$doctor
+        group by DATE_FORMAT(s.date_session, '%Y-%m');";
         //return response()->json($data_array);
         return response()->json($datasets);
     }

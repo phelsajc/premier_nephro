@@ -111,7 +111,7 @@ class ProductController extends Controller
             $arr['id'] = $value->id;
             $arr['product'] = $value->product;
             $arr['description'] = $value->description;
-            $arr['price'] =  $getLastPrice[0]->cost;//value->cost;
+            $arr['price'] =  $getLastPrice?$getLastPrice[0]->cost:$value->cost;//value->cost;
             $arr['qty'] = $value->total_qty;
             /* $total_received = 0;
             $total_sales = 0;

@@ -97,11 +97,11 @@ class ReceivedProductController extends Controller
            $arr['dop'] =  date_format(date_create($value->dop),'Y-m-d');
            $arr['reference'] =  $value->reference_no;
            $arr['particulars'] =  $value->particulars; 
-           $arr['price'] =   $value->unit_price;
-           $arr['purchased'] =  $value->purchase;
+           $arr['price'] =   $value->sold?$value->unit_price:$value->cost;
+           $arr['purchased'] =  $value->sold?$value->purchase:$value->quantity+$value->free;
            $arr['payment'] =  $value->payment;
            $arr['balance'] =  $value->balance;
-           $arr['total_purchase'] =  $value->total_purchase;
+           $arr['total_purchase'] =  $value->sold?$value->total_purchase:$value->quantity+$value->free;
            $arr['remarks'] =  $value->remarks; 
            $arr['check'] =  $value->checkno; 
            $arr['sold'] =  $value->sold; 
@@ -285,6 +285,7 @@ class ReceivedProductController extends Controller
         $p->particulars = $request->particulars;
         $p->unit_price = $request->price;
         $p->purchase = $request->purchase;
+        $p->cost = $request->purchase/($request->qty+$request->free);;
         //$p->balance = $check_ledger?$check_ledger[0]->balance + $request->balance:$request->balance;
         $p->balance = $check_ledger?$check_ledger[0]->balance + $request->purchase:$request->balance;
         //$p->balance = $check_ledger?($check_ledger[0]->balance + $request->balance):$request->balance;
