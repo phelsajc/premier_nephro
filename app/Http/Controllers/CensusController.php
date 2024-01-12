@@ -407,14 +407,14 @@ class CensusController extends Controller
             $month = date_format(date_create($value->schedule), 'Y-m');
             if($request->data['doctor']==0){
                 $getPaidData =  DB::connection('mysql')->select("
-                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and state = 'ACTIVE' 
+                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and s.state = 'ACTIVE' 
                     and DATE_FORMAT(s.date_session, '%Y-%m') = '$month'
                     group by DATE_FORMAT(s.date_session, '%Y-%m');
                 ");
 
             }else{
                 $getPaidData =  DB::connection('mysql')->select("
-                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and state = 'ACTIVE' 
+                    SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and s.state = 'ACTIVE' 
                     and DATE_FORMAT(s.date_session, '%Y-%m') = '$month' and doctor=$doctor
                     group by DATE_FORMAT(s.date_session, '%Y-%m');
                 ");
@@ -439,6 +439,7 @@ class CensusController extends Controller
             foreach ($un_patientsList as $pkey => $pvalue) {
                 $subarray_p = array();
                 $subarray_p['month'] = $pvalue->dates;
+                $subarray_p['cnt'] = $pvalue->cnt;
                 $pdata[] = $subarray_p;
             }
 

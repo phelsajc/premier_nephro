@@ -209,6 +209,8 @@ class PHICController extends Controller
         $data_array_export = array();
 
         $total_paid_session = 0;
+        $totalUnpaid = 0;
+        $totalpaid = 0;
         foreach ($data as $key => $value) {
             $arr = array();
             $arr_export = array();
@@ -271,7 +273,16 @@ class PHICController extends Controller
                     if ($data_sessions) {
                         $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
                     }
-                    $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
+                    if ($data_sessions) {
+                        if($data_sessions[0]->status=='UNPAID'){
+                            $totalUnpaid++;
+                        }
+                        if($data_sessions[0]->status=='PAID'){
+                            $totalpaid++;
+                        }
+                    }
+
+                    $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : null;
                     $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                     $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->schedule), 'Y-m-d');
                     $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
@@ -316,6 +327,9 @@ class PHICController extends Controller
         $datasets["Doctors"] = $getDoctor;
         $datasets['totalPaidSessions'] =  $total_paid_session;
         $datasets["getPaidClaims"] = count($getPaidClaims);
+        $datasets["getPaidClaims2"] = $getPaidClaims;
+        $datasets["totalUnpaid"] = $totalUnpaid;
+        $datasets["totalpaid"] = $totalpaid;
         return response()->json($datasets);
     }
 
