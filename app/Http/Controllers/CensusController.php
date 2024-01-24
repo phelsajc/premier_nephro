@@ -440,6 +440,7 @@ class CensusController extends Controller
                 $subarray_p = array();
                 $subarray_p['month'] = $pvalue->dates;
                 $subarray_p['cnt'] = $pvalue->cnt;
+                $subarray_p['cnt'] = $pvalue->name;
                 $pdata[] = $subarray_p;
             }
 

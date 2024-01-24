@@ -354,7 +354,8 @@ export default {
         doc.text("ACPN-" + this.filter.batch, 20, 20);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
-        doc.autoTable({
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 29);doc.autoTable({
           headStyles :{
             fillColor : [65, 105, 225]
           }, 
@@ -388,7 +389,8 @@ export default {
         doc.text("ACPN-" + this.filter.batch, 20, 20);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
-        doc.autoTable({
+        doc.setFontSize(9);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 29);doc.autoTable({
           headStyles :{
             fillColor : [65, 105, 225]
           }, 
