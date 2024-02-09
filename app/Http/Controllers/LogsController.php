@@ -18,7 +18,6 @@ class LogsController extends Controller
     */
    public function __construct()
    {
-       //$this->middleware('auth:api');
        $this->middleware('JWT');
    }
 
@@ -27,9 +26,7 @@ class LogsController extends Controller
         date_default_timezone_set('Asia/Manila');
         $fdate = date_format(date_create($request->fdate),'Y-m-d');
         $tdate = date_format(date_create($request->tdate),'Y-m-d');
-       
         $data = DB::connection('mysql')->select(" SELECT * from failed_scheduled  where schedule between '$fdate' and '$tdate' group by status");
-
         $data_array = array();
 
         foreach ($data as $key => $value) {

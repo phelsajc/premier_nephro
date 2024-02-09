@@ -29,28 +29,61 @@
             <div class="card-body">
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
-                  <div class="col-sm-2">
-                    <div class="form-group ">
+                  <div class="col-sm-8">
+                    <div class="form-group">
                       <label>ACPN</label>
                       <input type="text" class="form-control" v-model="filter.acpn" />
                     </div>
-                  </div>                  
+                  </div>
                   <div class="col-sm-2">
                     <div class="form-group">
-                      <label>&nbsp;</label> <br>
+                      <label>Doctor</label>
+                      <select class="form-control" v-model="filter.doctor">
+                        <option selected value="0">All</option>
+                        <option v-for="e in doctors_list" :value="e.id">
+                          {{ e.name }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-2">
+                    <div class="form-group">
+                      <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
                       </button>
+
+                      <div class="btn-group" role="group">
+                        <button
+                          id="btnGroupDrop1"
+                          type="button"
+                          class="btn btn-primary dropdown-toggle"
+                          data-toggle="dropdown"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                        >
+                          Export
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                          <a class="dropdown-item" href="#" @click="exportPDF()"
+                            >Summary ACPN</a
+                          >
+                          <a class="dropdown-item" href="#" @click="exportByDctor()"
+                            >Summary By Doctor</a
+                          >
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount:</dt>
-                  <dd class="col-sm-8">{{total_sessions}}</dd>
+                  <dd class="col-sm-8">{{ total_sessions }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Total Session:</dt>
-                  <dd class="col-sm-8">{{ total_number_session}}</dd>
+                  <dd class="col-sm-8">{{ total_number_session }}</dd>
                 </dl>
                 <table class="table">
                   <thead>
@@ -93,17 +126,20 @@
 </template>
 
 <script type="text/javascript">
-import Datepicker from 'vuejs-datepicker'
-import moment from 'moment';
-import { ExportToCsv } from 'export-to-csv';
-import api from '../../Helpers/api';
+import Datepicker from "vuejs-datepicker";
+import moment from "moment";
+import { ExportToCsv } from "export-to-csv";
+import api from "../../Helpers/api";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default {
   created() {
     if (!User.loggedIn()) {
-      this.$router.push({ name: '/' })
+      this.$router.push({ name: "/" });
     }
     this.getBatches();
+    this.getDoctors();
   },
   components: {
     Datepicker,
@@ -113,70 +149,138 @@ export default {
       progressStatus: true,
       showModal: false,
       filter: {
-        acpn: null,
+        acpn: "11242023-12012023",
+        doctor: 0,
       },
       results: [],
+      resultsAcpn: [],
+      resultsAcpnDctr: [],
+      doctors_list: [],
       //export: [],
-      getsessionid: '',
+      getTx: "",
+      getNet: "",
+      getPf: "",
+      getEwt: "",
       month: null,
       total_number_session: null,
-      total_sessions: null
-    }
+      total_sessions: null,
+    };
+  },
+  computed: {
+    getDoctor() {
+      return this.doctors_list.find((e) => e.id == this.filter.doctors);
+    },
   },
   ///05292023-06022023 //05152023-05192023
   methods: {
     showReport() {
-      api.post('acpn-report-list', this.filter)
-        .then(response => {
-          this.results = response.data.acpn
-          this.total_number_session = response.data.total
-          this.total_sessions = response.data.total_amount 
+      api
+        .post("acpn-report-list", this.filter)
+        .then((response) => {
+          this.results = response.data.acpn;
+          this.resultsAcpn = response.data.data_arrayAcpn;
+          this.resultsAcpnDctr = response.data.data_arrayAcpn_dctr;
+          this.total_number_session = response.data.total;
+          this.total_sessions = response.data.total_amount;
+          this.getTx = response.data.total_session_doctor;
+          this.getNet = response.data.sharing_net;
+          this.getPf = response.data.sharing_pf;
+          this.getEwt = response.data.sharing_ewt;
           Toast.fire({
-            icon: 'success',
-            title: 'Saved successfully'
+            icon: "success",
+            title: "Saved successfully",
           });
-        }).catch(error => {
-         if(error.response.data.message == 'Token has expired'){
-          this.$router.push({ name: '/' });
-          Toast.fire({
-            icon: 'error',
-            title: 'Token has expired'
-          })
-         }
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
+    },
+    exportPDF() {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        const myArray = this.filter.acpn.split(",");
+
+        doc.text("Summary of ACPN", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          head: [["ACPN", "Session", "Amount", "Batch"]],
+          margin: { top: 30 },
+          body: this.resultsAcpn.map((user) => [
+            user.acpn,
+            user.session,
+            user.amount,
+            user.batch,
+          ]),
+        });
+        doc.save("generated.pdf");
       });
     },
-    exportCsv() {
-      const options = {
-        fieldSeparator: ',',
-        quoteStrings: '"',
-        decimalSeparator: '.',
-        showLabels: true,
-        showTitle: true,
-        title: 'ACPN REPORT \n ' + moment(this.filter.fdate).format('MMMM DD YYYY') + ' ' + moment(this.filter.tdate).format('MMMM DD YYYY'),
-        useTextFile: false,
-        useBom: true,
-        useKeysAsHeaders: true,
-      };
-      const csvExporter = new ExportToCsv(options);
-      csvExporter.generateCsv(this.export);
+    exportByDctor() {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        const myArray = this.filter.acpn.split(",");
+
+        doc.text("Summary of ACPN by Nephrologist", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          head: [["Nephrologist", "TX", "PF", "EWT", "NET"]],
+          margin: { top: 30 },
+          body: this.resultsAcpnDctr.map((user) => [
+            user.nephro,
+            user.tx,
+            user.pf,
+            user.ewt,
+            user.net,
+          ]),
+        });
+        
+        doc.setFontSize(12).setFont(undefined, 'bold');
+        doc.text("25% Premier Sharing", 25, 140);
+        doc.text(""+this.getTx, 115, 140);
+        doc.text(""+this.getPf, 130, 140);
+        doc.text(""+this.getEwt, 160, 140);
+        doc.text(""+this.getNet, 180, 140);
+        doc.save("generated.pdf");
+      });
     },
     getBatches() {
-      axios.get('api/get-batches')
-        .then(response => {
-          this.batches = response.data
-        }).catch(error => {
-         if(error.response.data.message == 'Token has expired'){
-          this.$router.push({ name: '/' });
-          Toast.fire({
-            icon: 'error',
-            title: 'Token has expired'
-          })
-         }
-      });
+      axios
+        .get("api/get-batches")
+        .then((response) => {
+          this.batches = response.data;
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          }
+        });
     },
-  }
-}
-
+    getDoctors() {
+      axios
+        .get("/api/getDoctors")
+        .then(({ data }) => (this.doctors_list = data))
+        .catch();
+    },
+  },
+};
 </script>
 
 <style>

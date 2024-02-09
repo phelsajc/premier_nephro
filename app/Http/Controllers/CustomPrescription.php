@@ -14,11 +14,6 @@ class CustomPrescription extends LaraFpdf
         $this->check_method = null;
         $pdf = new LaraFpdf();
         parent::__construct('L', 'mm', array(215.9,139.7));
-        /* parent::__construct('L', 'mm', array(
-            215,
-            279.4
-        )); */
-        // $this->SetMargins(1,10.01,01,1);
         $this->SetTitle('My pdf title', true);
         $this->SetAuthor('TJGazel', true);
         $this->AddPage('P');

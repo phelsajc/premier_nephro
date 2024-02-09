@@ -347,6 +347,7 @@ export default {
         })
         .catch((error) => console.log(error));
     },
+
     exportPDF() {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
@@ -354,7 +355,7 @@ export default {
         doc.text("ACPN-" + this.filter.batch, 20, 20);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 29);doc.autoTable({
           headStyles :{
             fillColor : [65, 105, 225]
@@ -382,6 +383,7 @@ export default {
         doc.save("generated.pdf");
       });
     },
+
     exportSharingPDF() {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
@@ -389,7 +391,7 @@ export default {
         doc.text("ACPN-" + this.filter.batch, 20, 20);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 26);     
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 29);doc.autoTable({
           headStyles :{
             fillColor : [65, 105, 225]
@@ -419,6 +421,7 @@ export default {
         doc.save("generated.pdf");
       });
     },
+
     exportByDctor() {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         console.log(this.getDoctor)
@@ -428,7 +431,7 @@ export default {
         doc.text(this.getDoctor.name, 20, 26);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 29);
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 32);
         doc.autoTable({
           headStyles :{

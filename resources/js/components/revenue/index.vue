@@ -45,10 +45,7 @@
                     </div>
                   </div>
 
-                  
-                  
-
-                    <div class="col-sm-2">
+                  <div class="col-sm-2">
                     <div class="form-group">
                       <label>To Date</label>
                       <datepicker
@@ -63,14 +60,15 @@
                     </div>
                   </div>
 
-                  
                   <div class="col-sm-2">
                     <div class="form-group">
                       <label>Doctor</label>
                       <select class="form-control" v-model="filter.doctor">
-                      <option selected value="0">All</option>
-                      <option v-for="e in doctors_list" :value="e.id">{{ e.name }}</option>
-                    </select>
+                        <option selected value="0">All</option>
+                        <option v-for="e in doctors_list" :value="e.id">
+                          {{ e.name }}
+                        </option>
+                      </select>
                     </div>
                   </div>
 
@@ -176,14 +174,22 @@
                         }}
                       </td>
                       <td>
-                        {{
-                          e.session_paid
-                        }}
+                        <button
+                          type="button"
+                          class="btn btn-success"
+                          @click="getPatientSessions('paid',e.getPaidPatientSessions,e.session_paid)"
+                        >
+                          {{ e.session_paid }}
+                        </button>
                       </td>
                       <td>
-                        {{
-                          e.session_unpaid
-                        }}
+                        <button
+                          type="button"
+                          class="btn btn-danger"
+                          @click="getPatientSessions('unpaid',e.getUnPaidPatientSessions,e.session_unpaid)"
+                        >
+                          {{ e.session_unpaid }}
+                        </button>
                       </td>
                       <td>
                         {{
@@ -195,21 +201,11 @@
                       </td>
                     </tr>
                     <tr>
-                      <td>
-                      
-                      </td>
-                      <td>
-                      
-                      </td>
-                      <td>
-                      
-                      </td>
-                      <td>
-                      
-                      </td>
-                      <td>
-                      
-                      </td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
                       <td>
                         {{
                           totalNet
@@ -263,6 +259,8 @@ import Datepicker from "vuejs-datepicker";
 import moment from "moment";
 import ApexCharts from "apexcharts";
 import VueApexCharts from "vue-apexcharts";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 export default {
   created() {
     if (!User.loggedIn()) {
@@ -278,9 +276,10 @@ export default {
   },
   data() {
     return {
-      totalNet:0,
-      totalPaid:0,
+      totalNet: 0,
+      totalPaid: 0,
       totalBalance: 0,
+      patientSessionsPaymentList: [],
       filter: {
         fdate: "",
         tdate: "",
@@ -483,6 +482,32 @@ export default {
         .get("/api/getDoctors")
         .then(({ data }) => (this.doctors_list = data))
         .catch();
+    },
+    getPatientSessions(type,e,total) {
+      this.patientSessionsPaymentList = e;
+
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+
+        doc.text("Summary of "+type+" sessions of patients", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.text("Total: " + total, 20, 20);
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          columnStyles: {
+            0: { cellWidth: 'auto' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 'auto' },
+          },
+          head: [["Patient", "No. of Sessions", "Sessions"]],
+          margin: { top: 30 },
+          body: e.map((user) => [user.name, user.cnt_sess, user.cnt]),
+        });
+        doc.save("generated.pdf");
+      });
     },
   },
 };
