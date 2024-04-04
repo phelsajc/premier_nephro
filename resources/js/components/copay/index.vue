@@ -352,7 +352,7 @@ export default {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
         // Save or open the PDF
-        doc.text("Summary for "+d.name, 20, 12);
+        doc.text("Summary of Co-PAY for "+d.name, 20, 12);
         doc.text("for the month of " + this.month, 20, 20);
         doc.setFontSize(9);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);

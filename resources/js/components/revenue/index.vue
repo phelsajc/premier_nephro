@@ -74,9 +74,27 @@
 
                   <div class="col-sm-2">
                     <div class="form-group">
+                      <label>Status</label>
+                      <select class="form-control" v-model="filter.status">
+                        <option selected value="All">All</option>
+                        <option  value="Paid">Paid</option>
+                        <option  value="Unpaid">Unpaid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-2">
+                    <div class="form-group">
                       <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
                         Filter
+                      </button>
+                      <button
+                        type="button"
+                        @click="exportAllData()"
+                        class="btn btn-primary"
+                      >
+                        Export All
                       </button>
                     </div>
                   </div>
@@ -177,7 +195,13 @@
                         <button
                           type="button"
                           class="btn btn-success"
-                          @click="getPatientSessions('paid',e.getPaidPatientSessions,e.session_paid)"
+                          @click="
+                            getPatientSessions(
+                              'paid',
+                              e.getPaidPatientSessions,
+                              e.session_paid
+                            )
+                          "
                         >
                           {{ e.session_paid }}
                         </button>
@@ -186,7 +210,13 @@
                         <button
                           type="button"
                           class="btn btn-danger"
-                          @click="getPatientSessions('unpaid',e.getUnPaidPatientSessions,e.session_unpaid)"
+                          @click="
+                            getPatientSessions(
+                              'unpaid',
+                              e.getUnPaidPatientSessions,
+                              e.session_unpaid
+                            )
+                          "
                         >
                           {{ e.session_unpaid }}
                         </button>
@@ -267,7 +297,7 @@ export default {
       this.$router.push({ name: "/" });
     }
 
-    this.checkToken();
+    //this.checkToken();
     this.getDoctors();
   },
   components: {
@@ -276,14 +306,17 @@ export default {
   },
   data() {
     return {
+      getTotalExportResult: 0,
       totalNet: 0,
       totalPaid: 0,
       totalBalance: 0,
       patientSessionsPaymentList: [],
+      allPatientSessionsPaymentList: [],
       filter: {
         fdate: "",
         tdate: "",
         doctor: 0,
+        status: "",
       },
       series: [],
       chartOptions: {
@@ -341,6 +374,7 @@ export default {
       results: [],
       month: null,
       doctors_list: [],
+      cntAll: 0,
       token: localStorage.getItem("token"),
     };
   },
@@ -356,66 +390,18 @@ export default {
     },
   },
   methods: {
-    /* getDoctors() {
-      api.get('getDoctors')
-        .then(response => {
-          this.doctors = response.data
-        }).catch(error => {
-          if (error.response.data.message == 'Token has expired') {
-            this.$router.push({ name: '/' });
-            Toast.fire({
-              icon: 'error',
-              title: 'Token has expired'
-            })
-          }
-        });
-    }, */
     getPatientInformation() {
       axios
         .get("/api/getPxInfo/" + this.$route.params.id)
         .then(({ data }) => (this.user_info = data))
         .catch();
     },
-    editForm() {
-      let id = this.$route.params.id;
-      axios
-        .get("/api/getFormDetail/" + id)
-        .then(
-          ({ data }) => (
-            console.log("l " + data ? data : 0),
-            (this.form.o2_stat =
-              !Object.keys(data).length === 0 ? this.form.o2_stat : data.o2_stat),
-            (this.form.temp =
-              !Object.keys(data).length === 0 ? this.form.temp : data.temp),
-            (this.form.rr = !Object.keys(data).length === 0 ? this.form.rr : data.rr),
-            (this.form.bp = !Object.keys(data).length === 0 ? this.form.bp : data.bp),
-            (this.form.weight =
-              !Object.keys(data).length === 0 ? this.form.weight : data.weight),
-            (this.form.height =
-              !Object.keys(data).length === 0 ? this.form.height : data.height),
-            (this.form.chiefcomplaints =
-              !Object.keys(data).length === 0
-                ? this.form.chiefcomplaints
-                : data.chiefcomplaints)
-          )
-        )
-        .catch(console.log("error"));
-    },
     clickedShowDetailModal: function (value) {
       this.getSelectdeProduct = value;
       this.productList.product = this.getSelectdeProduct.product;
       this.productList.description = this.getSelectdeProduct.description;
-      //this.productList.qty = this.getSelectdeProduct.qty
       this.productList.price = this.getSelectdeProduct.price;
-      //this.productList.price = this.getSelectdeProduct.price
-      //this.productList.total = this.productList.qty * this.getSelectdeProduct.price
       this.productList.id = this.getSelectdeProduct.id;
-      /*  this.getSelectdeProduct.price = this.productList.price;
-       this.getSelectdeProduct.total = this.productList.price * this.productList.qty;
-       this.getSelectdeProduct.qty = this.productList.qty;       */
-
-      console.log(this.productList.qty);
-      // this.$emit('update', this.getSelectdeProduct)
     },
     calculateTotal() {
       this.productList.total = this.productList.price * this.productList.qty;
@@ -437,21 +423,17 @@ export default {
         .then((res) => {
           this.series = res.data.net[0].net;
           this.results = res.data.data;
-
           this.totalNet = res.data.totalNet;
           this.totalPaid = res.data.totalPaid;
           this.totalBalance = res.data.totalBalance;
-
-          /* this.results.forEach(e => {
-              this.total_sessions += parseFloat(e.sessions);
-          }) */
           this.series = res.data.net;
+          this.cntAll = res.data.cntAll;
+          this.allPatientSessionsPaymentList = res.data.getPatientAllSessions;
           this.chartOptions = {
             xaxis: {
               categories: res.data.month,
             },
           };
-
           this.month = moment(this.filter.date).format("MMMM YYYY");
           Toast.fire({
             icon: "success",
@@ -466,7 +448,7 @@ export default {
           })
         );
     },
-    checkToken() {
+    /* checkToken() {
       const headers = {
         Authorization: "Bearer ".concat(this.token),
       };
@@ -476,20 +458,20 @@ export default {
         })
         .then((res) => {})
         .catch((error) => console.log(error));
-    },
+    }, */
     getDoctors() {
       axios
         .get("/api/getDoctors")
         .then(({ data }) => (this.doctors_list = data))
         .catch();
     },
-    getPatientSessions(type,e,total) {
+    getPatientSessions(type, e, total) {
       this.patientSessionsPaymentList = e;
 
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
 
-        doc.text("Summary of "+type+" sessions of patients", 20, 12);
+        doc.text("Summary of " + type + " sessions of patients", 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
         doc.text("Total: " + total, 20, 20);
@@ -498,15 +480,49 @@ export default {
             fillColor: [65, 105, 225],
           },
           columnStyles: {
-            0: { cellWidth: 'auto' },
-            1: { cellWidth: 'auto' },
-            2: { cellWidth: 'auto' },
+            0: { cellWidth: "auto" },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
           },
           head: [["Patient", "No. of Sessions", "Sessions"]],
           margin: { top: 30 },
           body: e.map((user) => [user.name, user.cnt_sess, user.cnt]),
         });
         doc.save("generated.pdf");
+      });
+    },
+    exportAllData() {
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF("landscape");
+
+        let dr_data = this.allPatientSessionsPaymentList
+            .filter((user) =>
+              this.filter.doctor != 0 ? user.id === this.filter.doctor : user.id > 0
+            );
+
+        doc.text("PHIC-"+this.filter.status+" sessions", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        //doc.text("Total: " + dr_data.length, 20, 20);
+        doc.text("Total: " + this.cntAll , 20, 20);
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          columnStyles: {
+            0: { cellWidth: "auto" },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
+            3: { cellWidth: "auto" },
+          },
+          head: [["Patient", "No. of Sessions", "Sessions", "Doctor"]],
+          margin: { top: 30 },
+          body: dr_data
+            .map((user) => [user.name, user.cnt, user.dates, user.doc]),
+        });
+        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
+        
+        doc.save((this.filter.doctor!=0?check_dr.name:"ALL")+"_"+this.filter.status+".pdf");
       });
     },
   },

@@ -149,7 +149,7 @@ export default {
       progressStatus: true,
       showModal: false,
       filter: {
-        acpn: "11242023-12012023",
+        acpn: "",
         doctor: 0,
       },
       results: [],
@@ -222,7 +222,7 @@ export default {
             user.batch,
           ]),
         });
-        doc.save("generated.pdf");
+        doc.save("summary_of_acpn.pdf");
       });
     },
     exportByDctor() {
@@ -230,9 +230,13 @@ export default {
         const doc = new jsPDF();
         const myArray = this.filter.acpn.split(",");
 
+        const textBlockHeight = (doc.getLineHeight() * doc.text.length);
+        var height = 0;
+        var width = 0;
         doc.text("Summary of ACPN by Nephrologist", 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.text("Acpn/s: " + this.filter.acpn, 20, 20);
         doc.autoTable({
           headStyles: {
             fillColor: [65, 105, 225],
@@ -246,15 +250,26 @@ export default {
             user.ewt,
             user.net,
           ]),
+          didParseCell: function (HookData) {
+             // height = HookData.table.height
+          },
+          /* createdCell: function (cell, data) {
+              height = data.table.height
+          } */
+          didDrawPage: function(data) {
+            height = data.cursor.y;
+            width = data.cursor.x;
+            console.log(data.cursor)
+          }
         });
-        
+        /* console.log(width)
         doc.setFontSize(12).setFont(undefined, 'bold');
-        doc.text("25% Premier Sharing", 25, 140);
-        doc.text(""+this.getTx, 115, 140);
-        doc.text(""+this.getPf, 130, 140);
-        doc.text(""+this.getEwt, 160, 140);
-        doc.text(""+this.getNet, 180, 140);
-        doc.save("generated.pdf");
+        doc.text("25% Premier Sharing", 25, height+10);
+        doc.text(""+this.getTx, 85,  height+10);
+        doc.text(""+this.getPf, 101,  height+10);
+        doc.text(""+this.getEwt, 135,  height+10);
+        doc.text(""+this.getNet, 15,  height+10); */
+        doc.save("summary_of_acpn_by_nephro.pdf");
       });
     },
     getBatches() {

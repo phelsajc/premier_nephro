@@ -150,7 +150,7 @@
                   <tbody>
                     <tr v-for="e in results">
                       <td>
-                        {{ e.name }}  {{ e.pid }}
+                        {{ e.name }}
                       </td>
                       <td>
                         {{ e.sessions }}

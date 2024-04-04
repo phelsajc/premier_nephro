@@ -5,29 +5,65 @@
         <div class="modal-container">
           <div class="modal-header">
             <slot name="header">Update Status</slot>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="$emit('close')">
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+              @click="$emit('close')"
+            >
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <slot name="body">
-              <form class="user" @submit.prevent="updatePhic" enctype="multipart/form-data">
+              <form
+                class="user"
+                @submit.prevent="updatePhic"
+                enctype="multipart/form-data"
+              >
                 <div class="card-body">
                   <div class="form-group">
                     <label for="exampleInputEmail1">Batch</label>
-                    <select name="" id="" class="form-control" v-model="form.remarks" >
-                        <option v-for="e in batches" :value="e.batch">{{ e.batch }}</option>
+                    <select name="" id="" class="form-control" v-model="form.remarks">
+                      <option v-for="e in batches" :value="e.batch">{{ e.batch }}</option>
                     </select>
                     <input type="hidden" class="form-control" v-model="form.id" />
                   </div>
                   <div class="form-group">
                     <label for="exampleInputEmail1">ACPN</label>
-                    <input type="text" class="form-control" placeholder="Enter ACPN Numbere" v-model="form.acpn" />
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Enter ACPN Number"
+                      v-model="form.acpn"
+                    />
                     <input type="hidden" class="form-control" v-model="form.acpn" />
                   </div>
                   <div class="form-check">
-                    <input type="checkbox" class="form-check-input" v-model="form.status" />
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      v-model="form.status"
+                    />
                     <label class="form-check-label" for="exampleCheck1">Is Paid?</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      v-model="form.iscash"
+                    />
+                    <label class="form-check-label" for="exampleCheck1">Is Cash?</label>
+                  </div>
+                  <div class="form-group" v-if="form.iscash">
+                    <label for="exampleInputEmail1">Cash</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Enter Cash"
+                      v-model="form.cash"
+                    />
                   </div>
                 </div>
                 <div class="card-footer">
@@ -43,6 +79,7 @@
 </template>
 <script>
 import Datepicker from "vuejs-datepicker";
+import api from "../../Helpers/api";
 
 export default {
   props: {
@@ -64,7 +101,6 @@ export default {
     this.getSessionData();
   },
   data() {
-    
     return {
       batches: [],
       token: localStorage.getItem("token"),
@@ -73,51 +109,42 @@ export default {
         remarks: "",
         acpn: "",
         status: false,
+        iscash: false,
+        cash: 0,
       },
     };
   },
   methods: {
     updatePhic() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      };
-
-      axios
-        .post(
-          "/api/phic-update",
-          {
-            data: this.form,
-          },
-          {
-            headers: headers,
-          }
-        )
+      api.post("phic-update", this.form)
         .then((res) => {
-          // this.results = res.data
-          //this.month = moment(this.filter.date).format('MMMM YYYY')
           Toast.fire({
             icon: "success",
             title: "Saved successfully",
           });
           //close modal
-          this.$emit('close');
+          this.$emit("close");
         })
         .catch((error) => console.log(error));
     },
     getSessionData() {
-      api.get('phic-edit/'+this.form.id)
-        .then(response => {
-          console.log(response)
+      api
+        .get("phic-edit/" + this.form.id)
+        .then((response) => {
+          console.log(response);
           this.form.status = response.data.status == "PAID" ? true : false;
+          this.form.iscash = response.data.iscash;
           this.form.remarks = response.data.remarks;
           this.form.acpn = response.data.acpn_no;
-        }).catch(error => {
-          if (error.response.data.message == 'Token has expired') {
-            this.$router.push({ name: '/' });
+          this.form.cash = response.data.cash;
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
             Toast.fire({
-              icon: 'error',
-              title: 'Token has expired'
-            })
+              icon: "error",
+              title: "Token has expired",
+            });
           }
         });
 
@@ -144,16 +171,18 @@ export default {
         }); */
     },
     getBatches() {
-      api.get('/get-batches')
-        .then(response => {
-          this.batches = response.data
-        }).catch(error => {
-          if (error.response.data.message == 'Token has expired') {
-            this.$router.push({ name: '/' });
+      api
+        .get("/get-batches")
+        .then((response) => {
+          this.batches = response.data;
+        })
+        .catch((error) => {
+          if (error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
             Toast.fire({
-              icon: 'error',
-              title: 'Token has expired'
-            })
+              icon: "error",
+              title: "Token has expired",
+            });
           }
         });
     },

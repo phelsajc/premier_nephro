@@ -388,6 +388,8 @@ class CensusController extends Controller
             ");
         }
 
+        $cntAllUnpaid = 0;
+        $cntAllpaid = 0;
         $data_array = array();
         $monthArr = array();
         $netArr = array();
@@ -402,6 +404,8 @@ class CensusController extends Controller
             $net_arr2 = array();
 
             $month = date_format(date_create($value->schedule), 'Y-m');
+            $yearF = date_format(date_create($value->schedule), 'Y') . '-01';
+            $yearT = date_format(date_create($value->schedule), 'Y') . '-12';
             if ($request->data['doctor'] == 0) {
                 $getPaidData = DB::connection('mysql')->select("
                     SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and s.state = 'ACTIVE' 
@@ -455,6 +459,7 @@ class CensusController extends Controller
  where p.status = 'PAID' and p.state = 'ACTIVE' and  DATE_FORMAT(p.date_session, '%Y-%m') = '$month'
 group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
 
+
             $arr['month'] = date_format(date_create($value->schedule), 'F Y');
             $monthArr[] = date_format(date_create($value->schedule), 'F Y');
             $session = $value->cnt;
@@ -491,8 +496,12 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
             $net_arr2[] = $net;
             $net_arr['data'] = $net; //$net_arr2;
             $net_arr['name'] = "Net";
-            $arr['session_paid'] = $getPaidData ? $getPaidData[0]->cnt : 0;
-            $arr['session_unpaid'] = $getPaidData ? $session - $getPaidData[0]->cnt : 0;
+            $paidAmt = $getPaidData ? $getPaidData[0]->cnt : 0;
+            $unpaidAmt =  $getPaidData ? $session - $getPaidData[0]->cnt : 0;
+            $cntAllpaid+=$paidAmt;
+            $cntAllUnpaid+=$unpaidAmt;
+            $arr['session_paid'] =  $paidAmt;
+            $arr['session_unpaid'] = $unpaidAmt;
             $arr['total'] = $pnet;
             $arr['total_unpaid'] = $unpaid_pnet;
             $arr['balance'] = $balance;
@@ -509,8 +518,69 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
             $totalBalance += $balance;
         }
         //$datasets = array(["data"=>$data_array,'month'=>$month,'net'=>$netArr]);
+
+        if($request->data['status']=="Unpaid"){
+            $claimStatus = "p.status = 'UNPAID' and";
+        }elseif($request->data['status']=="Paid"){
+            $claimStatus = "p.status = 'PAID' and";
+        }else{
+            $claimStatus = " p.status in ('PAID','UNPAID')    and";
+        }
+        $getPatientAllSessions = DB::connection('mysql')->select(" 
+select c.name,p.patient_id,count(p.date_session) as cnt, p.doctor as docid,GROUP_CONCAT(DATE_FORMAT(p.date_session, '%M %d, %Y') SEPARATOR ',') as dates".
+",GROUP_CONCAT(p.date_session  SEPARATOR '|') as fdates".
+", GROUP_CONCAT( (select name from doctors where id = p.doctor group by name ) SEPARATOR ',') as doc-- , d.name
+       from phic p
+       left join patients c on p.patient_id = c.id 
+       where $claimStatus   state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m') between '$yearF'  and '$yearT'
+   group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
+
+ /*   $getPatientAllSessions = DB::connection('mysql')->select("  SELECT  c.name,count(s.date_session) as cnt, s.doctor as docid,GROUP_CONCAT(DATE_FORMAT(s.date_session, '%M %d, %Y') SEPARATOR ',') as dates
+, GROUP_CONCAT( (select name from doctors where id = s.doctor group by name ) SEPARATOR ',') as doc
+               FROM `phic` s
+       left join patients c on s.patient_id = c.id 
+       where
+       $claimStatus 
+        s.state = 'ACTIVE' 
+                    and DATE_FORMAT(s.date_session, '%Y-%m') between '$yearF'  and '$yearT'
+                    group by DATE_FORMAT(s.date_session, '%Y-%m'),s.patient_id; "); */
+        $cntAll = 0;
+        $formatAllSessions = array();
+        foreach ($getPatientAllSessions as $key => $value) {
+            $pid = $value->patient_id;
+            $skeds = explode("|",$value->fdates);
+            $sked_str = '';
+            foreach ($skeds as $skey => $svalue) {
+                $sked_str.="'".$svalue."',";
+            }
+            $str = implode(',', array_unique(explode(',',$value->doc)));
+            $sked_str=rtrim($sked_str, ", ");
+            $check_session = DB::connection('mysql')->select("Select * from schedule where patient_id = $pid and schedule in ($sked_str) and status = 'Active'");
+            $newDate = '';
+            foreach ($check_session as $ckey => $cvalue) {
+                $newDate .= date_format((date_create($cvalue->schedule)),'F d,Y').', ';
+            }
+
+            $arr = array();
+            $arr['cnt'] = count($check_session);//$value->cnt;
+            $arr['dates'] = $newDate;//$value->dates;
+            $arr['fdates'] = $value->fdates;
+            $arr['id'] = $value->docid;
+            $arr['check_session'] = $check_session;
+            $str = implode(',', array_unique(explode(',', $value->doc)));
+            $arr['doc'] = $str;
+            $arr['name'] = $value->name;
+            $cntAll +=count($check_session);
+            $formatAllSessions[] = $arr;
+        }
+
         $datasets = array();
         $datasets["data"] = $data_array;
+        $datasets['getPatientAllSessions'] = $formatAllSessions;
+        $datasets['cntAll'] = $cntAll;
+        //$datasets['cntAll'] = 0;
+        $datasets['allunpaid'] = $cntAllUnpaid;
+        $datasets['allpaid'] = $cntAllpaid;
         $datasets["month"] = $monthArr;
         $datasets["net"] = array(["name" => 'Net', 'data' => $netArr]); //$netArr;
         $datasets["totalNet"] = $totalNet;

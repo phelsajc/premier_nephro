@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://premier.census.net/api/',
+  //baseURL: 'http://premier.census.net/api/',
   //baseURL: 'http://rmci-testserver/api/',
-  //baseURL: 'http://DESKTOP-HKDISKR/api/',
+  baseURL: 'http://DESKTOP-HKDISKR/api/',
   //baseURL: 'http://premier_nephro.care.net/api/',ss
   headers: {
     'Content-Type': 'application/json',

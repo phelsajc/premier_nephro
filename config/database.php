@@ -49,7 +49,7 @@ return [
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '3306'),
             //'database' => env('DB_DATABASE', 'premier'),
-            'database' => env('DB_DATABASE', 'premier_20240201'),
+            'database' => env('DB_DATABASE', 'premier_20240403'),
             //'database' => env('DB_DATABASE', 'premier_live'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
@@ -58,6 +58,7 @@ return [
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
             //'prefix_indexes' => true,
+            
             'strict' => false,
             'engine' => null,
             /* 'options' => extension_loaded('pdo_mysql') ? array_filter([

@@ -373,6 +373,7 @@ class CopayController extends Controller
             $TotalNet = 0;
             $totalSesh = 0;
             $checkForVaron = false;
+            $checkForMarba = false;
 
             foreach ($data as $key => $value) {
                 $arr = array();
@@ -392,9 +393,13 @@ class CopayController extends Controller
                 $checkDr = Doctors::where(['id' => $value->doctor])->first();
                 $checkAttndgDr = Doctors::where(['id' => $value->attending_doctor])->first();
 
-                if ($value->doctor == 6) {
+                /* if ($value->doctor == 6) {
                     $checkForVaron = true;
-                }
+                } */
+                
+                if ($value->doctor == 5) {
+                    $checkForMarba = true;
+                } 
 
                 $arr['name'] = $value->name;
                 $arr['sessions'] = '';
@@ -406,6 +411,7 @@ class CopayController extends Controller
                 $arr_export['NEPHROLOGIST'] = $checkAttndgDr ? $checkAttndgDr->name : '';
                 $arr_export['PF'] = 150;
                 $arr_export['T/C'] = $value->doctor != $value->attending_doctor ? 'To Cover by ' . $checkDr->name : '';
+                $arr_export['tc'] = $value->doctor != $value->attending_doctor ?  $checkDr->name : '';
                 $arr_export[''] = '';
                 $total_copay = count($get_dates) * 150;
                 $net = $total_copay * 0.9;
@@ -423,11 +429,11 @@ class CopayController extends Controller
             $arr_export['PF'] = $tOTALSessionAMount;
             $arr_export['T/C'] = '';
             $arr_export[''] = sizeof($data); 
-            $arr_export['cnt'] = sizeof($data);
+            $arr_export['cnt'] = '';//sizeof($data);
             $arr_export['Dates'] = '';
             $data_array_export[] = $arr_export;
 
-            if ($checkForVaron) {
+            if ($checkForVaron||$checkForMarba) {
                 $tOTALSessionAMountNet = $tOTALSessionAMount * 0.95;
                 $arr_export['Date'] = '';
                 $arr_export['Name'] = '';
