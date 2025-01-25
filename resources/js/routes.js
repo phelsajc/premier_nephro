@@ -57,9 +57,13 @@ let patients_add = require('./components/patients/create.vue').default
 let doctors_list = require('./components/doctors/index.vue').default
 let doctors_add = require('./components/doctors/create.vue').default
 
-//Doctors
+//Batches
 let batch_list = require('./components/batch/index.vue').default
-let batch_add = require('./components/batch/create.vue').default
+let batch_add  = require('./components/batch/create.vue').default
+
+//Settings
+let settings_list = require('./components/settings/index.vue').default
+let settings_add = require('./components/settings/create.vue').default
 
 //CoPay
 let copay_list = require('./components/copay/index.vue').default
@@ -79,6 +83,7 @@ let phic_list = require('./components/phic/index.vue').default
 //Acpn
 let acpn_list = require('./components/acpn/index.vue').default
 let acpn_report = require('./components/acpn/report.vue').default
+let batch_report = require('./components/acpn/batch.vue').default
 
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
@@ -129,6 +134,10 @@ export const routes = [
     //Batches
     { path: '/batch_list', component: batch_list, name: 'batch_list' },
     { path: '/batch_add/:id', component: batch_add, name: 'batch_add' },
+    
+    //Batches
+    { path: '/settings_list', component: settings_list, name: 'settings_list' },
+    { path: '/settings_add/:id', component: settings_add, name: 'settings_add' },
 
 
     //Company
@@ -175,7 +184,8 @@ export const routes = [
 
     //Acpn
     { path: '/acpn_list', component: acpn_list, name: 'acpn_list' },    
-    { path: '/acpn_report', component: acpn_report, name: 'acpn_report' },    
+    { path: '/acpn_report', component: acpn_report, name: 'acpn_report' },  
+    { path: '/batch_report', component: batch_report, name: 'batch_report' },    
 
     //census
     { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },

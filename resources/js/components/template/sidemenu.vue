@@ -51,6 +51,13 @@
                     Company
                   </a></router-link>
               </li>
+              <li class="nav-item">
+                <router-link to="/settings_list"> <a href="#" class="nav-link"
+                    :class="{ 'active': this.$route.name == 'settings_list' || this.$route.name == 'settings_add' }">
+                    <i class="fas fa-equals"></i>
+                    Settings
+                  </a></router-link>
+              </li>
               <!-- <li class="nav-item">
                 <router-link to="/product_list"> <a href="#" class="nav-link"
                     :class="{ 'active': this.$route.name == 'product_list' || this.$route.name == 'product_add' }">
@@ -106,7 +113,7 @@
           </li>
 
           
-          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list' }">
+          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'batch_report' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list' }">
             <a href="#" class="nav-link"
               :class="{ 'active': this.$route.name == 'census_doctor' || this.$route.name == 'census_patient' }">
               <i class="fas fa-poll-h"></i>
@@ -142,6 +149,13 @@
                     :class="{ 'active': this.$route.name == 'acpn_list' }">
                     <i class="far fa-circle nav-icon"></i>
                     ACPN PER BATCH
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/batch_report" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
+                    :class="{ 'active': this.$route.name == 'batch_report' }">
+                    <i class="far fa-circle nav-icon"></i>
+                    BATCH
                   </a></router-link>
               </li>
 

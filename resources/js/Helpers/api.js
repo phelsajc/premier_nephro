@@ -1,10 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  //baseURL: 'http://premier.census.net/api/',
-  //baseURL: 'http://rmci-testserver/api/',
-  baseURL: 'http://DESKTOP-HKDISKR/api/',
-  //baseURL: 'http://premier_nephro.care.net/api/',ss
+  baseURL: 'http://premier.census.net/api/',
+  //baseURL: 'http://DESKTOP-HKDISKR/api/',
   headers: {
     'Content-Type': 'application/json',
     'Authorization': "Bearer ".concat(localStorage.getItem('token')),

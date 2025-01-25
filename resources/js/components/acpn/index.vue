@@ -428,7 +428,7 @@ export default {
         const doc = new jsPDF('landscape');
         doc.text("ACPN REPORT", 20, 12);
         doc.text(this.filter.batch, 20, 20);
-        doc.text(this.getDoctor.name, 20, 26);
+        //doc.text(this.getDoctor.name, 20, 26);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 29);
         doc.setFontSize(8);

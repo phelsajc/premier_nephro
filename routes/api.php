@@ -157,6 +157,7 @@ Route::match(['get','post'],'phic-summary-report','PHICController@report_summary
 #acpn
 Route::match(['get','post'],'acpn-report','PHICController@acpn_report');
 Route::match(['get','post'],'acpn-report-list','PHICController@acpn_report_list');
+Route::match(['get','post'],'batch-report-list','PHICController@batch_report_list');
 
 #Census
 Route::match(['get','post'],'census-report','CensusController@report');
@@ -166,6 +167,12 @@ Route::match(['get','post'],'revenue-report','CensusController@revenue');
 #Census
 Route::match(['get','post'],'log-report','LogsController@report');
 
+#Settings
+Route::match(['get','post'],'settings-add','SettingsController@store');
+Route::match(['get','post'],'settings-update','SettingsController@update');
+Route::match(['get','post'],'settings','SettingsController@index');
+Route::match(['get','post'],'settings-detail/{id}','SettingsController@edit');
+Route::match(['get','post'],'settings-delete/{id}','SettingsController@delete');
 
 
 

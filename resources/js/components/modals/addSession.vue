@@ -36,6 +36,10 @@
                       <option v-for="e in doctors" :value="e.id">{{ e.name }}</option>
                     </select>
                   </div>
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Free Co-PAY</label>
+                    <input type="checkbox" name="" value="" v-model="form.free_copay" :checked="form.free_copay">
+                  </div>
                 </div>
                 <div class="card-footer">
                   <button type="submit" class="btn btn-primary">Submit</button>
@@ -69,6 +73,10 @@ export default {
             type: Number,
             default: 0
         },
+        freeCopay: {
+          type: Boolean,
+          default: false
+        }
   },
   components: {
     Datepicker,
@@ -110,6 +118,7 @@ export default {
     return {
       form: {
         searchVal: null,
+        free_copay: this.freeCopay,
         schedule: this.scheduleDate,
         doctor: this.doctorId,
         originalDate: this.scheduleDate,
@@ -175,7 +184,7 @@ export default {
               icon: 'success',
               title: 'Saved successfully'
             });
-            
+            this.form.free_copay = false;
             if(response.data){
               alert("Duplicate schedule. Cannot save record!")
             }
@@ -196,6 +205,7 @@ export default {
               icon: 'success',
               title: 'Saved successfully'
             });            
+            this.form.free_copay = false;
           }).catch(error => {
           if (error.response.data.message == 'Token has expired') {
             this.$router.push({ name: '/' });

@@ -37,8 +37,6 @@
                         name="date"
                         required
                         input-class="dpicker"
-                        :minimumView="'month'"
-                        :maximumView="'month'"
                         v-model="filter.fdate"
                         :bootstrap-styling="true"
                       ></datepicker>
@@ -48,12 +46,19 @@
                   <div class="col-sm-2">
                     <div class="form-group">
                       <label>To Date</label>
-                      <datepicker
+                      <!-- <datepicker
                         name="date"
                         required
                         input-class="dpicker"
                         :minimumView="'month'"
                         :maximumView="'month'"
+                        v-model="filter.tdate"
+                        :bootstrap-styling="true"
+                      ></datepicker> -->
+                      <datepicker
+                        name="date"
+                        required
+                        input-class="dpicker"
                         v-model="filter.tdate"
                         :bootstrap-styling="true"
                       ></datepicker>
@@ -74,7 +79,7 @@
 
                   <div class="col-sm-2">
                     <div class="form-group">
-                      <label>Status</label>
+                      <label>Status for Export</label>
                       <select class="form-control" v-model="filter.status">
                         <option selected value="All">All</option>
                         <option  value="Paid">Paid</option>
@@ -112,7 +117,7 @@
                       <th rowspan="2" style="text-align: center">Total Unpaid</th>
                       <th rowspan="2" style="text-align: center">Total Paid Session</th>
                       <th rowspan="2" style="text-align: center">Total Unpaid Session</th>
-                      <th rowspan="2" style="text-align: center">Balance</th>
+                      <!-- <th rowspan="2" style="text-align: center">Balance</th> -->
                     </tr>
                     <tr>
                       <th></th>
@@ -132,7 +137,7 @@
                       <th></th>
                       <th></th>
                       <th></th>
-                      <th></th>
+                      <!-- <th></th> -->
                     </tr>
                   </thead>
                   <tbody>
@@ -199,7 +204,8 @@
                             getPatientSessions(
                               'paid',
                               e.getPaidPatientSessions,
-                              e.session_paid
+                              e.session_paid,
+                              e.total_paid_for_summary
                             )
                           "
                         >
@@ -214,21 +220,22 @@
                             getPatientSessions(
                               'unpaid',
                               e.getUnPaidPatientSessions,
-                              e.session_unpaid
+                              e.session_unpaid,
+                              e.total_unpaid_for_summary
                             )
                           "
                         >
                           {{ e.session_unpaid }}
                         </button>
                       </td>
-                      <td>
+                      <!-- <td>
                         {{
                           e.balance
                             .toFixed(2)
                             .toString()
                             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }}
-                      </td>
+                      </td> -->
                     </tr>
                     <tr>
                       <td></td>
@@ -260,6 +267,12 @@
                             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }}
                       </td>
+                      <td>
+                        {{ total_sessions }}
+                      </td>
+                      <td>
+                        
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -286,7 +299,7 @@
 
 <script type="text/javascript">
 import Datepicker from "vuejs-datepicker";
-import moment from "moment";
+import moment from 'moment-timezone';
 import ApexCharts from "apexcharts";
 import VueApexCharts from "vue-apexcharts";
 import jsPDF from "jspdf";
@@ -376,6 +389,8 @@ export default {
       doctors_list: [],
       cntAll: 0,
       token: localStorage.getItem("token"),
+      getAllPaid: 0,
+      getAllUnPaid: 0,
     };
   },
   computed: {
@@ -407,6 +422,22 @@ export default {
       this.productList.total = this.productList.price * this.productList.qty;
     },
     showReport() {
+      const timezone = 'Asia/Manila';
+      const bfdate =  this.filter.fdate
+      const btdate =  this.filter.tdate
+      this.filter.fdate = moment.tz(this.filter.fdate, timezone).format('YYYY-MM-DD')
+      this.filter.tdate = moment.tz(this.filter.tdate, timezone).format('YYYY-MM-DD')
+      
+      this.getAllPaid = [];
+          this.getAllUnPaid = [];
+          this.series = [];
+          this.results = [];
+          this.totalNet = [];
+          this.totalPaid = [];
+          this.totalBalance = 0;
+          this.series = [];
+          this.cntAll = 0;
+          this.allPatientSessionsPaymentList = [];
       const headers = {
         Authorization: "Bearer ".concat(this.token),
       };
@@ -421,6 +452,8 @@ export default {
           }
         )
         .then((res) => {
+          this.getAllPaid = res.data.allpaid;
+          this.getAllUnPaid = res.data.allunpaid;
           this.series = res.data.net[0].net;
           this.results = res.data.data;
           this.totalNet = res.data.totalNet;
@@ -439,6 +472,11 @@ export default {
             icon: "success",
             title: "Saved successfully",
           });
+          
+          this.filter.fdate = moment(bfdate).format("DD MMMM YYYY");
+          
+          this.filter.tdate = moment(btdate).format("DD MMMM YYYY");
+          
         })
         .catch(
           (error) => console.log(error),
@@ -448,33 +486,26 @@ export default {
           })
         );
     },
-    /* checkToken() {
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      };
-      axios
-        .get("/api/validate", {
-          headers: headers,
-        })
-        .then((res) => {})
-        .catch((error) => console.log(error));
-    }, */
     getDoctors() {
       axios
         .get("/api/getDoctors")
         .then(({ data }) => (this.doctors_list = data))
         .catch();
     },
-    getPatientSessions(type, e, total) {
+    getPatientSessions(type, e, total, total_unpaid) {
       this.patientSessionsPaymentList = e;
 
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
 
-        doc.text("Summary of " + type + " sessions of patients", 20, 12);
+        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
+        let forwho = this.filter.doctor!=0?check_dr.name:"ALL";
+        doc.text("Summary of " + type + " sessions of patients for "+forwho, 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
-        doc.text("Total: " + total, 20, 20);
+        doc.text("Total Session/s: " + total, 20, 20);
+        doc.text("Total: " + total_unpaid, 20, 24);
+        doc.text("Period from" + moment(this.filter.fdate).format("MMMM YYYY") + " to " + moment(this.filter.tdate).format("MMMM YYYY") , 20, 28);
         doc.autoTable({
           headStyles: {
             fillColor: [65, 105, 225],
@@ -483,10 +514,11 @@ export default {
             0: { cellWidth: "auto" },
             1: { cellWidth: "auto" },
             2: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
           },
-          head: [["Patient", "No. of Sessions", "Sessions"]],
+          head: [["Patient", "No. of Sessions", "Sessions", "Amount"]],
           margin: { top: 30 },
-          body: e.map((user) => [user.name, user.cnt_sess, user.cnt]),
+          body: e.map((user) => [user.name, user.cnt_sess, user.cnt, user.amt]),
         });
         doc.save("generated.pdf");
       });
@@ -499,12 +531,28 @@ export default {
             .filter((user) =>
               this.filter.doctor != 0 ? user.id === this.filter.doctor : user.id > 0
             );
+            /* .filter((user) =>
+              user.id === 2
+            ); */
 
-        doc.text("PHIC-"+this.filter.status+" sessions", 20, 12);
+            let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
+            let amount = 0;
+            if(this.filter.status=='All'){
+                amount = this.getAllPaid + this.getAllUnPaid;
+            }else if(this.filter.status=='Paid'){
+                amount = this.getAllPaid;
+            }else if(this.filter.status=='Unpaid'){
+                amount = this.getAllUnPaid;
+            }
+
+            let forwho = this.filter.doctor!=0?check_dr.name:"ALL";
+
+        doc.text("PHIC-"+this.filter.status+" sessions for "+forwho, 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
         //doc.text("Total: " + dr_data.length, 20, 20);
-        doc.text("Total: " + this.cntAll , 20, 20);
+        doc.text("Total: " + amount , 20, 20);
+        doc.text("Period from" + moment(this.filter.fdate).format("MMMM YYYY") + " to " + moment(this.filter.tdate).format("MMMM YYYY") , 20, 24);
         doc.autoTable({
           headStyles: {
             fillColor: [65, 105, 225],
@@ -520,7 +568,6 @@ export default {
           body: dr_data
             .map((user) => [user.name, user.cnt, user.dates, user.doc]),
         });
-        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
         
         doc.save((this.filter.doctor!=0?check_dr.name:"ALL")+"_"+this.filter.status+".pdf");
       });

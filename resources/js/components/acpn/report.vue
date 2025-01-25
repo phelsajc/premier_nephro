@@ -241,7 +241,7 @@ export default {
           headStyles: {
             fillColor: [65, 105, 225],
           },
-          head: [["Nephrologist", "TX", "PF", "EWT", "NET"]],
+          head: [["Nephrologist", "TXxx", "PF", "EWT", "NET"]],
           margin: { top: 30 },
           body: this.resultsAcpnDctr.map((user) => [
             user.nephro,

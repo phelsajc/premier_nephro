@@ -150,7 +150,7 @@
                       <td>
                         {{ e.session }}
                       </td>
-                      <td>150</td>
+                      <td>250</td>
                       <td>
                         {{ e.total_amount }}
                       </td>
@@ -305,7 +305,7 @@ export default {
         const doc = new jsPDF();
         // Save or open the PDF
         doc.text("Summary of Nephros(Co-Pay)", 20, 12);
-        doc.text("for the month of " + this.month, 20, 20);
+        doc.text("for the month of " + moment(this.filter.fdate).format("MMMM DD, YYYY") + " to " + moment(this.filter.tdate).format("MMMM DD, YYYY"), 20, 20);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
         doc.autoTable({
           head: [
@@ -353,7 +353,8 @@ export default {
         const doc = new jsPDF();
         // Save or open the PDF
         doc.text("Summary of Co-PAY for "+d.name, 20, 12);
-        doc.text("for the month of " + this.month, 20, 20);
+        //doc.text("for the month of " + this.month, 20, 20);
+        doc.text("from  " + this.filter.fdate+ " to " + this.filter.tdate, 20, 20);
         doc.setFontSize(9);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
         doc.autoTable({
@@ -387,7 +388,7 @@ export default {
         decimalSeparator: ".",
         showLabels: true,
         showTitle: true,
-        title: "Summary of Nephros(Co - Pay) \n for the month of " + this.getMonthTitle,
+        title: "Summary of Nephros(Co - Pay) \n for the month of " + this.filter.fdate+ " to " + this.filter.tdate,
         useTextFile: false,
         useBom: true,
         useKeysAsHeaders: true,

@@ -12,6 +12,7 @@ use App\Model\Patients;
 use App\Model\FailedSchedule;
 use App\Model\Phic;
 use App\Model\Transaction_log;
+use App\Model\Settings;
 use DB;
 
 class ScheduleController extends Controller
@@ -175,11 +176,14 @@ class ScheduleController extends Controller
     public function store(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
+        $copay_settings = Settings::where(['name'=>'copay'])->first();
         $check_data = Schedule::where(['patient_id'=>$request->patientid,'status'=>'ACTIVE','schedule'=>date_format(date_create($request->schedule),'Y-m-d')])->first();
         if(!$check_data){
             $p = new Schedule;
             $p->patient_id = $request->patientid;
             $p->schedule = $request->schedule;
+            $p->free_copay = $request->free_copay;            
+            $p->created_dt = date("Y-m-d");
             $pxDctr = Patients::where(['id'=>$request->patientid])->first();
             $p->doctor = $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor;
             $p->save();          
@@ -190,6 +194,8 @@ class ScheduleController extends Controller
             $c->created_by =  auth()->id();
             $c->doctor = $p->doctor;
             $c->patient_id = $p->patient_id;
+            $c->free = $request->free_copay;
+            $c->amount = $copay_settings->value;
             $c->save();  
 
             $ph = new Phic;
@@ -227,10 +233,12 @@ class ScheduleController extends Controller
 
         Schedule::where(['id'=>$request->sessid])->update([
             'schedule'=> $request->schedule,
+            'free_copay'=> $request->free_copay,
             'doctor'=> $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor,
         ]);
         $copay = Copay::where(['date_session'=>$request->originalDate,'patient_id'=>$request->pxid,'status'=>'ACTIVE'])->first();
         Copay::where(['id'=>$copay->id])->update([
+            'free'=> $request->free_copay,
             'date_session'=> $request->schedule,
             'doctor'=> $request->doctor!=0?$request->doctor:$pxDctr->attending_doctor,
         ]);

@@ -123,7 +123,7 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Total UnpAID Session:</dt>
-                  <dd class="col-sm-8">{{ unpaid }}</dd>
+                  <dd class="col-sm-8">{{ totalUnpaid }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-sm-2">Doctor:</dt>
@@ -228,7 +228,7 @@
 
 <script type="text/javascript">
 import Datepicker from "vuejs-datepicker";
-import moment from "moment";
+import moment from 'moment-timezone';
 import { ExportToCsv } from "export-to-csv";
 import api from "../../Helpers/api";
 
@@ -263,6 +263,7 @@ export default {
       getTotalPaidClaims: 0,
       getMonthTitle: "",
       token: localStorage.getItem("token"),
+      totalUnpaid: 0,
     };
   },
   computed: {
@@ -310,6 +311,12 @@ export default {
     },
     showReport() {
       if (this.filter.doctors != "summary") {
+        
+      const bfdate =  this.filter.fdate
+      const btdate =  this.filter.tdate
+      const timezone = 'Asia/Manila';
+      this.filter.fdate = moment.tz(this.filter.fdate, timezone).format('YYYY-MM-DD')
+      this.filter.tdate = moment.tz(this.filter.tdate, timezone).format('YYYY-MM-DD')
         this.progressStatus = false;
         api
           .post("phic-report", this.filter)
@@ -319,11 +326,16 @@ export default {
             this.results = response.data.data;
             this.export = response.data.export;
             this.month = moment(this.filter.date).format("MMMM YYYY");
+            this.totalUnpaid = response.data.totalUnpaid;
             Toast.fire({
               icon: "success",
               title: "Saved successfully",
             });
             this.progressStatus = true;
+          
+          this.filter.fdate = moment(bfdate).format("DD MMMM YYYY");
+          
+          this.filter.tdate = moment(btdate).format("DD MMMM YYYY");
           })
           .catch((error) => {
             if (error.response.data.message == "Token has expired") {

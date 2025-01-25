@@ -254,6 +254,7 @@ class PHICController extends Controller
                 $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->schedule), 'Y-m-d');
                 $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
+                $date_of_sessionsArr_set['data_sessions'] = $data_sessions;
                 $date_of_sessionsArr_set['updatedBy'] = $data_sessions ? ($data_sessions[0]->updated_by ? Helper::userDetail($data_sessions[0]->updated_by)->name . ' on ' . date_format(date_create($data_sessions[0]->updated_dt), 'F d,Y') : '') : '';
                 $date_of_sessions .= date_format(date_create($gvalue->schedule), 'F d') . ', ';
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
@@ -311,7 +312,8 @@ class PHICController extends Controller
             left join phic c on c.patient_id  = s.patient_id 
             where c.date_session between '$fdate' and '$tdate'  and 
             s.status = 'ACTIVE' and
-            c.acpn_no is not null
+            c.acpn_no is not null and
+            remarks like '%$request->batch%'
             and s.doctor = $doctors
             group by s.patient_id, c.acpn_no order by p.name;
             ");
@@ -322,7 +324,8 @@ class PHICController extends Controller
             left join phic c on c.patient_id  = s.patient_id 
             where c.date_session between '$fdate' and '$tdate'  and 
             s.status = 'ACTIVE' and
-            c.acpn_no is not null
+            c.acpn_no is not null and
+            remarks like '%$request->batch%'
             group by s.patient_id, c.acpn_no order by p.name;
             ");
             $getDoctor = Doctors::all();
@@ -361,7 +364,7 @@ class PHICController extends Controller
                 $arr['nephro'] = $value->name;
                 $arr['sess'] = $getDoctor_sessions[0]->count;
                 $arr['amount'] = "350";
-                $arr['total'] = number_format($total_amt, 2).'xxxx';
+                $arr['total'] = number_format($total_amt, 2);
                 $arr['tx'] = number_format($total_amt_tx, 2);
                 $arr['net'] = number_format($total_amt_net, 2);
 
@@ -685,6 +688,9 @@ class PHICController extends Controller
 
         foreach ($getDoctors as $key => $getdvalue) {
                 $getCnt = 0;
+                $getPf = 0;
+                $getewt = 0;
+                $getnet = 0;
             //foreach ($acpn as $key => $value) {
                /*  $acpn_by_doctor = DB::connection('mysql')->select(" 
                 select *,count(doctor) as cnt from phic where acpn_no = '$value'" . " and doctor = " . $getdvalue->id .
@@ -702,7 +708,9 @@ class PHICController extends Controller
                     $totalPf += $pf;
                     $totalEwt += $ewt;
                     $totalNet += $net;
-
+                    $getPf = $pf;
+                    $getewt = $ewt;
+                    $getnet = $net;
                     $getCnt = $value->cnt;
 
                // }
@@ -710,9 +718,9 @@ class PHICController extends Controller
             }
             $arrAcpnDctr['nephro'] = Helper::doctorzDetail($getdvalue->id)->name;
             $arrAcpnDctr['tx'] = $getCnt;
-            $arrAcpnDctr['pf'] = number_format($pf, 2);
-            $arrAcpnDctr['ewt'] = $ewt;
-            $arrAcpnDctr['net'] = $net;
+            $arrAcpnDctr['pf'] = number_format($getPf, 2);//number_format($pf, 2);
+            $arrAcpnDctr['ewt'] = $getewt;//$ewt;
+            $arrAcpnDctr['net'] = $getnet;//$net;
             $data_arrayAcpn_dctr[] = $arrAcpnDctr;
         }
 
@@ -954,9 +962,79 @@ class PHICController extends Controller
         $reportTitle = date_format(date_create($request->fdate), 'F Y');
         $datasets["month"] = $reportTitle;
         return response()->json($datasets);
+    }
+    
+    public function batch_report_list(Request $request)
+    {
+        //$acpn = explode(',', $request->batches);
+        $strBatches = '';
+        $strAcpn = '';
+        foreach ($request->batches as $key => $value) {
+            $strAcpn .= "'".$value . "',";
+        }
+        $strBatches = rtrim($strAcpn, ",");
+        $data_array = array();
+        $total_amount = 0;
+        $total_session = 0;
+        $total_tax = 0;
+        $total_sharing = 0;
+        $total_net = 0;
+        $doctor_id = $request->doctor;
+        $extend_script = $doctor_id != 0 ? " and doctor=" . $doctor_id : "";
 
+        //$batch_query = DB::connection('mysql')->select(" SELECT COUNT(acpn_no) as cnt_acpn,acpn_no,remarks from phic where remarks  in ($strBatches) and state = 'ACTIVE' and  date_session between '2022-02-01' and '2022-12-31' and status = 'PAID' group by acpn_no order by remarks asc");
 
+        $batch_query = DB::connection('mysql')->select(" SELECT COUNT(acpn_no) as cnt_acpn,acpn_no,remarks from phic where remarks  in ($strBatches) and state = 'ACTIVE' and status = 'PAID' group by acpn_no order by remarks asc");
 
+        foreach ($batch_query as $key => $value) {
+            $arr = array();
+            $arr['acpn'] = $value->acpn_no;
+            $arr['no_of_sessions'] = $value->cnt_acpn;
+            $amt = $value->cnt_acpn * 2250;
+            //$less_tax = $amt * 0.25;
+            $less_tax = $amt * 0.25;
+            $sharing_less_tax = $less_tax * 0.05;
+            //$net = $amt - $less_tax;
+            $net = $less_tax * 0.95;
+            $arr['amount'] = number_format($amt, 2);
+            //$arr['less_tax'] = number_format($less_tax, 2);
+            $arr['less_tax'] = number_format($sharing_less_tax, 2);
+            $arr['sharing'] = number_format($less_tax, 2);
+            $arr['net'] = number_format($net, 2);
+            $arr['batch'] = $value->remarks;
+            $data_array[] = $arr;
+            $total_session+=$value->cnt_acpn;
+            $total_amount+=$amt;
+            //$total_tax+=$less_tax;
+            $total_tax+=$sharing_less_tax;
+            $total_net+=$net;
+            $total_sharing+=$less_tax;
+        }
+
+        $new_data_array = array();
+        $new_data_array['acpn'] = 'Total';
+        $new_data_array['no_of_sessions'] = $total_session;
+        $new_data_array['amount'] = number_format($total_amount, 2);
+        $new_data_array['sharing'] = number_format($total_sharing, 2);
+        $new_data_array['less_tax'] = number_format($total_tax, 2);
+        $new_data_array['net'] = number_format($total_net, 2);
+        $new_data_array['batch'] = '';
+        $data_array[] = $new_data_array;
+
+        $total_details = array();
+        $total_details['acpn'] = 'Total';
+        $total_details['no_of_sessions'] = $total_session;
+        $total_details['amount'] = $total_amount;
+        $total_details['sharing'] = number_format($total_sharing, 2);
+        $total_details['less_tax'] = $total_tax;
+        $total_details['net'] = number_format($total_net, 2);
+        $total_details['batch'] = '';
+
+        $datasets = array();
+        $datasets["data"] = $data_array;
+        $datasets["details"] = $total_details;
+         
+        return response()->json($datasets);
     }
 }
 

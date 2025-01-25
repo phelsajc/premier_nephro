@@ -146,7 +146,7 @@
                           type="button"
                           class="btn btn-warning"
                           @click="
-                            editSchedule(e.schedule_id, e.doctor_id, e.schedule, e.pid);
+                            editSchedule(e.schedule_id, e.doctor_id, e.schedule, e.pid,e.copay);
                             showModal = true;
                           "
                         >
@@ -177,6 +177,7 @@
           :doctorId="doctorid"
           :scheduleDate="scheduledt"
           :patientid="pid"
+          :freeCopay="freeCopay"
           v-on:close="showReport"
         ></addSessionModal>
       </section>
@@ -210,6 +211,7 @@ export default {
       pid: null,
       doctorid: null,
       scheduledt: null,
+      freeCopay: false,
       showModal: false,
       filter: {
         fdate: "",
@@ -300,11 +302,12 @@ export default {
       this.showReport();
       //this.sortTable('dates')
     },
-    editSchedule(id, doctor, sd, p) {
+    editSchedule(id, doctor, sd, p,f) {
       this.getScheduleId = id;
       this.doctorid = doctor;
       this.scheduledt = sd;
       this.pid = p;
+      this.freeCopay=f;
     },
     deleteSchedule(id) {
       Swal.fire({
@@ -351,13 +354,15 @@ export default {
           head: [
             [
               "Patients",
+              "Doctor",
               "Date",
             ],
           ],
           margin: { top: 30 },
           body: this.results.map((user) => [
             user.name,
-            user.datesArr2,
+            user.doctor,
+            user.dates,
           ]),
         });
         doc.save("report_" + this.getMonthTitle + ".pdf");

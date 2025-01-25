@@ -9,6 +9,7 @@ use App\Model\Schedule;
 use App\Model\Copay;
 use App\Model\Doctors;
 use App\Model\Patients;
+use App\Model\Settings;
 use App\Model\Phic;
 use DB;
 
@@ -147,16 +148,9 @@ class CopayController extends Controller
         $fdate = date_format(date_create($request->fdate),'Y-m-d');
         $tdate = date_format(date_create($request->tdate),'Y-m-d');
         $doctors = $request->doctors;
+        $copay_settings = Settings::where(['name'=>'copay'])->first();
         $getDoctor = Doctors::where(["id"=>$doctors])->first();
         if($doctors!='All'){
-            /* $data =  DB::connection('mysql')->select("
-            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
-                FROM `schedule` s
-                left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') between '$date' and
-                s.doctor = $doctors and s.status = 'ACTIVE'
-                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
-            "); */
             $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
                 FROM `schedule` s
@@ -165,13 +159,6 @@ class CopayController extends Controller
                 s.doctor = $doctors and s.status = 'ACTIVE'
             ");
         }else{
-            /* $data =  DB::connection('mysql')->select("
-            SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
-                FROM `schedule` s
-                left join patients p on s.patient_id = p.id
-                where DATE_FORMAT(s.schedule, '%Y-%m') = '$date' and s.status = 'ACTIVE'
-                group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;
-            "); */
             $data =  DB::connection('mysql')->select("
             SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id,s.doctor
                 FROM `schedule` s
@@ -189,10 +176,6 @@ class CopayController extends Controller
         foreach ($data as $key => $value) {
             $arr = array();
             $arr_export = array();
-            /* $get_dates = DB::connection('mysql')->select("
-            SELECT schedule from schedule
-                where DATE_FORMAT(schedule, '%Y-%m') = '$date' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
-            "); */
             $get_dates = DB::connection('mysql')->select("
             SELECT schedule from schedule
                 where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
@@ -204,8 +187,6 @@ class CopayController extends Controller
                 $date_of_sessions.=date_format(date_create($gvalue->schedule),'F d').', ';
             }
             $checkDr =  Doctors::where(['id'=>$value->doctor])->first();
-            /*
-            $arr_export['Doctor'] =   */
             $arr['name'] =  $value->name;
             $arr['sessions'] =  $value->cnt;
             $arr['dates'] =  $date_of_sessions;
@@ -214,23 +195,14 @@ class CopayController extends Controller
             $arr_export['Date'] = date_format(date_create($value->schedule),'m/d/Y');
             $arr_export['Name'] =  $value->name;
             $arr_export['Doctor'] =  $checkDr->name;
-            $arr_export['Amount'] = 150;
-            //$arr_export['No. of Sessions'] = count($get_dates); //$value->cnt;
-            //$arr_export['Dates'] =  $date_of_sessions;
-            $total_copay = count($get_dates) * 150;
-            //$arr_export['Total'] =  $total_copay;
+            $arr_export['Amount'] = $copay_settings->value;// 150;
+            $total_copay = count($get_dates) *  $copay_settings->value;// 150;
             $net = $total_copay * 0.9;
             $data_array_export[] = $arr_export;
             $TotalNet+=$net;
             $totalSesh+=$value->cnt;
             $date_of_sessions = '';
         }
-        /* $datasets = array(["data"=>$data_array,"Doctors"=>$getDoctor,'dd'=>"SELECT p.name,DATE_FORMAT(s.schedule, '%Y-%m'), count(s.patient_id) as cnt, s.patient_id,s.schedule,s.id
-        FROM `schedule` s
-        left join patients p on s.patient_id = p.id
-        where s.schedule between '$fdate' and '$tdate' and s.status = 'ACTIVE'
-        group by DATE_FORMAT(s.schedule, '%Y-%m'),s.patient_id;"]);
-        return response()->json($data_array); */
 
         $datasets = array();
         
@@ -238,7 +210,7 @@ class CopayController extends Controller
         $arr_export['Date'] = '';
         $arr_export['Name'] =  '';
         $arr_export['Doctor'] = 'Total';
-        $tOTALSessionAMount = $totalSesh*150;
+        $tOTALSessionAMount = $totalSesh* $copay_settings->value;// 150;
         $tOTALSessionAMountNet = $tOTALSessionAMount*0.9;
         $arr_export['Amount'] = $tOTALSessionAMount;
         $data_array_export[] = $arr_export;
