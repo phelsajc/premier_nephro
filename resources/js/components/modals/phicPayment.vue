@@ -66,6 +66,52 @@
                     />
                   </div>
                 </div>
+                <div class="form-group">
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      id="Denied"
+                      value="Denied"
+                      v-model="form.claimStatus"
+                    />
+                    <label class="form-check-label" for="Denied">Denied</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      id="RTH"
+                      value="RTH"
+                      v-model="form.claimStatus"
+                    />
+                    <label class="form-check-label" for="RTH">RTH</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      id="Expired"
+                      value="Expired"
+                      v-model="form.claimStatus"
+                    />
+                    <label class="form-check-label" for="Expired">Expired</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      id="Unpaid"
+                      value="Unpaid"
+                      v-model="form.claimStatus"
+                    />
+                    <label class="form-check-label" for="Unpaid">Unpaid</label>
+                  </div>
+                </div>
                 <div class="card-footer">
                   <button type="submit" class="btn btn-primary">Submit</button>
                 </div>
@@ -111,12 +157,14 @@ export default {
         status: false,
         iscash: false,
         cash: 0,
+        claimStatus: 'Unpaid'
       },
     };
   },
   methods: {
     updatePhic() {
-      api.post("phic-update", this.form)
+      api
+        .post("phic-update", this.form)
         .then((res) => {
           Toast.fire({
             icon: "success",
@@ -137,6 +185,7 @@ export default {
           this.form.remarks = response.data.remarks;
           this.form.acpn = response.data.acpn_no;
           this.form.cash = response.data.cash;
+          this.form.claimStatus = response.data.claimStatus;
         })
         .catch((error) => {
           if (error.response.data.message == "Token has expired") {

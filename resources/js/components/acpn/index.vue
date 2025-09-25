@@ -113,7 +113,7 @@
                 <dl class="row">
                   <dt class="col-sm-2">Total Amount:</dt>
                   <dd class="col-sm-8">
-                    {{ totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
+                    {{ total_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
                   </dd>
                 </dl>
                 <dl class="row">
@@ -246,6 +246,9 @@ export default {
     total_sessions() {
       return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
     },
+    total_amount() {
+      return this.results.reduce((sum, item) => sum + parseFloat(item.total), 0);
+    },
     getDoctor() {
       return this.doctors_list.find((e) => e.id == this.filter.doctors);
     },
@@ -289,6 +292,7 @@ export default {
           this.getPaidClaims = response.data.getPaidClaims;
           this.results = response.data.data;
           this.export = response.data.export;
+          this.total_sessions = response.data.total_acpn_amt;
           this.month = moment(this.filter.date).format("MMMM YYYY");
           Toast.fire({
             icon: "success",
@@ -364,7 +368,6 @@ export default {
             [
               "Nephrologist",
               "No. of Sessions",
-              "Amount",
               "Total Amount",
               "Less with Tax",
               "Net",
@@ -374,7 +377,6 @@ export default {
           body: this.pdf.map((user) => [
             user.nephro,
             user.sess,
-            "350",
             user.total,
             user.tx,
             user.net,
@@ -428,7 +430,7 @@ export default {
         const doc = new jsPDF('landscape');
         doc.text("ACPN REPORT", 20, 12);
         doc.text(this.filter.batch, 20, 20);
-        //doc.text(this.getDoctor.name, 20, 26);
+        doc.text(this.getDoctor?this.getDoctor.name:'ALL Doctors', 20, 26);
         doc.setFontSize(9);
         doc.text("Confinement Period: " + moment(this.filter.fdate).format('MMMM DD, YYYY') + ' to ' + moment(this.filter.tdate).format('MMMM DD, YYYY'), 20, 29);
         doc.setFontSize(8);
@@ -443,7 +445,7 @@ export default {
               "Name",
               "No. of Sessions",
               "Dates",
-              "PHIC NEPHRO 350",
+              "PHIC NEPHRO",
               "ACPN No.",
             ],
           ],

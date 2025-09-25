@@ -1,5 +1,8 @@
 <template>
   <div class="wrapper">
+    <div v-if="visible" class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
     <navComponent></navComponent>
     <sidemenuComponent></sidemenuComponent>
     <div class="content-wrapper">
@@ -30,7 +33,7 @@
             <div class="card-body">
               <form class="user" enctype="multipart/form-data">
                 <div class="row">
-                  <div class="col-sm-2">
+                  <div class="col-sm-1">
                     <div class="form-group">
                       <label>From Date</label>
                       <datepicker
@@ -43,18 +46,9 @@
                     </div>
                   </div>
 
-                  <div class="col-sm-2">
+                  <div class="col-sm-1">
                     <div class="form-group">
                       <label>To Date</label>
-                      <!-- <datepicker
-                        name="date"
-                        required
-                        input-class="dpicker"
-                        :minimumView="'month'"
-                        :maximumView="'month'"
-                        v-model="filter.tdate"
-                        :bootstrap-styling="true"
-                      ></datepicker> -->
                       <datepicker
                         name="date"
                         required
@@ -77,18 +71,18 @@
                     </div>
                   </div>
 
-                  <div class="col-sm-2">
+                  <div class="col-sm-1">
                     <div class="form-group">
-                      <label>Status for Export</label>
+                      <label>Export Status</label>
                       <select class="form-control" v-model="filter.status">
                         <option selected value="All">All</option>
-                        <option  value="Paid">Paid</option>
-                        <option  value="Unpaid">Unpaid</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
                       </select>
                     </div>
                   </div>
 
-                  <div class="col-sm-2">
+                  <div class="col-sm-4">
                     <div class="form-group">
                       <label>&nbsp;</label> <br />
                       <button type="button" @click="showReport()" class="btn btn-info">
@@ -100,6 +94,20 @@
                         class="btn btn-primary"
                       >
                         Export All
+                      </button>
+                      <button
+                        type="button"
+                        @click="exportSummaryReport()"
+                        class="btn btn-danger"
+                      >
+                        Summary Report
+                      </button>
+                      <button
+                        type="button"
+                        @click="exportSummaryPFReport()"
+                        class="btn btn-warning"
+                      >
+                        Summary PF Report
                       </button>
                     </div>
                   </div>
@@ -146,7 +154,7 @@
                         {{ e.month }}
                       </td>
                       <td>
-                        {{ e.sessions }}
+                        {{ e.total_no_of_sessions }}
                       </td>
                       <td>
                         {{
@@ -225,7 +233,7 @@
                             )
                           "
                         >
-                          {{ e.session_unpaid }}
+                          {{ e.total_upaid_Sessions }}
                         </button>
                       </td>
                       <!-- <td>
@@ -270,9 +278,7 @@
                       <td>
                         {{ total_sessions }}
                       </td>
-                      <td>
-                        
-                      </td>
+                      <td>{{total_unpaid_sessions}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -299,7 +305,7 @@
 
 <script type="text/javascript">
 import Datepicker from "vuejs-datepicker";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 import ApexCharts from "apexcharts";
 import VueApexCharts from "vue-apexcharts";
 import jsPDF from "jspdf";
@@ -319,6 +325,7 @@ export default {
   },
   data() {
     return {
+      visible: false,
       getTotalExportResult: 0,
       totalNet: 0,
       totalPaid: 0,
@@ -395,7 +402,10 @@ export default {
   },
   computed: {
     total_sessions() {
-      return this.results.reduce((sum, item) => sum + parseFloat(item.sessions), 0);
+      return this.results.reduce((sum, item) => sum + parseFloat(item.session_paid), 0);
+    },
+    total_unpaid_sessions() {
+      return this.results.reduce((sum, item) => sum + parseFloat(item.total_upaid_Sessions), 0);
     },
     getDoctor() {
       return this.doctors_list.find((e) => e.id == this.filter.doctors);
@@ -421,70 +431,70 @@ export default {
     calculateTotal() {
       this.productList.total = this.productList.price * this.productList.qty;
     },
-    showReport() {
-      const timezone = 'Asia/Manila';
-      const bfdate =  this.filter.fdate
-      const btdate =  this.filter.tdate
-      this.filter.fdate = moment.tz(this.filter.fdate, timezone).format('YYYY-MM-DD')
-      this.filter.tdate = moment.tz(this.filter.tdate, timezone).format('YYYY-MM-DD')
-      
-      this.getAllPaid = [];
-          this.getAllUnPaid = [];
-          this.series = [];
-          this.results = [];
-          this.totalNet = [];
-          this.totalPaid = [];
-          this.totalBalance = 0;
-          this.series = [];
-          this.cntAll = 0;
-          this.allPatientSessionsPaymentList = [];
-      const headers = {
-        Authorization: "Bearer ".concat(this.token),
-      };
-      axios
-        .post(
-          "/api/revenue-report",
-          {
-            data: this.filter,
-          },
-          {
-            headers: headers,
-          }
-        )
-        .then((res) => {
-          this.getAllPaid = res.data.allpaid;
-          this.getAllUnPaid = res.data.allunpaid;
-          this.series = res.data.net[0].net;
-          this.results = res.data.data;
-          this.totalNet = res.data.totalNet;
-          this.totalPaid = res.data.totalPaid;
-          this.totalBalance = res.data.totalBalance;
-          this.series = res.data.net;
-          this.cntAll = res.data.cntAll;
-          this.allPatientSessionsPaymentList = res.data.getPatientAllSessions;
-          this.chartOptions = {
-            xaxis: {
-              categories: res.data.month,
+    async showReport() {
+      this.visible = true;
+      setTimeout(async () => {
+        const timezone = "Asia/Manila";
+        const bfdate = this.filter.fdate;
+        const btdate = this.filter.tdate;
+        this.filter.fdate = moment.tz(this.filter.fdate, timezone).format("YYYY-MM-DD");
+        this.filter.tdate = moment.tz(this.filter.tdate, timezone).format("YYYY-MM-DD");
+
+        this.getAllPaid = [];
+        this.getAllUnPaid = [];
+        this.series = [];
+        this.results = [];
+        this.totalNet = [];
+        this.totalPaid = [];
+        this.totalBalance = 0;
+        this.series = [];
+        this.cntAll = 0;
+        this.allPatientSessionsPaymentList = [];
+        const headers = {
+          Authorization: "Bearer ".concat(this.token),
+        };
+        await axios
+          .post(
+            "/api/revenue-report",
+            {
+              data: this.filter,
             },
-          };
-          this.month = moment(this.filter.date).format("MMMM YYYY");
-          Toast.fire({
-            icon: "success",
-            title: "Saved successfully",
-          });
-          
-          this.filter.fdate = moment(bfdate).format("DD MMMM YYYY");
-          
-          this.filter.tdate = moment(btdate).format("DD MMMM YYYY");
-          
-        })
-        .catch(
-          (error) => console.log(error),
-          Toast.fire({
-            icon: "error",
-            title: "Session End. Login again.",
-          })
-        );
+            {
+              headers: headers,
+            }
+          )
+          .then((res) => {
+            this.getAllPaid = res.data.allpaid;
+            this.getAllUnPaid = res.data.allunpaid;
+            this.series = res.data.net[0].net;
+            this.results = res.data.data;
+            this.totalNet = res.data.totalNet;
+            this.totalPaid = res.data.totalPaid;
+            this.totalBalance = res.data.totalBalance;
+            this.series = res.data.net;
+            this.cntAll = res.data.cntAll;
+            this.allPatientSessionsPaymentList = res.data.getPatientAllSessions;
+            this.chartOptions = {
+              xaxis: {
+                categories: res.data.month,
+              },
+            };
+            this.month = moment(this.filter.date).format("MMMM YYYY");
+            Toast.fire({
+              icon: "success",
+              title: "Saved successfully",
+            });
+
+            this.filter.fdate = moment(bfdate).format("DD MMMM YYYY");
+
+            this.filter.tdate = moment(btdate).format("DD MMMM YYYY");
+
+            this.visible = false;
+          }).finally(() => {
+          // Always hide the loading screen
+          this.isLoading = false;
+        });
+      }, 0);
     },
     getDoctors() {
       axios
@@ -498,14 +508,21 @@ export default {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF();
 
-        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
-        let forwho = this.filter.doctor!=0?check_dr.name:"ALL";
-        doc.text("Summary of " + type + " sessions of patients for "+forwho, 20, 12);
+        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor);
+        let forwho = this.filter.doctor != 0 ? check_dr.name : "ALL";
+        doc.text("Summary of " + type + " sessions of patients for " + forwho, 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
         doc.text("Total Session/s: " + total, 20, 20);
         doc.text("Total: " + total_unpaid, 20, 24);
-        doc.text("Period from" + moment(this.filter.fdate).format("MMMM YYYY") + " to " + moment(this.filter.tdate).format("MMMM YYYY") , 20, 28);
+        doc.text(
+          "Period from" +
+            moment(this.filter.fdate).format("MMMM YYYY") +
+            " to " +
+            moment(this.filter.tdate).format("MMMM YYYY"),
+          20,
+          28
+        );
         doc.autoTable({
           headStyles: {
             fillColor: [65, 105, 225],
@@ -527,32 +544,38 @@ export default {
       api.post("/pdf", { responseType: "blob" }).then((response) => {
         const doc = new jsPDF("landscape");
 
-        let dr_data = this.allPatientSessionsPaymentList
-            .filter((user) =>
-              this.filter.doctor != 0 ? user.id === this.filter.doctor : user.id > 0
-            );
-            /* .filter((user) =>
+        let dr_data = this.allPatientSessionsPaymentList.filter((user) =>
+          this.filter.doctor != 0 ? user.id === this.filter.doctor : user.id > 0
+        );
+        /* .filter((user) =>
               user.id === 2
             ); */
 
-            let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor)
-            let amount = 0;
-            if(this.filter.status=='All'){
-                amount = this.getAllPaid + this.getAllUnPaid;
-            }else if(this.filter.status=='Paid'){
-                amount = this.getAllPaid;
-            }else if(this.filter.status=='Unpaid'){
-                amount = this.getAllUnPaid;
-            }
+        let check_dr = this.doctors_list.find((e) => e.id == this.filter.doctor);
+        let amount = 0;
+        /* if (this.filter.status == "All") {
+          amount = this.getAllPaid + this.getAllUnPaid;
+        } else if (this.filter.status == "Paid") {
+          amount = this.getAllPaid;
+        } else if (this.filter.status == "Unpaid") {
+          amount = this.getAllUnPaid;
+        } */
+        amount = this.cntAll;
+        let forwho = this.filter.doctor != 0 ? check_dr.name : "ALL";
 
-            let forwho = this.filter.doctor!=0?check_dr.name:"ALL";
-
-        doc.text("PHIC-"+this.filter.status+" sessions for "+forwho, 20, 12);
+        doc.text("PHIC-" + this.filter.status + " sessions for " + forwho, 20, 12);
         doc.setFontSize(8);
         doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
         //doc.text("Total: " + dr_data.length, 20, 20);
-        doc.text("Total: " + amount , 20, 20);
-        doc.text("Period from" + moment(this.filter.fdate).format("MMMM YYYY") + " to " + moment(this.filter.tdate).format("MMMM YYYY") , 20, 24);
+        doc.text("Total: " + amount, 20, 20);
+        doc.text(
+          "Period from" +
+            moment(this.filter.fdate).format("MMMM YYYY") +
+            " to " +
+            moment(this.filter.tdate).format("MMMM YYYY"),
+          20,
+          24
+        );
         doc.autoTable({
           headStyles: {
             fillColor: [65, 105, 225],
@@ -565,12 +588,130 @@ export default {
           },
           head: [["Patient", "No. of Sessions", "Sessions", "Doctor"]],
           margin: { top: 30 },
-          body: dr_data
-            .map((user) => [user.name, user.cnt, user.dates, user.doc]),
+          body: dr_data.map((user) => [user.name, user.cnt, user.dates, user.doc]),
         });
-        
-        doc.save((this.filter.doctor!=0?check_dr.name:"ALL")+"_"+this.filter.status+".pdf");
+
+        doc.save(
+          (this.filter.doctor != 0 ? check_dr.name : "ALL") +
+            "_" +
+            this.filter.status +
+            ".pdf"
+        );
       });
+    },    
+    exportSummaryReportPDF(data) {
+
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        doc.text("Summary of " + this.filter.status + " PHILHEALTH per doctor ", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.text(
+          "Period from" +
+            moment(this.filter.fdate).format("MMMM DD YYYY") +
+            " to " +
+            moment(this.filter.tdate).format("MMMM DD YYYY"),
+          20,
+          28
+        );
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          columnStyles: {
+            0: { cellWidth: "auto" },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
+          },
+          head: [["Doctor", "No. of Sessions", "Date","Toal Amount", "EWT", "Net"]],
+          margin: { top: 30 },
+          body: data.map((user) => [user.name, user.sessions, user.yr_mon,user.gross, user.ewt, user.net]),
+        });
+        doc.save("summary_report.pdf");
+      });
+    },
+    exportSummaryPFReportPDF(data) {
+
+      api.post("/pdf", { responseType: "blob" }).then((response) => {
+        const doc = new jsPDF();
+        doc.text("Summary of " + this.filter.status + " PF per doctor ", 20, 12);
+        doc.setFontSize(8);
+        doc.text("Prepared by: " + localStorage.getItem("user"), 20, 16);
+        doc.text(
+          "Period from" +
+            moment(this.filter.fdate).format("MMMM DD YYYY") +
+            " to " +
+            moment(this.filter.tdate).format("MMMM DD YYYY"),
+          20,
+          28
+        );
+        doc.autoTable({
+          headStyles: {
+            fillColor: [65, 105, 225],
+          },
+          columnStyles: {
+            0: { cellWidth: "auto" },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
+            2: { cellWidth: "auto" },
+          },
+          head: [["Doctor", "No. of Sessions", "Date","Toal Amount", "EWT", "Net"]],
+          margin: { top: 30 },
+          body: data.map((user) => [user.name, user.sessions, user.yr_mon,user.gross, user.ewt, user.net]),
+        });
+        doc.save("summary_report.pdf");
+      });
+    },
+    exportSummaryReport() {
+      this.visible = true;
+      const timezone = "Asia/Manila";
+      const bfdate = this.filter.fdate;
+      const btdate = this.filter.tdate;
+      this.filter.fdate = moment.tz(this.filter.fdate, timezone).format("YYYY-MM-DD");
+      this.filter.tdate = moment.tz(this.filter.tdate, timezone).format("YYYY-MM-DD");
+      const headers = {
+        Authorization: "Bearer ".concat(this.token),
+      };
+      axios
+        .post(
+          "/api/summary-report",
+          {
+            data: this.filter,
+          },
+          {
+            headers: headers,
+          }
+        )
+        .then((res) => {
+          this.exportSummaryReportPDF(res.data)
+          this.visible = false;
+        })
+    },
+    exportSummaryPFReport() {
+      this.visible = true;
+      const timezone = "Asia/Manila";
+      const bfdate = this.filter.fdate;
+      const btdate = this.filter.tdate;
+      this.filter.fdate = moment.tz(this.filter.fdate, timezone).format("YYYY-MM-DD");
+      this.filter.tdate = moment.tz(this.filter.tdate, timezone).format("YYYY-MM-DD");
+      const headers = {
+        Authorization: "Bearer ".concat(this.token),
+      };
+      axios
+        .post(
+          "/api/summary-pf-report",
+          {
+            data: this.filter,
+          },
+          {
+            headers: headers,
+          }
+        )
+        .then((res) => {
+          this.exportSummaryPFReportPDF(res.data)
+          this.visible = false;
+        })
     },
   },
 };
@@ -583,5 +724,35 @@ export default {
 
 .dpicker {
   background-color: white !important;
+}
+</style>
+
+<style scoped>
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  z-index: 9999; /* Ensure it stays above other elements */
+}
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid #ddd; /* Outer circle color */
+  border-top-color: #3498db; /* Spinner color */
+  border-radius: 50%; /* Makes it a circle */
+  animation: spin 1s linear infinite; /* Rotates the spinner */
+  margin: -5% 0% 0% 4%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

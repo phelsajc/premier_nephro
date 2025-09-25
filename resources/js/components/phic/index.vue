@@ -39,7 +39,22 @@
                 </div>
                 <div class="col-md-2">
                   <button type="button" class="btn btn-block btn-warning btn-xs">
-                    PENDING
+                    UNPAID
+                  </button>
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-block btn-danger btn-xs">
+                    DENIED
+                  </button>
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-block btn-info btn-xs">
+                    RTH 
+                  </button>
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-block btn-secondary btn-xs">
+                    EXPIRED 
                   </button>
                 </div>
               </div>
@@ -168,6 +183,9 @@
                             'btn-xs',
                             { 'btn-warning': d.status == 'UNPAID' },
                             { 'btn-success': d.status == 'PAID' },
+                            { 'btn-info': d.status == 'RTH' },
+                            { 'btn-danger': d.status == 'DENIED' },
+                            { 'btn-secondary': d.status == 'EXPIRED' },
                           ]"
                           style="margin-right: 5px"
                           v-for="d in e.datesArr"
@@ -322,7 +340,8 @@ export default {
           .post("phic-report", this.filter)
           .then((response) => {
             this.getTotalPaidClaims = response.data.getPaidClaims;
-            this.getPaidClaims = response.data.getPaidClaims;
+            //this.getPaidClaims = response.data.getPaidClaims;
+            this.getPaidClaims = response.data.totalpaid;
             this.results = response.data.data;
             this.export = response.data.export;
             this.month = moment(this.filter.date).format("MMMM YYYY");

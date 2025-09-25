@@ -153,6 +153,7 @@ Route::match(['get','post'],'phic-report','PHICController@report');
 Route::match(['get','post'],'phic-update','PHICController@update');
 Route::match(['get','post'],'phic-edit/{id}','PHICController@edit');
 Route::match(['get','post'],'phic-summary-report','PHICController@report_summary');
+Route::match(['get','post'],'claim_status','PHICController@claimStatus');
 
 #acpn
 Route::match(['get','post'],'acpn-report','PHICController@acpn_report');
@@ -163,6 +164,10 @@ Route::match(['get','post'],'batch-report-list','PHICController@batch_report_lis
 Route::match(['get','post'],'census-report','CensusController@report');
 Route::match(['get','post'],'census_px-report','CensusController@report_px');
 Route::match(['get','post'],'revenue-report','CensusController@revenue');
+Route::match(['get','post'],'summary-report','CensusController@summary_report');
+Route::match(['get','post'],'summary-pf-report','CensusController@summary_pf_report');
+Route::match(['get','post'],'export-detailed-report','CensusController@export_detailed_report');
+
 
 #Census
 Route::match(['get','post'],'log-report','LogsController@report');

@@ -84,6 +84,7 @@ let phic_list = require('./components/phic/index.vue').default
 let acpn_list = require('./components/acpn/index.vue').default
 let acpn_report = require('./components/acpn/report.vue').default
 let batch_report = require('./components/acpn/batch.vue').default
+let claim_status = require('./components/acpn/claimStatus.vue').default
 
 //census
 let census_doctor = require('./components/census/census_doctor.vue').default
@@ -185,7 +186,8 @@ export const routes = [
     //Acpn
     { path: '/acpn_list', component: acpn_list, name: 'acpn_list' },    
     { path: '/acpn_report', component: acpn_report, name: 'acpn_report' },  
-    { path: '/batch_report', component: batch_report, name: 'batch_report' },    
+    { path: '/batch_report', component: batch_report, name: 'batch_report' },   
+    { path: '/claim_status', component: claim_status, name: 'claim_status' },     
 
     //census
     { path: '/census_doctor', component: census_doctor, name: 'census_doctor' },

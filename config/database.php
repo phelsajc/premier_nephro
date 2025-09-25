@@ -49,7 +49,7 @@ return [
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '3306'),
             //'database' => env('DB_DATABASE', 'premier'),
-            'database' => env('DB_DATABASE', 'premier_20250124'),
+            'database' => env('DB_DATABASE', 'premier_20250708_2'),
             //'database' => env('DB_DATABASE', 'premier_live'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),

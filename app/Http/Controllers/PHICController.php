@@ -11,6 +11,8 @@ use App\Model\Doctors;
 use App\Model\Patients;
 use App\Model\Transaction_log;
 use App\Model\Phic;
+use App\Model\Settings;
+use Carbon\Carbon;
 use App\User;
 use Helper;
 use DB;
@@ -136,6 +138,7 @@ class PHICController extends Controller
             'remarks' => $request->remarks,
             'acpn_no' => $request->acpn,
             'iscash' => $request->iscash,
+            'claimStatus' => $status=='UNPAID'?$request->claimStatus:'PAID',
             'cash' => $request->cash,
             'updated_by' => auth()->id(),
             'updated_dt' => date('Y-m-d H:i:s'),
@@ -249,7 +252,12 @@ class PHICController extends Controller
                     }
                 }
 
-                $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : null;
+                if($data_sessions[0]->status=='PAID'){
+                    $date_of_sessionsArr_set['status'] = 'PAID';
+                }else{
+                    $date_of_sessionsArr_set['status'] = strtoupper($data_sessions[0]->claimStatus);
+                }
+                //$date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : null;
                 //$date_of_sessionsArr_set['ispaid'] = $data_sessions ? $data_sessions[0]->iscash : null;
                 $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->schedule), 'Y-m-d');
@@ -305,6 +313,14 @@ class PHICController extends Controller
         $getDoctor_arr = array();
         $sharingReport = array();
         $total_2250_net = 0;
+
+        $rate1 = Settings::where('name', 'rate1')->first();
+        $rate2 = Settings::where('name', 'rate2')->first();
+        $rate3 = Settings::where('name', 'rate3')->first();
+        
+        $pf1 = Settings::where('name', 'pf1')->first();
+        $pf2 = Settings::where('name', 'pf2')->first();
+        
         if ($doctors != 'All') {
             $data = DB::connection('mysql')->select("
             SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
@@ -337,7 +353,8 @@ class PHICController extends Controller
             $total_sharing_session = 0;
             $total_sharing_tax = 0;
             foreach ($getDoctor as $key => $value) {
-                $getDoctor_sessions = DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%' and status='PAID'  and doctor = $value->id ");
+                //$getDoctor_sessions = DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%' and status='PAID' and state = 'ACTIVE' and doctor = $value->id ");
+                $getDoctor_sessions = DB::connection('mysql')->select("SELECT * from phic   where remarks like '%$request->batch%' and status='PAID' and state = 'ACTIVE' and doctor = $value->id ");
                 $arr = array();
                 $arr_sharing = array();
 
@@ -345,52 +362,111 @@ class PHICController extends Controller
                 $total_amt_tx = $total_amt * .1;
                 $total_amt_net = $total_amt * .9; */
 
-                if ($value->id == 5) {
-                    $total_amt = $getDoctor_sessions[0]->count * 350;
-                    $total_amt_tx = $total_amt * .05;
-                    $total_amt_net = $total_amt * .95;
-                }else{
-                    $total_amt = $getDoctor_sessions[0]->count * 350;
-                    $total_amt_tx = $total_amt * .1;
-                    $total_amt_net = $total_amt * .9;
+                $total_amt = 0;
+                $total_amt_tx = 0;
+                $total_amt_net = 0;
+
+                $getPhilhealthAmount = 0;
+                foreach ($getDoctor_sessions as $keyc => $valuec) {
+                    $getPf = 0;
+                    $givenDatePF = Carbon::parse($valuec->date_session);
+                    $comparisonDatePF = Carbon::parse('2024-10-8');
+                    if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                        $getPf = $pf2->value;
+                    }else{
+                        $getPf = $pf1->value;
+                    }   
+
+                    if (Carbon::parse($valuec->date_session)->lessThan('2024-07-01')) {
+                        $getPhilhealthAmount = $rate1->value;
+                    }
+
+                    $givenDate = Carbon::parse($valuec->date_session);
+                    $startDate = Carbon::parse('2024-07-01');
+                    $endDate = Carbon::parse('2024-10-08');
+                    if ($givenDate->between($startDate, $endDate)) {
+                        $getPhilhealthAmount = $rate2->value;
+                    }
+
+                    // Parse the dates
+                    $givenDate = Carbon::parse($valuec->date_session);
+                    $comparisonDate = Carbon::parse('2024-10-8');
+
+                    // Check if the given date is greater than the comparison date
+                    if ($givenDate->greaterThan($comparisonDate)) {
+                        $getPhilhealthAmount = $rate3->value;
+                    }
+
+
+                        //xxxxxxxx
+                    if ($value->id == 5) {
+                        //$getSession_pf = $getDoctor_sessions[0]->count * $getPf;
+                        $getSession_pf = $getPf;
+                        $total_amt += $getSession_pf;
+
+                        $getSession_tx = $total_amt * .05;
+                        $total_amt_tx += $getSession_tx;
+
+                        $getSession_net = $total_amt * .95;
+                        $total_amt_net += $getSession_net;
+                    }else{                        
+                        $getSession_pf = $getPf;
+                        $total_amt += $getSession_pf;
+
+                        $getSession_tx = $total_amt * .1;
+                        $total_amt_tx += $getSession_tx;
+
+                        $getSession_net = $total_amt * .9;
+                        $total_amt_net += $getSession_net;
+                    }
+    
                 }
 
-                $total_amt_sharing = $getDoctor_sessions[0]->count * 2250;
-                $total_amt_tx_sharing = $total_amt_sharing * .25;
+                $total_amt_sharing = 0;
+
+                
+                //$total_amt_sharing = $getDoctor_sessions[0]->count * $getPhilhealthAmount;//2250;
+                $total_amt_sharing += $getPhilhealthAmount;//2250;
+                //$total_amt_tx_sharing = $total_amt_sharing * .25;
+                $total_amt_tx_sharing = $getPhilhealthAmount * .25;
                 $total_amt_tx_sharing_tax = $total_amt_tx_sharing * .05;
                 $total_amt_net_sharing = $total_amt_tx_sharing - $total_amt_tx_sharing_tax;
 
 
+                $arr['value'] = $value;
                 $arr['nephro'] = $value->name;
-                $arr['sess'] = $getDoctor_sessions[0]->count;
-                $arr['amount'] = "350";
+                $arr['sess'] = sizeof($getDoctor_sessions);
+                $arr['amount'] = $getPf;//"350";
                 $arr['total'] = number_format($total_amt, 2);
-                $arr['tx'] = number_format($total_amt_tx, 2);
-                $arr['net'] = number_format($total_amt_net, 2);
+                $calc_tx = $total_amt * 0.10;
+                $arr['tx'] = number_format($calc_tx, 2);
+                //$arr['tx'] = number_format($total_amt_tx, 2);
+                $calc_net = $total_amt * 0.90;
+                $arr['net'] = number_format($calc_net, 2);
 
 
                 $arr_sharing['nephro'] = $value->name;
-                $arr_sharing['sess'] = $getDoctor_sessions[0]->count;
-                $arr_sharing['amount_sharing'] = "2,250";
+                $arr_sharing['sess'] = sizeof($getDoctor_sessions);
+                $arr_sharing['amount_sharing'] = $getPhilhealthAmount;//"2,250";
                 $arr_sharing['total'] = number_format($total_amt_sharing, 2);
                 $arr_sharing['sharing'] = number_format($total_amt_tx_sharing, 2);
                 $arr_sharing['tx'] = number_format($total_amt_tx_sharing_tax, 2);
                 $arr_sharing['net'] = number_format($total_amt_net_sharing, 2);
 
-                if ($getDoctor_sessions[0]->count > 0) {
+                if (sizeof($getDoctor_sessions)> 0) {
                     $getDoctor_arr[] = $arr;
                     $sharingReport[] = $arr_sharing;
                 }
-                $total_sess += $getDoctor_sessions[0]->count;
+                $total_sess += sizeof($getDoctor_sessions);
                 $total_amnt_per_sess += $total_amt;
-                $total_amnt_per_w_tx += $total_amt_tx;
-                $total_amnt_net += $total_amt_net;
+                $total_amnt_per_w_tx += $calc_tx;
+                $total_amnt_net += $calc_net;
                 $total_2250_net += $total_amt_net_sharing;
 
-                $total_sharing_session += $getDoctor_sessions[0]->count;
+                $total_sharing_session += sizeof($getDoctor_sessions);
                 $total_sharing_tax += $total_amt_tx_sharing_tax;
             }
-            $getDoctor_arr_footer['nephro'] = 'Totalx';
+            $getDoctor_arr_footer['nephro'] = 'Total';
             $getDoctor_arr_footer['sess'] = number_format($total_sess);
             $getDoctor_arr_footer['amount'] = "";
             $getDoctor_arr_footer['total'] = number_format($total_amnt_per_sess, 2);
@@ -420,11 +496,42 @@ class PHICController extends Controller
         $Grandtotal_paid_session = 0;
         $Grandtotal_phic25sharing = 0;
         $Grandtotal_phic25sharing_withtax = 0;
+        $total_acpn_amt = 0;
+        $arr_export = array();
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr_export = array();
+            //$arr_export = array();
+             $getPf1 = 0;
 
+                $givenDatePF = Carbon::parse($value->date_session);
+                $comparisonDatePF = Carbon::parse('2024-10-8');
+                if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                    $getPf1 = $pf2->value;
+                }else{
+                    $getPf1 = $pf1->value;
+                }   
 
+                $getPhilhealthAmount = 0;
+                if (Carbon::parse($value->date_session)->lessThan('2024-07-01')) {
+                    $getPhilhealthAmount = $rate1->value;
+                }
+
+                $givenDate = Carbon::parse($value->date_session);
+                $startDate = Carbon::parse('2024-07-01');
+                $endDate = Carbon::parse('2024-10-08');
+                if ($givenDate->between($startDate, $endDate)) {
+                    $getPhilhealthAmount = $rate2->value;
+                }
+
+                // Parse the dates
+                $givenDate = Carbon::parse($value->date_session);
+                $comparisonDate = Carbon::parse('2024-10-8');
+
+                // Check if the given date is greater than the comparison date
+                if ($givenDate->greaterThan($comparisonDate)) {
+                    $getPhilhealthAmount = $rate3->value;
+                }
+ 
             if ($doctors != 'All') {
                 $get_dates = DB::connection('mysql')->select("
                 SELECT * from phic
@@ -445,6 +552,7 @@ class PHICController extends Controller
             $acpnStr = '';
             $date_of_sessionsArr = array();
             $paid_session = 0;
+            $countTotalPf = 0;
             foreach ($get_dates as $gkey => $gvalue) {
                 $date_of_sessionsArr_set = array();
                 $s_date = date_format(date_create($gvalue->date_session), 'F d, Y');
@@ -455,8 +563,42 @@ class PHICController extends Controller
                     where  patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and status = 'PAID' and acpn_no = '$value->acpn_no'
                 ");
                 if ($data_sessions) {
-                    $data_sessions[0]->status = 'PAID' ? $paid_session++ : 0;
+                    //$data_sessions[0]->status = 'PAID' ? $paid_session++ : 0;
+                  $paid_session++;
                 }
+
+                $getPf = 0;
+
+                $givenDatePF = Carbon::parse($gvalue->date_session);
+                $comparisonDatePF = Carbon::parse('2024-10-8');
+                if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                    $getPf = $pf2->value;
+                }else{
+                    $getPf = $pf1->value;
+                }   
+
+                $getPhilhealthAmount = 0;
+                if (Carbon::parse($gvalue->date_session)->lessThan('2024-07-01')) {
+                    $getPhilhealthAmount = $rate1->value;
+                }
+
+                $givenDate = Carbon::parse($value->date_session);
+                $startDate = Carbon::parse('2024-07-01');
+                $endDate = Carbon::parse('2024-10-08');
+                if ($givenDate->between($startDate, $endDate)) {
+                    $getPhilhealthAmount = $rate2->value;
+                }
+
+                // Parse the dates
+                $givenDate = Carbon::parse($value->date_session);
+                $comparisonDate = Carbon::parse('2024-10-8');
+
+                // Check if the given date is greater than the comparison date
+                if ($givenDate->greaterThan($comparisonDate)) {
+                    $getPhilhealthAmount = $rate3->value;
+                }
+
+
                 $date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : '';
                 $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->date_session), 'Y-m-d');
@@ -468,6 +610,11 @@ class PHICController extends Controller
                     $acpnStr .= $gvalue->acpn_no;
                 }
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
+                
+                $calculate_total = $getPf;//350;
+
+                $countTotalPf+=$calculate_total;
+                $getPf=0;
             }
             $getUser = User::where(['id' => $value->updated_by])->first();
             $arr['update_by'] = $getUser->name . ' on ' . date_format(date_create($value->updated_dt), 'F d, Y h:i:s A');
@@ -477,17 +624,20 @@ class PHICController extends Controller
             $arr['paidSessions'] = $total_paid_session += $paid_session;
             $arr['dates'] = $date_of_sessions;
             $arr['acpn'] = $acpnStr;
+            $arr['countTotalPf'] = $countTotalPf;
             $arr['datesArr'] = $date_of_sessionsArr;
             $arr['get_dates'] = $get_dates;
             $arr['cget_dates'] = count($get_dates);
-            $arr['total'] = $no_of_sessions_paid * 350;
-            $calculate_total = $no_of_sessions_paid * 350;
-            $phic25 = $no_of_sessions_paid * 2250;
+            //$arr_total = $no_of_sessions_paid * $getPf;
+            $arr['total'] = $countTotalPf;//$arr_total;//$no_of_sessions_paid * $getPf;//350;
+            $total_acpn_amt+=0;//$arr_total;
+            $calculate_total = $no_of_sessions_paid * $getPf1;//350;
+            $phic25 = $no_of_sessions_paid * $getPhilhealthAmount;//2250;
             $phic25_withtax = $phic25 * 0.25;
             $arr['phic25'] = $phic25;
             $arr['phic25tax'] = $phic25_withtax;
             $arr['ACPN No.'] = '';
-            $Grandtotal_paid_session += $calculate_total;
+            $Grandtotal_paid_session += $countTotalPf;//$calculate_total;
             $Grandtotal_phic25sharing += $phic25;
             $Grandtotal_phic25sharing_withtax += $phic25_withtax;
             $arr_export['Name'] = $value->name;
@@ -495,7 +645,7 @@ class PHICController extends Controller
             $arr_export['nos'] = count($get_dates);
             $arr_export['Dates'] = ltrim($date_of_sessions, " ");
             $arr_export['PHIC NEPHRO 350'] = $calculate_total;
-            $arr_export['phic'] = $calculate_total;
+            $arr_export['phic'] = $countTotalPf;//$calculate_total;
             $arr_export['acpns'] = $acpnStr ? $acpnStr : '';
             $arr_export['ACPN No.'] = $acpnStr ? $acpnStr : '';
             if (sizeof($get_dates) > 0) {
@@ -506,7 +656,7 @@ class PHICController extends Controller
         }
         $datasets = array();
         if($doctors!="All"){
-            if ($getDoctor->id == 5) {
+            /* if ($getDoctor->id == 5) {
                 $arr_export['Name'] = '';
                 $arr_export['No. of Sessions'] = '';
                 $arr_export['nos'] = '';
@@ -562,12 +712,41 @@ class PHICController extends Controller
                 $arr_export['phic'] = number_format($Grandtotal_paid_session * 0.9, 2);
                 $arr_export['ACPN No.'] = '';
                 $arr_export['acpns'] = '';
-            }
+            } */
+
+            
+            $arr_export['Name'] = '';
+            $arr_export['No. of Sessions'] = '';
+            $arr_export['nos'] = '';
+            $arr_export['Dates'] = 'Total';
+            $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session;
+            $arr_export['phic'] = number_format($Grandtotal_paid_session, 2);
+            $arr_export['ACPN No.'] = '';
+            $arr_export['acpns'] = '';
+            $data_array_export[] = $arr_export;
+
+            $arr_export['Name'] = '';
+            $arr_export['No. of Sessions'] = '';
+            $arr_export['nos'] = '';
+            $arr_export['Dates'] = 'Tax';
+            $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session * 0.1;
+            $arr_export['phic'] = number_format($Grandtotal_paid_session * 0.1, 2);
+            $arr_export['ACPN No.'] = '';
+            $data_array_export[] = $arr_export;
+
+            $arr_export['Name'] = '';
+            $arr_export['No. of Sessions'] = '';
+            $arr_export['nos'] = '';
+            $arr_export['Dates'] = 'Net';
+            $arr_export['PHIC NEPHRO 350'] = $Grandtotal_paid_session * 0.9;
+            $arr_export['phic'] = number_format($Grandtotal_paid_session * 0.9, 2);
+            $arr_export['ACPN No.'] = '';
+            $arr_export['acpns'] = '';
         }
 
 
         $data_array_export[] = $arr_export;
-
+        $datasets["total_acpn_amt"] = $total_acpn_amt;
         $datasets["data"] = $data_array;
         $datasets["export"] = $data_array_export;
         $datasets["Doctors"] = $getDoctor;
@@ -581,11 +760,19 @@ class PHICController extends Controller
         return response()->json($datasets);
     }
 
-
     public function acpn_report_list(Request $request)
     {
         $acpn = explode(',', $request->acpn);
         $strAcpn = '';
+
+        
+        $rate1 = Settings::where('name', 'rate1')->first();
+        $rate2 = Settings::where('name', 'rate2')->first();
+        $rate3 = Settings::where('name', 'rate3')->first();
+        
+        $pf1 = Settings::where('name', 'pf1')->first();
+        $pf2 = Settings::where('name', 'pf2')->first();
+
         foreach ($acpn as $key => $value) {
             $strAcpn .= "'".$value . "',";
         }
@@ -603,11 +790,20 @@ class PHICController extends Controller
 
             $acpn_data = DB::connection('mysql')->select("
             SELECT * from phic p left join patients a on p.patient_id = a.id where 
-            p.acpn_no = '$value' and p.status = 'PAID' and p.state = 'ACTIVE' order by a.name asc ;
+            p.acpn_no = '$value' and p.status = 'PAID' and p.state = 'ACTIVE' $extend_script order by a.name asc ;
             ");
             $acpn_batch = DB::connection('mysql')->select(" select * from phic where acpn_no = '$value' group by acpn_no ");
 
+            $getPf = 0;
 
+            /* $givenDatePF = Carbon::parse($gvalue->date_session);
+            $comparisonDatePF = Carbon::parse('2024-10-8');
+            if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                $getPf = $pf2->value;
+            }else{
+                $getPf = $pf1->value;
+            }  */
+            
             $arrAcpn['acpn'] = $value;
             $arrAcpn['session'] = count($acpn_data);
             $arrAcpn['amount'] = number_format(count($acpn_data) * 350, 2);
@@ -625,82 +821,60 @@ class PHICController extends Controller
                 $data_array[] = $arr;
             }
         }
-        /* 
-        $totaltX = 0;
-        $totalPf = 0;
-        $totalEwt = 0;
-        $totalNet = 0;
-        $acpn_by_doctor = DB::connection('mysql')->select(" 
-        select *,count(doctor) as cnt from phic where acpn_no = '$strAcpn'" . $extend_script . 
-        " group by doctor ");
-        foreach ($acpn_by_doctor as $key => $value) {
-            $arrAcpnDctr = array();
-
-            $pf = $value->cnt * 350;
-            $ewt = $pf * .1;
-            $net = $pf - $ewt;
-
-            $totaltX += $value->cnt;
-            $totalPf += $pf;
-            $totalEwt += $ewt;
-            $totalNet += $net;
-
-            $arrAcpnDctr['nephro'] = Helper::doctorzDetail($value->doctor)->name;
-            $arrAcpnDctr['tx'] = $value->cnt;
-            $arrAcpnDctr['pf'] = number_format($pf, 2);
-            $arrAcpnDctr['ewt'] = $ewt;
-            $arrAcpnDctr['net'] = $net;
-            $data_arrayAcpn_dctr[] = $arrAcpnDctr;
-        } */
-
 
         $totaltX = 0;
         $totalPf = 0;
         $totalEwt = 0;
         $totalNet = 0;
-        /* foreach ($acpn as $key => $value) {
-            $acpn_by_doctor = DB::connection('mysql')->select(" 
-        select *,count(doctor) as cnt from phic where acpn_no = '$value'" . $extend_script .
-                " group by doctor ");
-            foreach ($acpn_by_doctor as $key => $value) {
-                $arrAcpnDctr = array();
-
-                $pf = $value->cnt * 350;
-                $ewt = $pf * .1;
-                $net = $pf - $ewt;
-
-                $totaltX += $value->cnt;
-                $totalPf += $pf;
-                $totalEwt += $ewt;
-                $totalNet += $net;
-
-                $arrAcpnDctr['nephro'] = Helper::doctorzDetail($value->doctor)->name;
-                $arrAcpnDctr['tx'] = $value->cnt;
-                $arrAcpnDctr['pf'] = number_format($pf, 2);
-                $arrAcpnDctr['ewt'] = $ewt;
-                $arrAcpnDctr['net'] = $net;
-                $data_arrayAcpn_dctr[] = $arrAcpnDctr;
-            }
-        } */
-
-
         $getDoctors = Doctors::all();
+        $finalCnt=0;
+        $finalPf=0;
+        $finalEwt=0;
+        $finalnet=0;
 
         foreach ($getDoctors as $key => $getdvalue) {
                 $getCnt = 0;
                 $getPf = 0;
                 $getewt = 0;
                 $getnet = 0;
-            //foreach ($acpn as $key => $value) {
-               /*  $acpn_by_doctor = DB::connection('mysql')->select(" 
-                select *,count(doctor) as cnt from phic where acpn_no = '$value'" . " and doctor = " . $getdvalue->id .
-                " group by doctor "); */
+                
                 $acpn_by_doctor = DB::connection('mysql')->select(" 
-                    select *,count(doctor) as cnt from phic where acpn_no in ($strAcpn)" . " and doctor = " . $getdvalue->id .
-                    " group by doctor ");
+                    select *,count(doctor) as cnt from phic where acpn_no in ($strAcpn)" . " and state = 'ACTIVE' and status = 'PAID'  and doctor = " . $getdvalue->id .
+                    " group by doctor,date_session");
                 foreach ($acpn_by_doctor as $key => $value) {
                     $arrAcpnDctr = array();
-                    $pf = $value->cnt * 350;
+ 
+                    $givenDatePF = Carbon::parse($value->date_session);
+                    $comparisonDatePF = Carbon::parse('2024-10-8');
+                    if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                        $getPf = $pf2->value;
+                    }else{
+                        $getPf = $pf1->value;
+                    }   
+
+                    if (Carbon::parse($value->date_session)->lessThan('2024-07-01')) {
+                        $getPhilhealthAmount = $rate1->value;
+                    }
+
+                    $givenDate = Carbon::parse($value->date_session);
+                    $startDate = Carbon::parse('2024-07-01');
+                    $endDate = Carbon::parse('2024-10-08');
+                    if ($givenDate->between($startDate, $endDate)) {
+                        $getPhilhealthAmount = $rate2->value;
+                    }
+
+                    // Parse the dates
+                    $givenDate = Carbon::parse($value->date_session);
+                    $comparisonDate = Carbon::parse('2024-10-8');
+
+                    // Check if the given date is greater than the comparison date
+                    if ($givenDate->greaterThan($comparisonDate)) {
+                        $getPhilhealthAmount = $rate3->value;
+                    }
+
+
+                    //$pf = $value->cnt * 350;
+                    $pf = $value->cnt * $getPf;
                     $ewt = $pf * .1;
                     $net = $pf - $ewt;
 
@@ -708,32 +882,41 @@ class PHICController extends Controller
                     $totalPf += $pf;
                     $totalEwt += $ewt;
                     $totalNet += $net;
-                    $getPf = $pf;
-                    $getewt = $ewt;
-                    $getnet = $net;
+                    //$getPf = $pf;
+                    $getPf = $totalPf;
+                    //$getewt = $ewt;
+                    $getewt = $totalEwt;
+                    //$getnet = $net;
+                    $getnet = $totalNet;
                     $getCnt = $value->cnt;
-
-               // }
-
             }
             $arrAcpnDctr['nephro'] = Helper::doctorzDetail($getdvalue->id)->name;
-            $arrAcpnDctr['tx'] = $getCnt;
+            $arrAcpnDctr['tx'] = $totaltX;//$getCnt;
             $arrAcpnDctr['pf'] = number_format($getPf, 2);//number_format($pf, 2);
-            $arrAcpnDctr['ewt'] = $getewt;//$ewt;
-            $arrAcpnDctr['net'] = $getnet;//$net;
+            $arrAcpnDctr['ewt'] = number_format($getewt, 2);//$ewt;
+            $arrAcpnDctr['net'] = number_format($getnet, 2);//$net;
             $data_arrayAcpn_dctr[] = $arrAcpnDctr;
+            $finalCnt+=$totaltX;
+            $finalPf+=$getPf;
+            $finalEwt+=$getewt;
+            $finalnet+=$getnet;
+            $totaltX=0;
+            $getPf=0;
+            $totalPf = 0;
+            $totalEwt = 0;
+            $totalNet = 0;
         }
 
 
         $arrAcpnDctr = array();
         $arrAcpnDctr['nephro'] = "";
-        $arrAcpnDctr['tx'] = $totaltX;
-        $arrAcpnDctr['pf'] = number_format($totalPf, 2);
-        $arrAcpnDctr['ewt'] = number_format($totalEwt, 2);
-        $arrAcpnDctr['net'] = number_format($totalNet, 2);
+        $arrAcpnDctr['tx'] = $finalCnt;
+        $arrAcpnDctr['pf'] = number_format($finalPf, 2);
+        $arrAcpnDctr['ewt'] = number_format($finalEwt, 2);
+        $arrAcpnDctr['net'] = number_format($finalnet, 2);
         $data_arrayAcpn_dctr[] = $arrAcpnDctr;
-        $total_session_doctor = $totaltX;
-        $sharing_pf = (2250 * $totaltX) * 0.25;
+        $total_session_doctor = $finalCnt;
+        $sharing_pf = (2250 * $finalCnt) * 0.25;
         $sharing_ewt = $sharing_pf * 0.05;
         $sharing_net = $sharing_pf - $sharing_ewt;
 
@@ -745,23 +928,6 @@ class PHICController extends Controller
         $arrAcpnDctr2['ewt'] = number_format($sharing_ewt, 2);
         $arrAcpnDctr2['net'] = number_format($sharing_net, 2);
         $data_arrayAcpn_dctr[] = $arrAcpnDctr2;
-
-        /* $acpn_data =  DB::connection('mysql')->select("
-            SELECT * from phic p left join patients a on p.patient_id = a.id where 
-            p.acpn_no = '$request->acpn' and p.status = 'PAID' and p.state = 'ACTIVE' order by a.name asc;
-            ");
-
-        $data_array = array();
-        foreach ($acpn_data as $key => $value) {
-            $arr = array();
-            $arr['patient'] =  Helper::patientDetail($value->patient_id)->name;
-            $arr['batch'] =  $value->remarks;
-            $arr['doctor'] = Helper::doctorzDetail($value->doctor)->name;
-            $arr['session'] =  date_format(date_create($value->date_session),'F d,Y');
-            $arr['updated'] =  Helper::userDetail($value->updated_by)->name. ' on '.date_format(date_create($value->updated_dt),'F d,Y');
-            $data_array[] = $arr;
-        } */
-
 
         $arrAcpn = array();
         $arrAcpn['acpn'] = 'Total';
@@ -786,70 +952,284 @@ class PHICController extends Controller
         return response()->json($datasets);
     }
 
-    public function acpn_report_list1(Request $request)
+    public function claimStatus1(Request $request)
     {
         date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $claimStatus = '';
+        if($request->claimStatus!='All'){
+            $claimStatus = " and claimStatus = '$request->claimStatus' ";
+        }
+        $doctor = '';
+        if($request->doctors!='All'){
+            $doctor = " and doctor = $request->doctors ";
+        }       
 
+        
         $data = DB::connection('mysql')->select("
-        SELECT c.id,s.patient_id, p.name, s.patient_id,s.schedule,c.remarks,c.doctor,c.date_session,c.updated_by,c.updated_dt ,s.id,c.acpn_no FROM `schedule` s
-        left join patients p on s.patient_id = p.id
-        left join phic c on c.patient_id  = s.patient_id 
-        where 
-        c.acpn_no is not null
-        group by s.patient_id, c.acpn_no order by p.name;
+        SELECT patient_id, claimStatus, date_session, doctor from phic where date_session between '$fdate' and '$tdate' $claimStatus $doctor;
         ");
 
-
         $data_array = array();
-        $data_array_export = array();
 
-        $total_paid_session = 0;
         foreach ($data as $key => $value) {
             $arr = array();
-            $arr_export = array();
-
             $arr['patient'] = Helper::patientDetail($value->patient_id)->name;
-            $arr['batch'] = $value->remarks;
-            $arr['doctor'] = Helper::doctorzDetail($value->doctor)->name;
+            $arr['status'] = $value->claimStatus;
             $arr['session'] = date_format(date_create($value->date_session), 'F d,Y');
-            $arr['updated'] = Helper::userDetail($value->updated_by)->name . ' on ' . date_format(date_create($value->updated_dt), 'F d,Y');
+            $arr['doctor'] = Helper::doctorzDetail($value->doctor)->name;
+            $data_array[] = $arr;
+        }
+        return response()->json($data_array);
+    }
 
-            /* $get_dates  = DB::connection('mysql')->select("
-            SELECT * from phic
-                where  state <> 'INACTIVE' and status = 'PAID' and  acpn_no = '$acpn'
-            ");  */
+    public function claimStatus(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $claimStatus = '';
+        if($request->claimStatus!='All'){
+            $claimStatus = " and p.claimStatus = '$request->claimStatus' ";
+        } 
+        $doctors = '';
+        if($request->doctors!='All'){
+            $doctors = " and p.doctor = $request->doctors ";
+        } 
+
+        /* $data = DB::connection('mysql')->select("        
+        SELECT patient_id, claimStatus, date_session, doctor from phic where date_session between '$fdate' and '$tdate' and state = 'ACTIVE' $claimStatus and doctor = $request->doctors and claimStatus != 'PAID' group by DATE_FORMAT(date_session, '%Y-%m'), patient_id;
+        "); */
+
+        $data = DB::connection('mysql')->select("SELECT p.patient_id, p.claimStatus, p.date_session, p.doctor from phic p where p.date_session between '$fdate' and '$tdate' and p.state = 'ACTIVE' $claimStatus $doctors and p.claimStatus != 'PAID' group by DATE_FORMAT(p.date_session, '%Y-%m-%d'), p.patient_id order by p.date_session ");
+
+        $data_array_export = array();
+        
+        $pf1 = Settings::where('name', 'pf1')->first();
+        $pf2 = Settings::where('name', 'pf2')->first();
+
+        foreach ($data as $key => $value) {
+            $arr_export = array();            
+       
             $get_dates = DB::connection('mysql')->select("
-            SELECT * from phic
-                where   acpn_no = '$request->acpn'
+            SELECT * from phic where date_session between '$fdate' and '$tdate'  and patient_id = $value->patient_id and claimStatus != 'PAID'
             ");
 
-            $paid_session = 0;
+            $date_of_sessions = '';
             foreach ($get_dates as $gkey => $gvalue) {
-                $s_sched = date_format(date_create($gvalue->date_session), 'Y-m-d');
-                /* $data_sessions  = DB::connection('mysql')->select("
-                SELECT * from phic
-                    where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state <> 'INACTIVE' 
-                "); */
-                if ($gvalue->status == 'PAID') {
-                    $paid_session++;
-                }
+                $date_of_sessions .= date_format(date_create($gvalue->date_session), 'F d Y') . ", ";
             }
-            $arr['get_dates'] = $get_dates;
-            //$arr['paidSessions'] =  $total_paid_session += $paid_session;
-            $arr['paidSessions'] = $total_paid_session += $paid_session;
+            
+            //$givenDatePF = Carbon::parse($fdate);
+            $gross = 0;
+            $givenDatePF = Carbon::parse($value->date_session);
+            $comparisonDatePF = Carbon::parse('2024-10-8');
+            if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                $gross = $pf2->value ;//* count($get_dates) ;
+            }else{
+                $gross = $pf1->value ;//* count($get_dates) ;
+            }
+            
+            $arr_export['patient'] =  Helper::patientDetail($value->patient_id)->name;
+            $arr_export['patient_id'] =  $value->patient_id;
+            $arr_export['amount'] =  $gross;
+            $arr_export['status'] = $value->claimStatus;
+            $arr_export['doctor'] = Helper::doctorzDetail($value->doctor)->name;;
+            $arr_export['session'] = date_format(date_create($value->date_session), 'F d Y');//ltrim($date_of_sessions, " ");
             if (sizeof($get_dates) > 0) {
-                $data_array[] = $arr;
                 $data_array_export[] = $arr_export;
             }
-            $paid_session = 0;
+            $date_of_sessions = '';
         }
-        $datasets = array();
 
-        $datasets["acpn"] = $data_array;
-        $datasets["total"] = count($data);
-        $datasets['totalPaidSessions'] = $total_paid_session;
+        /* $data_summary = DB::connection('mysql')->select("        
+        SELECT p.claimStatus, count(p.id) as session, p.date_session, p.doctor from phic p where p.date_session between '$fdate' and '$tdate' 
+        and p.state = 'ACTIVE' $claimStatus and p.claimStatus != 'PAID' and status = 'UNPAID' 
+        AND EXISTS (
+            SELECT 1 
+            FROM schedule  s       
+            WHERE s.schedule = p.date_session
+            and s.patient_id = p.patient_id
+            and s.status = 'ACTIVE'
+        )
+        group by p.doctor, DATE_FORMAT(p.date_session, '%Y-%m-%d')
+        "); */
 
-        return response()->json($datasets);
+        $data_summary = DB::connection('mysql')->select("        
+        SELECT p.claimStatus, count(p.id) as session, p.date_session,
+         p.doctor from phic p where p.date_session between '$fdate' and '$tdate' 
+        and p.state = 'ACTIVE' $claimStatus 
+         and p.status = 'UNPAID' 
+        AND EXISTS (
+            SELECT 1 
+            FROM schedule  s       
+            WHERE s.schedule = p.date_session
+            and s.patient_id = p.patient_id
+            and s.status = 'ACTIVE'
+        )
+        group by p.doctor, DATE_FORMAT(p.date_session, '%Y-%m-%d')
+        ");
+
+        $data_array_export_summary = array();
+        $indexedResult = [];
+        foreach ($data_summary as $key => $value) {
+            $arr_export = array();            
+       
+            
+            $gross = 0;
+            $givenDatePF = Carbon::parse($value->date_session);
+            $comparisonDatePF = Carbon::parse('2024-10-8');
+            if ($givenDatePF->greaterThan($comparisonDatePF)) {
+                $gross = $pf2->value * $value->session ;
+            }else{
+                $gross = $pf1->value * $value->session ;
+            }
+            
+            $arr_export['amount'] =  $gross;
+            $arr_export['status'] = $value->claimStatus;
+            $arr_export['session'] = $value->session;
+            $arr_export['doctor'] = Helper::doctorzDetail($value->doctor)->name;;
+            
+            $data_array_export_summary[] = $arr_export;
+        }
+
+        $result = [];
+        foreach ($data_array_export_summary as $entry) {
+            $doctor = $entry["doctor"];
+            
+            if (!isset($result[$doctor])) {
+                $result[$doctor] = [
+                    "doctor" => $doctor,
+                    "amount" => 0,
+                    "session" => 0,
+                    "status" => $entry["status"]
+                ];
+            }
+            
+            $result[$doctor]["amount"] += $entry["amount"];
+            $result[$doctor]["session"] += $entry["session"];
+        }
+        
+        // Convert to a numerically indexed array
+        foreach ($result as $group) {
+            $indexedResult[] = $group;
+        }
+        $detailedReport = $this->export_detailed_report($request);
+        $ouotput = array(
+            'data' => $data_array_export,
+            'summary' => $indexedResult,
+            'detailed' => $detailedReport,
+           /*  'sql' => " SELECT p.claimStatus, count(p.id) as session, p.date_session, p.doctor from phic p where p.date_session between '$fdate' and '$tdate' 
+            and p.state = 'ACTIVE' $claimStatus and p.claimStatus != 'PAID' and status = 'UNPAID'
+            AND EXISTS (
+                SELECT 1 
+                FROM schedule  s       
+                WHERE s.schedule = p.date_session
+                and s.patient_id = p.patient_id
+                and s.status = 'ACTIVE'
+            )
+             group by p.doctor, DATE_FORMAT(p.date_session, '%Y-%m-%d')
+            " */
+        );
+
+        return response()->json($ouotput);
+    }
+
+    public function export_detailed_report(Request $request)
+    {
+        $fdate = date_format(date_create($request->fdate), 'Y-m-d');
+        $tdate = date_format(date_create($request->tdate), 'Y-m-d');
+        $doctor = $request->doctors;
+        $claimStatus = '';
+
+        if ($request->claimStatus != "All") {
+            $claimStatus ="p.claimStatus = '$request->claimStatus' and ";
+        }
+        $doctors = '';
+        if($request->doctors!='All'){
+            $doctors = " and p.doctor = $request->doctors ";
+        } 
+
+        if ($doctor == 0) {
+            $data = DB::connection('mysql')->select(" SELECT 
+                    sub.name,
+                    SUM(sub.cnt) AS sessions,
+                    sub.doctor,
+                    sub.dates AS date_session
+                FROM (
+                    SELECT 
+                        COUNT(p.id) AS cnt, 
+                        d.name, 
+                        p.doctor,
+                        p.date_session,
+                        GROUP_CONCAT(DATE_FORMAT(p.date_session, '%M %d, %Y'), '-',p.status ORDER BY p.date_session SEPARATOR ' | ') AS dates
+                    FROM phic p
+                    LEFT JOIN doctors d ON d.id = p.doctor
+                    WHERE
+                        $claimStatus
+                        AND p.status = 'UNPAID'
+                        AND p.state = 'ACTIVE'
+                        -- AND p.doctor = 2
+                        AND DATE_FORMAT(p.date_session, '%Y-%m-%d') BETWEEN '$fdate' and '$tdate'
+                        AND EXISTS (
+                        SELECT 1 
+                        FROM schedule s         
+                        WHERE s.schedule = p.date_session
+                        and s.patient_id = p.patient_id
+                        and s.status = 'ACTIVE'
+                    ) 
+                    GROUP BY DATE_FORMAT(p.date_session, '%Y-%m')
+                ) AS sub
+                GROUP BY DATE_FORMAT(sub.date_session, '%Y-%m')
+                order by sub.doctor
+                ");
+        } else {
+            $data = DB::connection('mysql')->select(" SELECT 
+            sub.name,
+            SUM(sub.cnt) AS sessions,
+            sub.doctor,
+            sub.dates AS date_session
+        FROM (
+            SELECT 
+                COUNT(p.id) AS cnt, 
+                d.name, 
+                p.doctor,
+                p.date_session,
+                GROUP_CONCAT(DATE_FORMAT(p.date_session, '%M %d, %Y'), '-',p.claimStatus ORDER BY p.date_session SEPARATOR ' | ') AS dates
+            FROM phic p
+            LEFT JOIN doctors d ON d.id = p.doctor
+            WHERE
+                $claimStatus
+                p.status = 'UNPAID'
+                AND p.state = 'ACTIVE'
+                $doctors
+                -- AND p.doctor = 2
+                AND DATE_FORMAT(p.date_session, '%Y-%m-%d') BETWEEN '$fdate' and '$tdate'
+                AND EXISTS (
+                SELECT 1 
+                FROM schedule s         
+                WHERE s.schedule = p.date_session
+                and s.patient_id = p.patient_id
+                and s.status = 'ACTIVE'
+            ) 
+            GROUP BY DATE_FORMAT(p.date_session, '%Y-%m')
+        ) AS sub
+        GROUP BY DATE_FORMAT(sub.date_session, '%Y-%m')
+        order by sub.doctor            
+        ");
+        }
+
+        $data_array = array();
+        foreach ($data as $key => $value) {
+            $arr = array();
+            $arr['doctor'] = $value->name;
+            $arr['sessions'] = $value->sessions;
+            $arr['date_session'] = $value->date_session;
+            $data_array[] = $arr;
+        }
+
+        return $data_array;
     }
 
     public function report_summary(Request $request)
@@ -966,6 +1346,9 @@ class PHICController extends Controller
     
     public function batch_report_list(Request $request)
     {
+        $rate1 = Settings::where('name', 'rate1')->first();
+        $rate2 = Settings::where('name', 'rate2')->first();
+        $rate3 = Settings::where('name', 'rate3')->first();
         //$acpn = explode(',', $request->batches);
         $strBatches = '';
         $strAcpn = '';
@@ -984,15 +1367,50 @@ class PHICController extends Controller
 
         //$batch_query = DB::connection('mysql')->select(" SELECT COUNT(acpn_no) as cnt_acpn,acpn_no,remarks from phic where remarks  in ($strBatches) and state = 'ACTIVE' and  date_session between '2022-02-01' and '2022-12-31' and status = 'PAID' group by acpn_no order by remarks asc");
 
-        $batch_query = DB::connection('mysql')->select(" SELECT COUNT(acpn_no) as cnt_acpn,acpn_no,remarks from phic where remarks  in ($strBatches) and state = 'ACTIVE' and status = 'PAID' group by acpn_no order by remarks asc");
-
+        $batch_query = DB::connection('mysql')->select(" SELECT COUNT(acpn_no) as cnt_acpn,acpn_no,remarks,date_session from phic where remarks  in ($strBatches) and state = 'ACTIVE' and status = 'PAID' group by acpn_no,date_session  order by remarks asc");
+  
         foreach ($batch_query as $key => $value) {
+            $getMultiplier = 0;
+            $sharing_percent = 0;
+
+            
+
+            if (Carbon::parse($value->date_session)->lessThan('2024-07-01')) {
+                $getMultiplier = ($rate1->value - 350);
+            }
+
+            $givenDate = Carbon::parse($value->date_session);
+            $startDate = Carbon::parse('2024-07-01');
+            $endDate = Carbon::parse('2024-10-08');
+            if ($givenDate->between($startDate, $endDate)) {
+                $getMultiplier = ($rate2->value - 350);
+            }
+
+            // Parse the dates
+            $givenDate = Carbon::parse($value->date_session);
+            $comparisonDate = Carbon::parse('2024-10-8');
+
+            // Check if the given date is greater than the comparison date
+            if ($givenDate->greaterThan($comparisonDate)) {
+                $getMultiplier = ($rate3->value - 350);
+            }
+            
+
+            if (Carbon::parse($value->date_session)->lessThan('2024-02-01')) {
+                $sharing_percent = 0.25;
+            }
+            // Parse the dates
+            $comparisonDate2 = Carbon::parse('2024-01-31');
+            if ($givenDate->greaterThan($comparisonDate2)) {
+                $sharing_percent = 0.27;
+            }
+
             $arr = array();
             $arr['acpn'] = $value->acpn_no;
             $arr['no_of_sessions'] = $value->cnt_acpn;
-            $amt = $value->cnt_acpn * 2250;
+            $amt = $value->cnt_acpn * $getMultiplier;//250;
             //$less_tax = $amt * 0.25;
-            $less_tax = $amt * 0.25;
+            $less_tax = $amt * $sharing_percent;//0.25;
             $sharing_less_tax = $less_tax * 0.05;
             //$net = $amt - $less_tax;
             $net = $less_tax * 0.95;
@@ -1001,6 +1419,7 @@ class PHICController extends Controller
             $arr['less_tax'] = number_format($sharing_less_tax, 2);
             $arr['sharing'] = number_format($less_tax, 2);
             $arr['net'] = number_format($net, 2);
+            $arr['amt'] = $value->cnt_acpn.' '.$getMultiplier;;
             $arr['batch'] = $value->remarks;
             $data_array[] = $arr;
             $total_session+=$value->cnt_acpn;

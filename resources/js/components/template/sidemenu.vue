@@ -113,7 +113,7 @@
           </li>
 
           
-          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'copay_list' || this.$route.name == 'batch_report' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list' }">
+          <li class="nav-item" :class="{ 'menu-open': this.$route.name == 'phic_list' || this.$route.name == 'claim_status' || this.$route.name == 'copay_list' || this.$route.name == 'batch_report' || this.$route.name == 'acpn_report' || this.$route.name == 'acpn_list' }">
             <a href="#" class="nav-link"
               :class="{ 'active': this.$route.name == 'census_doctor' || this.$route.name == 'census_patient' }">
               <i class="fas fa-poll-h"></i>
@@ -156,6 +156,13 @@
                     :class="{ 'active': this.$route.name == 'batch_report' }">
                     <i class="far fa-circle nav-icon"></i>
                     BATCH
+                  </a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/claim_status" class="collapse-item"> <a href="#" class="nav-link" id="usermenu"
+                    :class="{ 'active': this.$route.name == 'claim_status' }">
+                    <i class="far fa-circle nav-icon"></i>
+                    Claim Status
                   </a></router-link>
               </li>
 
