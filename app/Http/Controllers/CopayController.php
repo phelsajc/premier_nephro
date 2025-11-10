@@ -670,4 +670,106 @@ class CopayController extends Controller
         $myPdf->Output('I', "ChartRecordPdf.pdf", true);
         exit;
     }
+
+    /**
+     * Retrieve copay information for a doctor grouped by patients
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDoctorCopayByPatients(Request $request)
+    {
+        date_default_timezone_set('Asia/Manila');
+        
+        // Get doctor ID from request (can be passed as 'doctor_id' or 'doctor')
+        $doctorId = $request->doctor_id ?? $request->doctor;
+        
+        if (!$doctorId) {
+            return response()->json([
+                'error' => 'Doctor ID is required'
+            ], 400);
+        }
+
+        // Get doctor information
+        $doctor = Doctors::where('id', $doctorId)->first();
+        
+        if (!$doctor) {
+            return response()->json([
+                'error' => 'Doctor not found'
+            ], 404);
+        }
+
+        // Threshold date: September 1, 2025
+        $thresholdDate = '2025-09-01';
+        
+        // Get all copay records for this doctor
+        $copayRecords = DB::connection('mysql')->select("
+            SELECT 
+                c.id,
+                c.date_session,
+                c.patient_id,
+                p.name as patient_name
+            FROM co_pay c
+            LEFT JOIN patients p ON c.patient_id = p.id
+            WHERE c.doctor = ?
+            ORDER BY c.patient_id, c.date_session
+        ", [$doctorId]);
+
+        // Group by patient and calculate totals
+        $patientsData = [];
+        $patientGroups = [];
+
+        foreach ($copayRecords as $record) {
+            $patientId = $record->patient_id;
+            
+            if (!isset($patientGroups[$patientId])) {
+                $patientGroups[$patientId] = [
+                    'patient_id' => $patientId,
+                    'patient_name' => $record->patient_name ?? 'Unknown',
+                    'sessions' => [],
+                    'total_copay' => 0,
+                    'session_count' => 0
+                ];
+            }
+
+            // Calculate copay amount based on date
+            $sessionDate = date('Y-m-d', strtotime($record->date_session));
+            $copayAmount = ($sessionDate < $thresholdDate) ? 150 : 500;
+
+            // Add session information
+            $patientGroups[$patientId]['sessions'][] = [
+                'date' => $sessionDate,
+                'formatted_date' => date('M j Y', strtotime($sessionDate)),
+                'copay_amount' => $copayAmount
+            ];
+
+            $patientGroups[$patientId]['total_copay'] += $copayAmount;
+            $patientGroups[$patientId]['session_count']++;
+        }
+
+        // Format the data for response
+        $formattedData = [];
+        foreach ($patientGroups as $patient) {
+            // Format dates as "Sep 1, Sep 2"
+            $datesFormatted = array_map(function($session) {
+                return $session['formatted_date'];
+            }, $patient['sessions']);
+            
+            $datesString = implode(', ', $datesFormatted);
+
+            $formattedData[] = [
+                'name' => $patient['patient_name'],
+                'no_of_sessions' => $patient['session_count'],
+                'dates' => $datesString,
+                'total_copay' => $patient['total_copay']
+            ];
+        }
+
+        return response()->json([
+            'doctor' => $doctor->name,
+            'doctor_id' => $doctor->id,
+            'patients' => $formattedData,
+            'total_patients' => count($formattedData)
+        ]);
+    }
 }

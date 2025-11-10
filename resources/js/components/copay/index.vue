@@ -77,6 +77,14 @@
                       <button type="button" @click="exportData()" class="btn btn-danger">
                         PDF
                       </button>
+                      <button 
+                        type="button" 
+                        @click="getDoctorCopayByPatients()" 
+                        class="btn btn-success"
+                        :disabled="filter.doctors == null || filter.doctors == 'All'"
+                      >
+                        View by Patients
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -104,7 +112,31 @@
                   </dd>
                 </dl>
                 <progressBar :getStatus="showProgress"></progressBar>
-                <table v-if="filter.doctors != 'All'" class="table">
+                
+                <!-- New table for doctor copay by patients -->
+                <div v-if="showDoctorCopayTable && doctorCopayPatients.length > 0" style="margin-top: 20px;">
+                  <h4>{{ doctorCopayData ? doctorCopayData.doctor : '' }} - Copay by Patients</h4>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>No. of Sessions</th>
+                        <th>Dates</th>
+                        <th>Total Copay</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="e in doctorCopayPatients" :key="e.name">
+                        <td>{{ e.name }}</td>
+                        <td>{{ e.no_of_sessions }}</td>
+                        <td>{{ e.dates }}</td>
+                        <td>{{ e.total_copay }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <table v-if="filter.doctors != 'All' && !showDoctorCopayTable" class="table">
                   <thead>
                     <tr>
                       <th>Patient</th>
@@ -208,6 +240,9 @@ export default {
       doctors_list: [],
       token: localStorage.getItem("token"),
       getMonthTitle: "",
+      doctorCopayPatients: [],
+      doctorCopayData: null,
+      showDoctorCopayTable: false,
     };
   },
   computed: {
@@ -249,6 +284,7 @@ export default {
       this.filter.fdate = moment.utc(this.filter.fdate).utcOffset("+08:00").format();
       this.filter.tdate = moment.utc(this.filter.tdate).utcOffset("+08:00").format();
       this.progressStatus = false;
+      this.showDoctorCopayTable = false;
       api
         .post("copay-report", this.filter)
         .then((response) => {
@@ -397,6 +433,48 @@ export default {
       };
       const csvExporter = new ExportToCsv(options);
       csvExporter.generateCsv(this.export);
+    },
+    getDoctorCopayByPatients() {
+      if (!this.filter.doctors || this.filter.doctors == "All") {
+        Toast.fire({
+          icon: "warning",
+          title: "Please select a doctor first",
+        });
+        return;
+      }
+
+      this.progressStatus = false;
+      this.showDoctorCopayTable = false;
+      
+      api
+        .post("copay-doctor-patients", { doctor_id: this.filter.doctors })
+        .then((response) => {
+          this.doctorCopayData = response.data;
+          this.doctorCopayPatients = response.data.patients;
+          this.showDoctorCopayTable = true;
+          Toast.fire({
+            icon: "success",
+            title: "Doctor copay data loaded successfully",
+          });
+          this.progressStatus = true;
+        })
+        .catch((error) => {
+          this.progressStatus = true;
+          if (error.response && error.response.data && error.response.data.message == "Token has expired") {
+            this.$router.push({ name: "/" });
+            Toast.fire({
+              icon: "error",
+              title: "Token has expired",
+            });
+          } else {
+            Toast.fire({
+              icon: "error",
+              title: error.response && error.response.data && error.response.data.error 
+                ? error.response.data.error 
+                : "Error loading doctor copay data",
+            });
+          }
+        });
     },
   },
 };

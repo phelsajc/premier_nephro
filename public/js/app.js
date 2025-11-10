@@ -7161,6 +7161,38 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -7197,7 +7229,10 @@ __webpack_require__.r(__webpack_exports__);
       month: null,
       doctors_list: [],
       token: localStorage.getItem("token"),
-      getMonthTitle: ""
+      getMonthTitle: "",
+      doctorCopayPatients: [],
+      doctorCopayData: null,
+      showDoctorCopayTable: false
     };
   },
   computed: {
@@ -7249,6 +7284,7 @@ __webpack_require__.r(__webpack_exports__);
       this.filter.fdate = moment__WEBPACK_IMPORTED_MODULE_3___default.a.utc(this.filter.fdate).utcOffset("+08:00").format();
       this.filter.tdate = moment__WEBPACK_IMPORTED_MODULE_3___default.a.utc(this.filter.tdate).utcOffset("+08:00").format();
       this.progressStatus = false;
+      this.showDoctorCopayTable = false;
       _Helpers_api__WEBPACK_IMPORTED_MODULE_4__["default"].post("copay-report", this.filter).then(function (response) {
         _this3.getTotalSession = response.data.sessions;
         _this3.results = response.data.data;
@@ -7382,6 +7418,50 @@ __webpack_require__.r(__webpack_exports__);
       };
       var csvExporter = new export_to_csv__WEBPACK_IMPORTED_MODULE_5__["ExportToCsv"](options);
       csvExporter.generateCsv(this["export"]);
+    },
+    getDoctorCopayByPatients: function getDoctorCopayByPatients() {
+      var _this7 = this;
+
+      if (!this.filter.doctors || this.filter.doctors == "All") {
+        Toast.fire({
+          icon: "warning",
+          title: "Please select a doctor first"
+        });
+        return;
+      }
+
+      this.progressStatus = false;
+      this.showDoctorCopayTable = false;
+      _Helpers_api__WEBPACK_IMPORTED_MODULE_4__["default"].post("copay-doctor-patients", {
+        doctor_id: this.filter.doctors
+      }).then(function (response) {
+        _this7.doctorCopayData = response.data;
+        _this7.doctorCopayPatients = response.data.patients;
+        _this7.showDoctorCopayTable = true;
+        Toast.fire({
+          icon: "success",
+          title: "Doctor copay data loaded successfully"
+        });
+        _this7.progressStatus = true;
+      })["catch"](function (error) {
+        _this7.progressStatus = true;
+
+        if (error.response && error.response.data && error.response.data.message == "Token has expired") {
+          _this7.$router.push({
+            name: "/"
+          });
+
+          Toast.fire({
+            icon: "error",
+            title: "Token has expired"
+          });
+        } else {
+          Toast.fire({
+            icon: "error",
+            title: error.response && error.response.data && error.response.data.error ? error.response.data.error : "Error loading doctor copay data"
+          });
+        }
+      });
     }
   }
 });
@@ -132917,6 +132997,29 @@ var render = function () {
                               ),
                             ]
                           ),
+                          _vm._v(" "),
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-success",
+                              attrs: {
+                                type: "button",
+                                disabled:
+                                  _vm.filter.doctors == null ||
+                                  _vm.filter.doctors == "All",
+                              },
+                              on: {
+                                click: function ($event) {
+                                  return _vm.getDoctorCopayByPatients()
+                                },
+                              },
+                            },
+                            [
+                              _vm._v(
+                                "\n                      View by Patients\n                    "
+                              ),
+                            ]
+                          ),
                         ]),
                       ]),
                     ]),
@@ -132972,9 +133075,44 @@ var render = function () {
                       attrs: { getStatus: _vm.showProgress },
                     }),
                     _vm._v(" "),
-                    _vm.filter.doctors != "All"
+                    _vm.showDoctorCopayTable &&
+                    _vm.doctorCopayPatients.length > 0
+                      ? _c("div", { staticStyle: { "margin-top": "20px" } }, [
+                          _c("h4", [
+                            _vm._v(
+                              _vm._s(
+                                _vm.doctorCopayData
+                                  ? _vm.doctorCopayData.doctor
+                                  : ""
+                              ) + " - Copay by Patients"
+                            ),
+                          ]),
+                          _vm._v(" "),
+                          _c("table", { staticClass: "table" }, [
+                            _vm._m(2),
+                            _vm._v(" "),
+                            _c(
+                              "tbody",
+                              _vm._l(_vm.doctorCopayPatients, function (e) {
+                                return _c("tr", { key: e.name }, [
+                                  _c("td", [_vm._v(_vm._s(e.name))]),
+                                  _vm._v(" "),
+                                  _c("td", [_vm._v(_vm._s(e.no_of_sessions))]),
+                                  _vm._v(" "),
+                                  _c("td", [_vm._v(_vm._s(e.dates))]),
+                                  _vm._v(" "),
+                                  _c("td", [_vm._v(_vm._s(e.total_copay))]),
+                                ])
+                              }),
+                              0
+                            ),
+                          ]),
+                        ])
+                      : _vm._e(),
+                    _vm._v(" "),
+                    _vm.filter.doctors != "All" && !_vm.showDoctorCopayTable
                       ? _c("table", { staticClass: "table" }, [
-                          _vm._m(2),
+                          _vm._m(3),
                           _vm._v(" "),
                           _c(
                             "tbody",
@@ -133001,7 +133139,7 @@ var render = function () {
                           ),
                         ])
                       : _c("table", { staticClass: "table" }, [
-                          _vm._m(3),
+                          _vm._m(4),
                           _vm._v(" "),
                           _c(
                             "tbody",
@@ -133098,6 +133236,22 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "card-header" }, [
       _c("h3", { staticClass: "card-title" }, [_vm._v("CoPay Report")]),
+    ])
+  },
+  function () {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("thead", [
+      _c("tr", [
+        _c("th", [_vm._v("Name")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("No. of Sessions")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Dates")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Total Copay")]),
+      ]),
     ])
   },
   function () {

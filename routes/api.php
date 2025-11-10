@@ -147,6 +147,7 @@ Route::match(['get','post'],'schedule-delete/{id}','ScheduleController@delete');
 #Copay
 Route::match(['get','post'],'copay-report','CopayController@report');
 Route::match(['get','post'],'pdf','CopayController@Exportreport');
+Route::match(['get','post'],'copay-doctor-patients','CopayController@getDoctorCopayByPatients');
 
 #PHIC
 Route::match(['get','post'],'phic-report','PHICController@report');
