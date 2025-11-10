@@ -1002,7 +1002,7 @@ class PHICController extends Controller
         SELECT patient_id, claimStatus, date_session, doctor from phic where date_session between '$fdate' and '$tdate' and state = 'ACTIVE' $claimStatus and doctor = $request->doctors and claimStatus != 'PAID' group by DATE_FORMAT(date_session, '%Y-%m'), patient_id;
         "); */
 
-        $data = DB::connection('mysql')->select("SELECT p.patient_id, p.claimStatus, p.date_session, p.doctor from phic p where p.date_session between '$fdate' and '$tdate' and p.state = 'ACTIVE' $claimStatus $doctors and p.claimStatus != 'PAID' group by DATE_FORMAT(p.date_session, '%Y-%m-%d'), p.patient_id order by p.date_session ");
+        $data = DB::connection('mysql')->select("SELECT p.patient_id, p.claimStatus, p.date_session, p.doctor from phic p where p.date_session between '$fdate' and '$tdate' and p.state = 'ACTIVE' $claimStatus $doctors and p.claimStatus != 'PAID' and p.status = 'UNPAID' AND EXISTS (SELECT 1 FROM schedule s WHERE s.schedule = p.date_session and s.patient_id = p.patient_id and s.status = 'ACTIVE') group by DATE_FORMAT(p.date_session, '%Y-%m-%d'), p.patient_id order by p.date_session ");
 
         $data_array_export = array();
         
@@ -1013,7 +1013,7 @@ class PHICController extends Controller
             $arr_export = array();            
        
             $get_dates = DB::connection('mysql')->select("
-            SELECT * from phic where date_session between '$fdate' and '$tdate'  and patient_id = $value->patient_id and claimStatus != 'PAID'
+            SELECT * from phic where date_session between '$fdate' and '$tdate'  and patient_id = $value->patient_id and claimStatus != 'PAID' and status = 'UNPAID' AND EXISTS (SELECT 1 FROM schedule s WHERE s.schedule = date_session and s.patient_id = patient_id and s.status = 'ACTIVE')
             ");
 
             $date_of_sessions = '';

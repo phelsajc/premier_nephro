@@ -2204,7 +2204,7 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
             $formatAllSessions[] = $arr;
         }
 
-
+       
         $datasets = array();
         $datasets["data"] = $data_array;
         $datasets["data2"] = $data;
@@ -2223,7 +2223,7 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
         $datasets["getNewP"] = $getNewP;
         $datasets["datesByMonth"] = $datesByMonth;
         $datasets["datesByMonth"] = "SELECT count(s.patient_id) as cnt,DATE_FORMAT(s.date_session, '%Y-%m') as schedule FROM `phic` s where s.status = 'PAID'  and s.state = 'ACTIVE' 
-            and DATE_FORMAT(s.date_session, '%Y-%m-%d') between '" . $datesByMonth['2025-01']['start'] . "' and '" . $datesByMonth['2025-01']['end'] . "'
+            and DATE_FORMAT(s.date_session, '%Y-%m-%d') between '$fdate' and '$tdate'
             group by DATE_FORMAT(s.date_session, '%Y-%m')";
         $datasets["sql"] = "select c.name,p.patient_id,count(p.date_session) as cnt, p.doctor as docid,GROUP_CONCAT(DATE_FORMAT(p.date_session, '%M %d, %Y') SEPARATOR ',') as dates" .
         ",GROUP_CONCAT(p.date_session  SEPARATOR '|') as fdates" .
