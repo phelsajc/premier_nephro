@@ -690,6 +690,10 @@ class CopayController extends Controller
             ], 400);
         }
 
+        // Get date filters from request
+        $fdate = $request->fdate ? date_format(date_create($request->fdate), 'Y-m-d') : null;
+        $tdate = $request->tdate ? date_format(date_create($request->tdate), 'Y-m-d') : null;
+
         // Get doctor information
         $doctor = Doctors::where('id', $doctorId)->first();
         
@@ -702,8 +706,8 @@ class CopayController extends Controller
         // Threshold date: September 1, 2025
         $thresholdDate = '2025-09-01';
         
-        // Get all copay records for this doctor
-        $copayRecords = DB::connection('mysql')->select("
+        // Build the query with optional date filtering
+        $query = "
             SELECT 
                 c.id,
                 c.date_session,
@@ -711,9 +715,28 @@ class CopayController extends Controller
                 p.name as patient_name
             FROM co_pay c
             LEFT JOIN patients p ON c.patient_id = p.id
-            WHERE c.doctor = ?
-            ORDER BY c.patient_id, c.date_session
-        ", [$doctorId]);
+            WHERE c.status = 'ACTIVE' and c.doctor = ?
+        ";
+        
+        $params = [$doctorId];
+        
+        // Add date filtering if provided
+        if ($fdate && $tdate) {
+            $query .= " AND DATE(c.date_session) BETWEEN ? AND ?";
+            $params[] = $fdate;
+            $params[] = $tdate;
+        } /* elseif ($fdate) {
+            $query .= " AND DATE(c.date_session) >= ?";
+            $params[] = $fdate;
+        } elseif ($tdate) {
+            $query .= " AND DATE(c.date_session) <= ?";
+            $params[] = $tdate;
+        } */
+        
+        $query .= " ORDER BY c.patient_id, c.date_session";
+        
+        // Get copay records for this doctor with date filtering
+        $copayRecords = DB::connection('mysql')->select($query, $params);
 
         // Group by patient and calculate totals
         $patientsData = [];
@@ -769,7 +792,9 @@ class CopayController extends Controller
             'doctor' => $doctor->name,
             'doctor_id' => $doctor->id,
             'patients' => $formattedData,
-            'total_patients' => count($formattedData)
+            'total_patients' => count($formattedData),
+            'date_from' => $fdate,
+            'date_to' => $tdate
         ]);
     }
 }

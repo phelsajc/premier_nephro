@@ -7431,10 +7431,21 @@ __webpack_require__.r(__webpack_exports__);
       }
 
       this.progressStatus = false;
-      this.showDoctorCopayTable = false;
-      _Helpers_api__WEBPACK_IMPORTED_MODULE_4__["default"].post("copay-doctor-patients", {
+      this.showDoctorCopayTable = false; // Prepare date filters
+
+      var requestData = {
         doctor_id: this.filter.doctors
-      }).then(function (response) {
+      }; // Add date filters if they exist
+
+      if (this.filter.fdate) {
+        requestData.fdate = moment__WEBPACK_IMPORTED_MODULE_3___default.a.utc(this.filter.fdate).utcOffset("+08:00").format();
+      }
+
+      if (this.filter.tdate) {
+        requestData.tdate = moment__WEBPACK_IMPORTED_MODULE_3___default.a.utc(this.filter.tdate).utcOffset("+08:00").format();
+      }
+
+      _Helpers_api__WEBPACK_IMPORTED_MODULE_4__["default"].post("copay-doctor-patients", requestData).then(function (response) {
         _this7.doctorCopayData = response.data;
         _this7.doctorCopayPatients = response.data.patients;
         _this7.showDoctorCopayTable = true;

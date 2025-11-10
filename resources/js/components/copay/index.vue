@@ -446,8 +446,21 @@ export default {
       this.progressStatus = false;
       this.showDoctorCopayTable = false;
       
+      // Prepare date filters
+      const requestData = {
+        doctor_id: this.filter.doctors
+      };
+      
+      // Add date filters if they exist
+      if (this.filter.fdate) {
+        requestData.fdate = moment.utc(this.filter.fdate).utcOffset("+08:00").format();
+      }
+      if (this.filter.tdate) {
+        requestData.tdate = moment.utc(this.filter.tdate).utcOffset("+08:00").format();
+      }
+      
       api
-        .post("copay-doctor-patients", { doctor_id: this.filter.doctors })
+        .post("copay-doctor-patients", requestData)
         .then((response) => {
           this.doctorCopayData = response.data;
           this.doctorCopayPatients = response.data.patients;
