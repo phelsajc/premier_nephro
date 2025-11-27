@@ -7193,6 +7193,15 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -7472,6 +7481,73 @@ __webpack_require__.r(__webpack_exports__);
             title: error.response && error.response.data && error.response.data.error ? error.response.data.error : "Error loading doctor copay data"
           });
         }
+      });
+    },
+    exportDoctorCopayByPatientsPDF: function exportDoctorCopayByPatientsPDF() {
+      if (!this.doctorCopayPatients || this.doctorCopayPatients.length === 0) {
+        Toast.fire({
+          icon: "warning",
+          title: "No data to export"
+        });
+        return;
+      }
+
+      var doc = new jspdf__WEBPACK_IMPORTED_MODULE_1__["default"]();
+      var doctorName = this.doctorCopayData ? this.doctorCopayData.doctor : 'Unknown Doctor'; // Title
+
+      doc.text("Copay by Patients - " + doctorName, 20, 12); // Date range
+
+      var dateRange = "";
+
+      if (this.filter.fdate && this.filter.tdate) {
+        dateRange = "from " + moment__WEBPACK_IMPORTED_MODULE_3___default()(this.filter.fdate).format("MMMM DD, YYYY") + " to " + moment__WEBPACK_IMPORTED_MODULE_3___default()(this.filter.tdate).format("MMMM DD, YYYY");
+      } else if (this.doctorCopayData && this.doctorCopayData.date_from && this.doctorCopayData.date_to) {
+        dateRange = "from " + moment__WEBPACK_IMPORTED_MODULE_3___default()(this.doctorCopayData.date_from).format("MMMM DD, YYYY") + " to " + moment__WEBPACK_IMPORTED_MODULE_3___default()(this.doctorCopayData.date_to).format("MMMM DD, YYYY");
+      }
+
+      if (dateRange) {
+        doc.text(dateRange, 20, 20);
+      } // Prepared by
+
+
+      doc.setFontSize(9);
+      doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27); // Prepare table data
+
+      var tableData = this.doctorCopayPatients.map(function (patient) {
+        return [patient.name, patient.no_of_sessions.toString(), patient.dates, patient.total_copay.toString()];
+      }); // Calculate totals
+
+      var totalSessions = this.doctorCopayPatients.reduce(function (sum, patient) {
+        return sum + patient.no_of_sessions;
+      }, 0);
+      var totalCopay = this.doctorCopayPatients.reduce(function (sum, patient) {
+        return sum + patient.total_copay;
+      }, 0); // Add total row
+
+      tableData.push(["Total", totalSessions.toString(), "", totalCopay.toString()]); // Create table
+
+      doc.autoTable({
+        head: [["Name", "No. of Sessions", "Dates", "Total Copay"]],
+        margin: {
+          top: 30
+        },
+        body: tableData,
+        styles: {
+          fontSize: 9
+        },
+        headStyles: {
+          fillColor: [66, 139, 202]
+        },
+        footStyles: {
+          fillColor: [220, 220, 220]
+        }
+      }); // Generate filename
+
+      var filename = "copay_by_patients_" + doctorName.replace(/\s+/g, "_") + "_" + moment__WEBPACK_IMPORTED_MODULE_3___default()().format("YYYYMMDD") + ".pdf";
+      doc.save(filename);
+      Toast.fire({
+        icon: "success",
+        title: "PDF exported successfully"
       });
     }
   }
@@ -23394,7 +23470,7 @@ exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-
 
 
 // module
-exports.push([module.i, "\n.pull-right {\r\n  float: right !important;\n}\n.dpicker {\r\n  background-color: white !important;\n}\r\n", ""]);
+exports.push([module.i, "\n.pull-right {\n  float: right !important;\n}\n.dpicker {\n  background-color: white !important;\n}\n", ""]);
 
 // exports
 
@@ -133089,15 +133165,46 @@ var render = function () {
                     _vm.showDoctorCopayTable &&
                     _vm.doctorCopayPatients.length > 0
                       ? _c("div", { staticStyle: { "margin-top": "20px" } }, [
-                          _c("h4", [
-                            _vm._v(
-                              _vm._s(
-                                _vm.doctorCopayData
-                                  ? _vm.doctorCopayData.doctor
-                                  : ""
-                              ) + " - Copay by Patients"
-                            ),
-                          ]),
+                          _c(
+                            "div",
+                            {
+                              staticStyle: {
+                                display: "flex",
+                                "justify-content": "space-between",
+                                "align-items": "center",
+                                "margin-bottom": "10px",
+                              },
+                            },
+                            [
+                              _c("h4", [
+                                _vm._v(
+                                  _vm._s(
+                                    _vm.doctorCopayData
+                                      ? _vm.doctorCopayData.doctor
+                                      : ""
+                                  ) + " - Copay by Patients"
+                                ),
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "button",
+                                {
+                                  staticClass: "btn btn-danger btn-sm",
+                                  attrs: { type: "button" },
+                                  on: {
+                                    click: function ($event) {
+                                      return _vm.exportDoctorCopayByPatientsPDF()
+                                    },
+                                  },
+                                },
+                                [
+                                  _vm._v(
+                                    "\n                    Export PDF\n                  "
+                                  ),
+                                ]
+                              ),
+                            ]
+                          ),
                           _vm._v(" "),
                           _c("table", { staticClass: "table" }, [
                             _vm._m(2),

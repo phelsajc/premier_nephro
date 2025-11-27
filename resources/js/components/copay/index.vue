@@ -115,7 +115,16 @@
                 
                 <!-- New table for doctor copay by patients -->
                 <div v-if="showDoctorCopayTable && doctorCopayPatients.length > 0" style="margin-top: 20px;">
-                  <h4>{{ doctorCopayData ? doctorCopayData.doctor : '' }} - Copay by Patients</h4>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4>{{ doctorCopayData ? doctorCopayData.doctor : '' }} - Copay by Patients</h4>
+                    <button 
+                      type="button" 
+                      @click="exportDoctorCopayByPatientsPDF()" 
+                      class="btn btn-danger btn-sm"
+                    >
+                      Export PDF
+                    </button>
+                  </div>
                   <table class="table">
                     <thead>
                       <tr>
@@ -488,6 +497,83 @@ export default {
             });
           }
         });
+    },
+    exportDoctorCopayByPatientsPDF() {
+      if (!this.doctorCopayPatients || this.doctorCopayPatients.length === 0) {
+        Toast.fire({
+          icon: "warning",
+          title: "No data to export",
+        });
+        return;
+      }
+
+      const doc = new jsPDF();
+      const doctorName = this.doctorCopayData ? this.doctorCopayData.doctor : 'Unknown Doctor';
+      
+      // Title
+      doc.text("Copay by Patients - " + doctorName, 20, 12);
+      
+      // Date range
+      let dateRange = "";
+      if (this.filter.fdate && this.filter.tdate) {
+        dateRange = "from " + moment(this.filter.fdate).format("MMMM DD, YYYY") + " to " + moment(this.filter.tdate).format("MMMM DD, YYYY");
+      } else if (this.doctorCopayData && this.doctorCopayData.date_from && this.doctorCopayData.date_to) {
+        dateRange = "from " + moment(this.doctorCopayData.date_from).format("MMMM DD, YYYY") + " to " + moment(this.doctorCopayData.date_to).format("MMMM DD, YYYY");
+      }
+      
+      if (dateRange) {
+        doc.text(dateRange, 20, 20);
+      }
+      
+      // Prepared by
+      doc.setFontSize(9);
+      doc.text("Prepared by: " + localStorage.getItem("user"), 20, 27);
+      
+      // Prepare table data
+      const tableData = this.doctorCopayPatients.map((patient) => [
+        patient.name,
+        patient.no_of_sessions.toString(),
+        patient.dates,
+        patient.total_copay.toString()
+      ]);
+      
+      // Calculate totals
+      const totalSessions = this.doctorCopayPatients.reduce((sum, patient) => sum + patient.no_of_sessions, 0);
+      const totalCopay = this.doctorCopayPatients.reduce((sum, patient) => sum + patient.total_copay, 0);
+      
+      // Add total row
+      tableData.push([
+        "Total",
+        totalSessions.toString(),
+        "",
+        totalCopay.toString()
+      ]);
+      
+      // Create table
+      doc.autoTable({
+        head: [
+          [
+            "Name",
+            "No. of Sessions",
+            "Dates",
+            "Total Copay",
+          ],
+        ],
+        margin: { top: 30 },
+        body: tableData,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [66, 139, 202] },
+        footStyles: { fillColor: [220, 220, 220] },
+      });
+      
+      // Generate filename
+      const filename = "copay_by_patients_" + doctorName.replace(/\s+/g, "_") + "_" + moment().format("YYYYMMDD") + ".pdf";
+      doc.save(filename);
+      
+      Toast.fire({
+        icon: "success",
+        title: "PDF exported successfully",
+      });
     },
   },
 };

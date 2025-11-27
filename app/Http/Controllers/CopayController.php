@@ -11,6 +11,7 @@ use App\Model\Doctors;
 use App\Model\Patients;
 use App\Model\Settings;
 use App\Model\Phic;
+use Carbon\Carbon;
 use DB;
 
 class CopayController extends Controller
@@ -25,6 +26,23 @@ class CopayController extends Controller
     {
         //$this->middleware('auth:api');
         $this->middleware('JWT');
+    }
+
+    /**
+     * Get copay amount based on date
+     * Returns 150 if date is less than September 1, 2025
+     * Returns 500 if date is greater than or equal to September 1, 2025
+     */
+    private function getCopayAmount($date)
+    {
+        $thresholdDate = Carbon::parse('2025-09-01')->startOfDay();
+        $sessionDate = Carbon::parse($date)->startOfDay();
+        
+        if ($sessionDate->greaterThanOrEqualTo($thresholdDate)) {
+            return 500;
+        } else {
+            return 150;
+        }
     }
 
     function import(Request $request)
@@ -427,11 +445,14 @@ class CopayController extends Controller
                 $arr_export['Date'] = date_format(date_create($value->schedule), 'm/d/Y');
                 $arr_export['Name'] = $value->name;
                 $arr_export['NEPHROLOGIST'] = $checkAttndgDr ? $checkAttndgDr->name : '';
-                $arr_export['PF'] = $value->free_copay?'Free': $copay_settings->value;// 150;
+                $arr_export['PF'] = $value->free_copay?'Free': $this->getCopayAmount($value->schedule);// 150;
                 $arr_export['T/C'] = $value->doctor != $value->attending_doctor ? 'To Cover by ' . $checkDr->name : '';
                 $arr_export['tc'] = $value->doctor != $value->attending_doctor ?  $checkDr->name : '';
                 $arr_export[''] = '';
-                $total_copay = count($get_dates) *  $copay_settings->value;// 150;
+                $total_copay = 0;
+                foreach ($get_dates as $gkey => $gvalue) {
+                    $total_copay += $this->getCopayAmount($gvalue->schedule);
+                }
                 $net = $total_copay * 0.9;
                 $data_array_export[] = $arr_export;
                 $TotalNet += $net;
@@ -443,7 +464,16 @@ class CopayController extends Controller
             $arr_export['Date'] = '';
             $arr_export['Name'] = '';
             $arr_export['NEPHROLOGIST'] = 'Total';
-            $tOTALSessionAMount = sizeof($data) *$copay_settings->value;// 150; 
+            $tOTALSessionAMount = 0;
+            foreach ($data as $key => $value) {
+                $get_all_dates = DB::connection('mysql')->select("
+                SELECT schedule from schedule
+                    where schedule between '$fdate' and '$tdate' and patient_id = '$value->patient_id'  and status = 'ACTIVE'
+                ");
+                foreach ($get_all_dates as $gkey => $gvalue) {
+                    $tOTALSessionAMount += $this->getCopayAmount($gvalue->schedule);
+                }
+            } 
             $arr_export['PF'] = $tOTALSessionAMount;
             $arr_export['T/C'] = '';
             $arr_export[''] = sizeof($data); 
@@ -544,11 +574,24 @@ class CopayController extends Controller
                     $getCnt += $svalue->cnt;
                 }
 
+                // Get all individual sessions to calculate total amount based on date
+                $get_all_sessions = DB::connection('mysql')->select("
+                SELECT schedule FROM `schedule` s
+                    where s.schedule between '$fdate' and '$tdate' and
+                    s.doctor = $value->id and s.status = 'ACTIVE'
+                ");
+                
+                $total_Amt = 0;
+                foreach ($get_all_sessions as $sess) {
+                    $total_Amt += $this->getCopayAmount($sess->schedule);
+                }
+                
+                $avg_copay = $getCnt > 0 ? $total_Amt / $getCnt : 0;
+                
                 $arr['name'] = $value->name;
                 $arr['sessions'] = $getCnt; //sizeof($get_sessions);
                 $arr['session'] = $getCnt; //sizeof($get_sessions);
-                $arr['copay_amount'] = $copay_settings->value;//150; // $getCnt; //sizeof($get_sessions);
-                $total_Amt = $getCnt *  $copay_settings->value;// 150;
+                $arr['copay_amount'] = $this->getCopayAmount($sess->schedule);//$avg_copay > 0 ? round($avg_copay, 2) : 0;
                 $arr['total_amount'] = number_format($total_Amt, 2);
                 //$lwt = $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
                 $lwt = $value->id == 5 ? $total_Amt * 0.05 : $total_Amt * 0.1;
@@ -561,7 +604,7 @@ class CopayController extends Controller
 
                 $arr_export['Nephologist'] = $value->name;
                 $arr_export['# of session'] = number_format($getCnt, 2); //sizeof($get_sessions);
-                $arr_export['Amount per'] =  $copay_settings->value;// 150.00;
+                $arr_export['Amount per'] = $avg_copay > 0 ? round($avg_copay, 2) : 0;
                 $arr_export['Total Amount'] = $total_Amt;
                 //$arr_export['Less WTX'] = $value->id == 6 ? $total_Amt * 0.05 : $total_Amt * 0.1;
                 $arr_export['Less WTX'] = $value->id == 5 ? $total_Amt * 0.05 : $total_Amt * 0.1;
@@ -671,12 +714,6 @@ class CopayController extends Controller
         exit;
     }
 
-    /**
-     * Retrieve copay information for a doctor grouped by patients
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getDoctorCopayByPatients(Request $request)
     {
         date_default_timezone_set('Asia/Manila');

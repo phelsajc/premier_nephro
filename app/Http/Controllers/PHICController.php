@@ -240,10 +240,10 @@ class PHICController extends Controller
                             where date_session = '$s_sched' and patient_id = '$gvalue->patient_id' and state = 'ACTIVE' and doctor = $gvalue->doctor
                         ");
                 }
-                if ($data_sessions) {
+                if ($data_sessions && !empty($data_sessions)) {
                     $data_sessions[0]->status == 'PAID' ? $paid_session++ : 0;
                 }
-                if ($data_sessions) {
+                if ($data_sessions && !empty($data_sessions)) {
                     if ($data_sessions[0]->status == 'UNPAID') {
                         $totalUnpaid++;
                     }
@@ -252,18 +252,20 @@ class PHICController extends Controller
                     }
                 }
 
-                if($data_sessions[0]->status=='PAID'){
+                if($data_sessions && !empty($data_sessions) && $data_sessions[0]->status=='PAID'){
                     $date_of_sessionsArr_set['status'] = 'PAID';
-                }else{
+                }elseif($data_sessions && !empty($data_sessions)){
                     $date_of_sessionsArr_set['status'] = strtoupper($data_sessions[0]->claimStatus);
+                }else{
+                    $date_of_sessionsArr_set['status'] = '';
                 }
                 //$date_of_sessionsArr_set['status'] = $data_sessions ? $data_sessions[0]->status : null;
                 //$date_of_sessionsArr_set['ispaid'] = $data_sessions ? $data_sessions[0]->iscash : null;
-                $date_of_sessionsArr_set['id'] = $data_sessions ? $data_sessions[0]->id : null;
+                $date_of_sessionsArr_set['id'] = ($data_sessions && !empty($data_sessions)) ? $data_sessions[0]->id : null;
                 $date_of_sessionsArr_set['x'] = date_format(date_create($gvalue->schedule), 'Y-m-d');
                 $date_of_sessionsArr_set['y'] = $gvalue->patient_id;
                 $date_of_sessionsArr_set['data_sessions'] = $data_sessions;
-                $date_of_sessionsArr_set['updatedBy'] = $data_sessions ? ($data_sessions[0]->updated_by ? Helper::userDetail($data_sessions[0]->updated_by)->name . ' on ' . date_format(date_create($data_sessions[0]->updated_dt), 'F d,Y') : '') : '';
+                $date_of_sessionsArr_set['updatedBy'] = ($data_sessions && !empty($data_sessions)) ? ($data_sessions[0]->updated_by ? Helper::userDetail($data_sessions[0]->updated_by)->name . ' on ' . date_format(date_create($data_sessions[0]->updated_dt), 'F d,Y') : '') : '';
                 $date_of_sessions .= date_format(date_create($gvalue->schedule), 'F d') . ', ';
                 $date_of_sessionsArr[] = $date_of_sessionsArr_set;
             }
