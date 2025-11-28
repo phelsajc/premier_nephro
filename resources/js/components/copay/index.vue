@@ -546,8 +546,10 @@ export default {
         "Total",
         totalSessions.toString(),
         "",
-        totalCopay.toString()
+        totalCopay.toString()+"\n"+"gfgdfgdfgdfg"
       ]);
+
+      
       
       // Create table
       doc.autoTable({

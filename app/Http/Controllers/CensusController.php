@@ -2265,7 +2265,7 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
             DATE_FORMAT(sub.date_session,'%Y-%m-%d') as yr_mon
                 FROM (
                     SELECT 
-                        COUNT(p.id) AS cnt, 
+                        COUNT(DISTINCT p.id) AS cnt, 
                         d.name, 
                         p.doctor,
                         p.date_session
@@ -2275,8 +2275,15 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
                 $claimStatus
                 p.state = 'ACTIVE' 
                 and DATE_FORMAT(p.date_session, '%Y-%m-%d') between '$fdate' and '$tdate'
+                AND EXISTS (
+            SELECT 1 
+            FROM schedule  s       
+            WHERE s.schedule = p.date_session
+            and s.patient_id = p.patient_id
+            and s.status = 'ACTIVE'
+        )
                     GROUP BY d.id
-                , DATE_FORMAT(p.date_session, '%Y-%m') ) AS sub      GROUP BY sub.doctor,  DATE_FORMAT(sub.date_session,'%Y-%m')
+                , DATE_FORMAT(p.date_session, '%Y-%m-%d') ) AS sub      GROUP BY sub.doctor,  DATE_FORMAT(sub.date_session,'%Y-%m')
                         ");
         } else {
             $data = DB::connection('mysql')->select("SELECT 
@@ -2287,7 +2294,7 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
             DATE_FORMAT(sub.date_session,'%Y-%m-%d') as yr_mon
         FROM (
             SELECT 
-                COUNT(p.id) AS cnt, 
+                COUNT(DISTINCT p.id) AS cnt, 
                 d.name, 
                 p.doctor,
                 p.date_session
@@ -2298,7 +2305,14 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
         p.state = 'ACTIVE' 
         and p.doctor = $doctor
         and DATE_FORMAT(p.date_session, '%Y-%m-%d') between '$fdate' and '$tdate'
-            GROUP BY DATE_FORMAT(p.date_session, '%Y-%m')
+        AND EXISTS (
+            SELECT 1 
+            FROM schedule  s       
+            WHERE s.schedule = p.date_session
+            and s.patient_id = p.patient_id
+            and s.status = 'ACTIVE'
+        )
+            GROUP BY DATE_FORMAT(p.date_session, '%Y-%m-%d')
         ) AS sub GROUP BY DATE_FORMAT(sub.date_session,'%Y-%m')
         ");
         }
@@ -2454,7 +2468,7 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
             and s.status = 'ACTIVE'
         )
                     GROUP BY d.id
-                , DATE_FORMAT(p.date_session, '%Y-%m') ) AS sub      GROUP BY sub.doctor,  DATE_FORMAT(sub.date_session,'%Y-%m')
+                , DATE_FORMAT(p.date_session, '%Y-%m-%d') ) AS sub      GROUP BY sub.doctor,  DATE_FORMAT(sub.date_session,'%Y-%m')
                         ");
         } else {
             $data = DB::connection('mysql')->select("SELECT 
@@ -2465,7 +2479,7 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
             DATE_FORMAT(sub.date_session,'%Y-%m-%d') as yr_mon
         FROM (
             SELECT 
-                COUNT(p.id) AS cnt, 
+                COUNT(DISTINCT p.id) AS cnt, 
                 d.name, 
                 p.doctor,
                 p.date_session
@@ -2476,7 +2490,7 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
         p.state = 'ACTIVE' 
         and p.doctor = $doctor
         and DATE_FORMAT(p.date_session, '%Y-%m-%d') between '$fdate' and '$tdate'
-            GROUP BY DATE_FORMAT(p.date_session, '%Y-%m')
+            GROUP BY DATE_FORMAT(p.date_session, '%Y-%m-%d')
         ) AS sub GROUP BY DATE_FORMAT(sub.date_session,'%Y-%m')
         ");
         }

@@ -816,7 +816,7 @@ class CopayController extends Controller
             }, $patient['sessions']);
             
             $datesString = implode(', ', $datesFormatted);
-
+            
             $formattedData[] = [
                 'name' => $patient['patient_name'],
                 'no_of_sessions' => $patient['session_count'],

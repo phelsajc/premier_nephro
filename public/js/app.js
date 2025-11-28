@@ -7524,7 +7524,7 @@ __webpack_require__.r(__webpack_exports__);
         return sum + patient.total_copay;
       }, 0); // Add total row
 
-      tableData.push(["Total", totalSessions.toString(), "", totalCopay.toString()]); // Create table
+      tableData.push(["Total", totalSessions.toString(), "", totalCopay.toString() + "\n" + "gfgdfgdfgdfg"]); // Create table
 
       doc.autoTable({
         head: [["Name", "No. of Sessions", "Dates", "Total Copay"]],
