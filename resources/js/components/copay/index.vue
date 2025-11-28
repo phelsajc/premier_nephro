@@ -534,19 +534,33 @@ export default {
         patient.name,
         patient.no_of_sessions.toString(),
         patient.dates,
-        patient.total_copay.toString()
+        Number(patient.total_copay).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
       ]);
       
       // Calculate totals
       const totalSessions = this.doctorCopayPatients.reduce((sum, patient) => sum + patient.no_of_sessions, 0);
       const totalCopay = this.doctorCopayPatients.reduce((sum, patient) => sum + patient.total_copay, 0);
-      
+      let wtx = Number(totalCopay * 0.1).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+        let gross = Number(totalCopay).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+        let net = Number(totalCopay * 0.9).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
       // Add total row
       tableData.push([
         "Total",
         totalSessions.toString(),
         "",
-        totalCopay.toString()+"\n"+"gfgdfgdfgdfg"
+        gross+"\n"+"WTX: "+wtx+"\nNet: "+net
       ]);
 
       
