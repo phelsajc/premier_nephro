@@ -1775,6 +1775,7 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
         $rate1 = Settings::where('name', 'rate1')->first();
         $rate2 = Settings::where('name', 'rate2')->first();
         $rate3 = Settings::where('name', 'rate3')->first();
+        $rate4 = Settings::where('name', 'rate4')->first();
         $getNewUP = 0;
         $getNewP = 0;
         date_default_timezone_set('Asia/Manila');
@@ -1948,42 +1949,63 @@ group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
  group by DATE_FORMAT(p.date_session, '%Y-%m'),p.patient_id;");
 
  
-
+            $defaultPercent= 0.25;
 
             $arr['month'] = date_format(date_create($value->schedule), 'F Y');
             $monthArr[] = date_format(date_create($value->schedule), 'F Y');
             $session = $value->cnt;
             $getMultiplier = 0;
-            if (Carbon::parse($value->rate_schedule)->lessThan('2024-07-01')) {
-                $getMultiplier = ($rate1->value - 350);
+            // Use the start date of the month to determine which rate to use based on date_session
+            $dateSession = Carbon::parse($datesByMonth[$value->schedule]['start']);
+            
+            // Sept 1, 2021 - Aug 31, 2023: use rate1 and 0.25
+            $startDate0 = Carbon::parse('2021-09-01');
+            $endDate0 = Carbon::parse('2023-08-31');
+            // Sept 1, 2023 - June 30, 2024: use rate1 and 0.27
+            $startDate1 = Carbon::parse('2023-09-01');
+            $endDate1 = Carbon::parse('2024-06-30');
+            // July 1, 2024 - Oct 8, 2024: use rate2 and 0.27
+            $startDate2 = Carbon::parse('2024-07-01');
+            $endDate2 = Carbon::parse('2024-10-08');
+            // Oct 9, 2024 - Aug 31, 2025: use rate4 and 0.27
+            $startDate3 = Carbon::parse('2024-10-09');
+            $endDate3 = Carbon::parse('2025-08-31');
+            // Sept 1, 2025 - present: use rate3 and 0.27
+            $startDate4 = Carbon::parse('2025-09-01');
+            
+            if ($dateSession->greaterThanOrEqualTo($startDate0) && $dateSession->lessThanOrEqualTo($endDate0)) {
+                $getMultiplier = ($rate1->value - 0.25);
+                $defaultPercent = 0.25;
                 $gross = ($rate1->value - 350) * $session;
             }
-
-            $givenDate = Carbon::parse($value->rate_schedule);
-            $startDate = Carbon::parse('2024-07-01');
-            $endDate = Carbon::parse('2024-10-08');
-            if ($givenDate->between($startDate, $endDate)) {
-                $getMultiplier = ($rate2->value - 350);
+            elseif ($dateSession->greaterThanOrEqualTo($startDate1) && $dateSession->lessThanOrEqualTo($endDate1)) {
+                $getMultiplier = ($rate1->value - 0.27);
+                $defaultPercent= 0.27;    
+                $gross = ($rate1->value - 350) * $session;
+            }
+            elseif ($dateSession->greaterThanOrEqualTo($startDate2) && $dateSession->lessThanOrEqualTo($endDate2)) {
+                $getMultiplier = ($rate2->value - 0.27);
+                $defaultPercent= 0.27;    
                 $gross = ($rate2->value - 350) * $session;
             }
-
-            // Parse the dates
-            $givenDate = Carbon::parse($value->rate_schedule);
-            $comparisonDate = Carbon::parse('2024-10-8');
-
-            // Check if the given date is greater than the comparison date
-            if ($givenDate->greaterThan($comparisonDate)) {
-                $getMultiplier = ($rate3->value - 350);
+            elseif ($dateSession->greaterThanOrEqualTo($startDate3) && $dateSession->lessThanOrEqualTo($endDate3)) {
+                $getMultiplier = ($rate4->value - 0.27);
+                $defaultPercent= 0.27;    
+                $gross = ($rate4->value - 350) * $session;
+            }
+            elseif ($dateSession->greaterThanOrEqualTo($startDate4)) {
+                $getMultiplier = ($rate3->value - 0.27);
+                $defaultPercent= 0.3;    
                 $gross = ($rate3->value - 350) * $session;
             }
 
             //$gross = 2250 * $session;
             if ($value->doctor == 6) {
-                $share = $gross * 0.25;
+                $share = $gross * $defaultPercent;//0.25;
                 $tax = $share * 0.1;
                 $net = $share * 0.9;
             } else {
-                $share = $gross * 0.25;
+                $share = $gross * $defaultPercent;//0.25;
                 $tax = $share * 0.05;
                 $net = $share * 0.95;
             }
@@ -2490,6 +2512,13 @@ where $claimStatus  state = 'ACTIVE'  and  DATE_FORMAT(p.date_session, '%Y-%m-%d
         p.state = 'ACTIVE' 
         and p.doctor = $doctor
         and DATE_FORMAT(p.date_session, '%Y-%m-%d') between '$fdate' and '$tdate'
+        AND EXISTS (
+                            SELECT 1 
+                            FROM schedule s         
+                            WHERE s.schedule = p.date_session
+                            and s.patient_id = p.patient_id
+                            and s.status = 'ACTIVE'
+                        )
             GROUP BY DATE_FORMAT(p.date_session, '%Y-%m-%d')
         ) AS sub GROUP BY DATE_FORMAT(sub.date_session,'%Y-%m')
         ");
