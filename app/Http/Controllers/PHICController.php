@@ -356,7 +356,7 @@ class PHICController extends Controller
             $total_sharing_tax = 0;
             foreach ($getDoctor as $key => $value) {
                 //$getDoctor_sessions = DB::connection('mysql')->select("SELECT count(*) as count from phic   where remarks like '%$request->batch%' and status='PAID' and state = 'ACTIVE' and doctor = $value->id ");
-                $getDoctor_sessions = DB::connection('mysql')->select("SELECT * from phic   where remarks like '%$request->batch%' and status='PAID' and state = 'ACTIVE' and doctor = $value->id ");
+                $getDoctor_sessions = DB::connection('mysql')->select("SELECT * from phic   where remarks like '%$request->batch%' and date_session between '$fdate' and '$tdate' and status='PAID' and state = 'ACTIVE' and doctor = $value->id ");
                 $arr = array();
                 $arr_sharing = array();
 
@@ -368,9 +368,10 @@ class PHICController extends Controller
                 $total_amt_tx = 0;
                 $total_amt_net = 0;
 
+                $getPf = 0;
                 $getPhilhealthAmount = 0;
                 foreach ($getDoctor_sessions as $keyc => $valuec) {
-                    $getPf = 0;
+                    //$getPf = 0;
                     $givenDatePF = Carbon::parse($valuec->date_session);
                     $comparisonDatePF = Carbon::parse('2024-10-8');
                     if ($givenDatePF->greaterThan($comparisonDatePF)) {
@@ -449,7 +450,7 @@ class PHICController extends Controller
 
                 $arr_sharing['nephro'] = $value->name;
                 $arr_sharing['sess'] = sizeof($getDoctor_sessions);
-                $arr_sharing['amount_sharing'] = $getPhilhealthAmount;//"2,250";
+                $arr_sharing['amount_sharing'] = $getPhilhealthAmount-$getPf;//"2,250";
                 $arr_sharing['total'] = number_format($total_amt_sharing, 2);
                 $arr_sharing['sharing'] = number_format($total_amt_tx_sharing, 2);
                 $arr_sharing['tx'] = number_format($total_amt_tx_sharing_tax, 2);
